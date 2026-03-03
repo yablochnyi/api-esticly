@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('clients', function (Blueprint $table) {
+            $table->foreignId('created_by_staff_id')
+                ->nullable()
+                ->after('user_id')
+                ->constrained('staff')
+                ->nullOnDelete();
+
+            $table->index(['user_id', 'created_by_staff_id', 'id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('clients', function (Blueprint $table) {
+            $table->dropIndex(['user_id', 'created_by_staff_id', 'id']);
+            $table->dropConstrainedForeignId('created_by_staff_id');
+        });
+    }
+};
+

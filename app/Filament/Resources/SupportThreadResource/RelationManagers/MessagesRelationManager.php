@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Filament\Resources\SupportThreadResource\RelationManagers;
+
+use App\Jobs\SendSupportReplyPush;
+use App\Models\SupportMessage;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+
+class MessagesRelationManager extends RelationManager
+{
+    protected static string $relationship = 'messages';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return Gate::allows('access-filament-admin');
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('id', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('sender_type')->label('From')->badge(),
+                Tables\Columns\TextColumn::make('body')->label('Message')->wrap()->limit(200),
+                Tables\Columns\TextColumn::make('created_at')->label('At')->dateTime(),
+            ])
+            ->headerActions([
+                Action::make('reply')
+                    ->label('Reply')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->form([
+                        Textarea::make('body')
+                            ->label('Message')
+                            ->required()
+                            ->minLength(1)
+                            ->maxLength(4000),
+                    ])
+                    ->action(function (array $data) {
+                        $thread = $this->getOwnerRecord();
+                        $body = trim((string)($data['body'] ?? ''));
+                        if ($body === '') return;
+
+                        $preview = Str::limit(preg_replace('/\s+/', ' ', $body) ?: '', 255, '…');
+
+                        DB::transaction(function () use ($thread, $body, $preview) {
+                            SupportMessage::query()->create([
+                                'thread_id' => $thread->id,
+                                'org_id' => $thread->org_id,
+                                'sender_type' => 'support',
+                                'sender_user_id' => null,
+                                'body' => $body,
+                                'read_at_support' => now(),
+                                'read_at_user' => null,
+                            ]);
+
+                            $thread->last_message_at = now();
+                            $thread->last_message_preview = $preview;
+                            $thread->unread_for_user = (int)$thread->unread_for_user + 1;
+                            $thread->save();
+                        });
+
+                        // Push notification (queued) to org users (owner + staff).
+                        SendSupportReplyPush::dispatch((int)$thread->org_id, (int)$thread->id, $body);
+                    }),
+            ]);
+    }
+}
