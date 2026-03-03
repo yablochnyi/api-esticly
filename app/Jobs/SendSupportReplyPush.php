@@ -4,12 +4,13 @@ namespace App\Jobs;
 
 use App\Models\DeviceToken;
 use App\Models\User;
+use App\Support\FcmV1;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -25,59 +26,72 @@ class SendSupportReplyPush implements ShouldQueue
 
     public function handle(): void
     {
-        $serverKey = trim((string) env('FCM_SERVER_KEY', ''));
-        if ($serverKey === '') {
+        if (!FcmV1::isConfigured()) {
             Log::channel('push')->warning('support_push_skipped_fcm_not_configured', ['org_id' => $this->orgId]);
             return;
         }
 
-        // Notify owner + staff users belonging to this organization.
-        $userIds = User::query()
+        $recipients = User::query()
             ->where('id', $this->orgId)
             ->orWhere('organization_id', $this->orgId)
-            ->pluck('id')
-            ->map(fn ($x) => (int)$x)
-            ->values()
-            ->all();
+            ->get(['id', 'language_code']);
 
-        if (empty($userIds)) return;
+        if ($recipients->isEmpty()) return;
 
-        $tokens = DeviceToken::query()
-            ->whereIn('user_id', $userIds)
-            ->orderByDesc('last_seen_at')
-            ->limit(50)
-            ->pluck('token')
-            ->filter()
-            ->values()
-            ->all();
+        $messageBody = Str::limit(trim($this->body), 120, '…');
 
-        if (empty($tokens)) return;
+        foreach ($recipients as $recipient) {
+            $tokens = DeviceToken::query()
+                ->where('user_id', (int)$recipient->id)
+                ->orderByDesc('last_seen_at')
+                ->limit(20)
+                ->pluck('token')
+                ->filter()
+                ->values()
+                ->all();
 
-        $title = 'Support';
-        $body = Str::limit(trim($this->body), 120, '…');
+            if (empty($tokens)) {
+                continue;
+            }
 
-        try {
-            Http::withHeaders([
-                'Authorization' => 'key=' . $serverKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://fcm.googleapis.com/fcm/send', [
-                'registration_ids' => $tokens,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-                'data' => [
-                    'type' => 'support_message',
-                    'org_id' => (string) $this->orgId,
-                    'thread_id' => (string) $this->threadId,
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            Log::channel('push')->error('support_push_failed', [
-                'org_id' => $this->orgId,
-                'error' => $e->getMessage(),
-            ]);
+            $locale = $this->resolveLocale((string)($recipient->language_code ?? ''));
+            $title = (string) Lang::get('support_push.title', [], $locale);
+            $body = (string) Lang::get('support_push.body', ['message' => $messageBody], $locale);
+
+            try {
+                FcmV1::sendToTokens(
+                    tokens: $tokens,
+                    title: $title,
+                    body: $body,
+                    data: [
+                        'type' => 'support_message',
+                        'org_id' => (string) $this->orgId,
+                        'thread_id' => (string) $this->threadId,
+                    ],
+                );
+            } catch (\Throwable $e) {
+                Log::channel('push')->error('support_push_failed', [
+                    'org_id' => $this->orgId,
+                    'recipient_id' => (int)$recipient->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
-}
 
+    private function resolveLocale(string $lang): string
+    {
+        $supported = array_keys((array) config('site_locales.supported', []));
+        if (empty($supported)) {
+            $supported = ['pl', 'en', 'uk', 'it', 'fr', 'pt', 'de', 'es', 'cs'];
+        }
+
+        $lang = strtolower(trim($lang));
+        if (in_array($lang, $supported, true)) {
+            return $lang;
+        }
+
+        $fallback = (string) config('app.fallback_locale', 'en');
+        return in_array($fallback, $supported, true) ? $fallback : 'en';
+    }
+}

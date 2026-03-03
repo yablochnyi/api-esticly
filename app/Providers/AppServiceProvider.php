@@ -97,6 +97,17 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('waitlist-subscribe', function (Request $request) {
+            $ip = (string) $request->ip();
+            $email = mb_strtolower(trim((string) $request->input('email', '')));
+            $emailKey = $email !== '' ? $email : 'empty';
+
+            return [
+                Limit::perMinute(8)->by('waitlist:ip:'.$ip),
+                Limit::perHour(20)->by('waitlist:email:'.$emailKey),
+            ];
+        });
+
         // Restrict admin tools (Filament / Log Viewer / Horizon) by role.
         Gate::define('access-filament-admin', function ($user = null): bool {
             return AdminAccess::allows($user);

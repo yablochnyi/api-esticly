@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendBookingCreatedPush;
 use App\Models\Client;
 use App\Models\PortfolioPhoto;
 use App\Models\PromoCode;
@@ -589,7 +590,8 @@ class PublicBookingController extends Controller
         $endsUtc = (clone $startsUtc)->addMinutes($occupyMin);
 
         // Reuse VisitController overlap logic by doing a DB-level check inside a tx.
-        DB::transaction(function () use ($org, $service, $staffId, $startsUtc, $endsUtc, $data) {
+        $createdVisitId = null;
+        DB::transaction(function () use ($org, $service, $staffId, $startsUtc, $endsUtc, $data, &$createdVisitId) {
             // Use server-side overlap checker from VisitController by calling same logic:
             // We keep it simple: create will still be rejected later in mobile API if conflict,
             // but here we proactively check with buffers.
@@ -651,6 +653,7 @@ class PublicBookingController extends Controller
                 'status' => 'pending',
                 'comment' => Arr::get($data, 'comment'),
             ]);
+            $createdVisitId = (int)$visit->id;
 
             $promoCode = PromoCodes::norm($data['promo_code'] ?? '');
             if ($promoCode !== '') {
@@ -678,6 +681,10 @@ class PublicBookingController extends Controller
                 }
             }
         });
+
+        if ($createdVisitId) {
+            SendBookingCreatedPush::dispatch((int)$org->id, (int)$createdVisitId);
+        }
 
         return view('booking.done', [
             'org' => $org,

@@ -2,12 +2,10 @@
 
 namespace App\Support;
 
-use App\Models\DeviceToken;
+use App\Jobs\SendVisitReminderPush;
 use App\Models\User;
 use App\Models\Visit;
 use App\Models\VisitReminderDelivery;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class VisitReminders
 {
@@ -16,8 +14,7 @@ class VisitReminders
      */
     public static function run(): void
     {
-        $serverKey = trim((string) env('FCM_SERVER_KEY', ''));
-        if ($serverKey === '') {
+        if (!FcmV1::isConfigured()) {
             // Not configured; don't crash.
             return;
         }
@@ -71,7 +68,6 @@ class VisitReminders
                     recipient: $owner,
                     windowStart: $windowStart,
                     windowEnd: $windowEnd,
-                    serverKey: $serverKey,
                 );
             }
 
@@ -84,7 +80,6 @@ class VisitReminders
                         recipient: $staffUser,
                         windowStart: $windowStart,
                         windowEnd: $windowEnd,
-                        serverKey: $serverKey,
                     );
                 }
             }
@@ -110,82 +105,32 @@ class VisitReminders
         return $out;
     }
 
-    private static function sendForRecipient(Visit $visit, User $recipient, $windowStart, $windowEnd, string $serverKey): void
+    private static function sendForRecipient(Visit $visit, User $recipient, $windowStart, $windowEnd): void
     {
         $offsets = self::offsets($recipient);
         if (empty($offsets)) return;
 
         $startsAt = $visit->starts_at->copy()->utc();
-        $serviceName = $visit->service?->name ?? 'Visit';
-        $clientName = trim((string) ($visit->client_name ?? ''));
 
         foreach ($offsets as $m) {
             $dueAt = (clone $startsAt)->subMinutes($m);
             if ($dueAt->lt($windowStart) || $dueAt->gt($windowEnd)) continue;
 
-            // Deduplicate
             try {
-                VisitReminderDelivery::query()->create([
+                $delivery = VisitReminderDelivery::query()->create([
                     'visit_id' => $visit->id,
                     'user_id' => $recipient->id,
                     'offset_min' => $m,
                     'due_at' => $dueAt,
-                    'sent_at' => now()->utc(),
-                    'status' => 'sent',
+                    'sent_at' => null,
+                    'status' => 'pending',
+                    'error' => null,
                 ]);
+                SendVisitReminderPush::dispatch((int) $delivery->id);
             } catch (\Throwable $e) {
                 // likely unique constraint => already sent
                 continue;
             }
-
-            $tokens = DeviceToken::query()
-                ->where('user_id', $recipient->id)
-                ->orderByDesc('last_seen_at')
-                ->limit(20)
-                ->pluck('token')
-                ->filter()
-                ->values()
-                ->all();
-
-            if (empty($tokens)) continue;
-
-            $title = 'Reminder';
-            $body = $m >= 60
-                ? ('In ' . floor($m / 60) . 'h ' . ($m % 60 > 0 ? ($m % 60) . 'm ' : '') . ': ' . $serviceName)
-                : ('In ' . $m . ' min: ' . $serviceName);
-            if ($clientName !== '') {
-                $body .= ' • ' . $clientName;
-            }
-
-            // Legacy FCM API (simple). Requires env(FCM_SERVER_KEY).
-            try {
-                Http::withHeaders([
-                    'Authorization' => 'key=' . $serverKey,
-                    'Content-Type' => 'application/json',
-                ])->post('https://fcm.googleapis.com/fcm/send', [
-                    'registration_ids' => $tokens,
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $body,
-                    ],
-                    'data' => [
-                        'type' => 'visit_reminder',
-                        'visit_id' => (string) $visit->id,
-                        'offset_min' => (string) $m,
-                    ],
-                ]);
-            } catch (\Throwable $e) {
-                // Update status to failed (best-effort)
-                VisitReminderDelivery::query()
-                    ->where('visit_id', $visit->id)
-                    ->where('user_id', $recipient->id)
-                    ->where('offset_min', $m)
-                    ->update([
-                        'status' => 'failed',
-                        'error' => Str::limit($e->getMessage(), 255),
-                    ]);
-            }
         }
     }
 }
-

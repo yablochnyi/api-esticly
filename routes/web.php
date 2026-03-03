@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Admin\DsarExportController;
 use App\Http\Controllers\PublicBookingController;
+use App\Http\Controllers\PublicLaunchWaitlistController;
 use App\Http\Controllers\PublicReviewController;
 use App\Http\Controllers\PublicShortLinkController;
 
@@ -52,8 +53,12 @@ $renderMarketing = function (string $locale) use ($siteLocales, $siteLocaleCodes
 };
 
 Route::get('/', function () use ($siteDefaultLocale) {
-    return redirect()->route('marketing.localized', ['locale' => $siteDefaultLocale], 302);
+    return redirect()->route('marketing.localized', ['locale' => $siteDefaultLocale], 301);
 })->name('marketing.root');
+
+Route::post('/waitlist', [PublicLaunchWaitlistController::class, 'store'])
+    ->middleware('throttle:waitlist-subscribe')
+    ->name('marketing.waitlist');
 
 Route::get('/sitemap.xml', function () use ($siteLocaleCodes, $siteLocales, $siteXDefaultLocale) {
     $pages = [

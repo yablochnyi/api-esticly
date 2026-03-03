@@ -36,5 +36,25 @@ return [
         ['title' => 'Marketing', 'label' => 'automations and promos'],
         ['title' => 'Analytics', 'label' => 'revenue, visits, avg check'],
     ],
-    'hero_chips' => ['Calendar', 'Client card', 'Reminders', 'Promo codes', 'Analytics', 'DSAR / GDPR'],
+    'hero_chips' => ['Kalender', 'Kundenkarte', 'Erinnerungen', 'Promocodes', 'Analytics', 'DSAR / GDPR'],
+    'launch' => [
+        'badge' => 'BALD',
+        'title' => 'Die Esticly App ist bald in den Stores verfugbar',
+        'subtitle' => 'Hinterlasse Telefon und E-Mail. Wir informieren dich, sobald App Store und Google Play live sind.',
+    ],
+    'waitlist' => [
+        'email_label' => 'E-Mail',
+        'email_placeholder' => 'name@company.com',
+        'phone_label' => 'Telefonnummer',
+        'phone_placeholder' => '+49 000 0000000',
+        'submit' => 'Beim Start benachrichtigen',
+        'success' => 'Danke. Wir informieren dich, sobald die App in den Stores verfugbar ist.',
+    ],
+    'future' => [
+        'title' => 'Echte Salon-Ergebnisse mit Esticly',
+        'subtitle' => 'Zeige neuen Kunden, welchen Effekt der Wechsel in den ersten Wochen bringt.',
+    ],
+    'pricing' => [
+        'note' => 'Wahle den passenden Plan fur deine aktuelle Phase und skaliere ohne Systemwechsel mit deinem Team mit.',
+    ],
 ];

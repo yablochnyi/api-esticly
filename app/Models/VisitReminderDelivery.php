@@ -27,5 +27,14 @@ class VisitReminderDelivery extends Model
         'due_at' => 'datetime',
         'sent_at' => 'datetime',
     ];
-}
 
+    public function visit()
+    {
+        return $this->belongsTo(\App\Models\Visit::class, 'visit_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+}

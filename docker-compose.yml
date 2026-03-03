@@ -11,6 +11,8 @@ services:
     volumes:
       # optional for local dev: keep storage persistent
       - api_storage:/var/www/html/storage
+      # Firebase service-account key (FCM HTTP v1)
+      - ./firebase-service-account.json:/var/www/html/firebase-service-account.json:ro
       # backups will be written to host folder (inside api/)
       - ./backups/mysql:/backups/mysql
       - ./backups/project:/backups/project

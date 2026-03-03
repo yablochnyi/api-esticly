@@ -36,5 +36,25 @@ return [
         ['title' => 'Marketing', 'label' => 'automations and promos'],
         ['title' => 'Analytics', 'label' => 'revenue, visits, avg check'],
     ],
-    'hero_chips' => ['Calendar', 'Client card', 'Reminders', 'Promo codes', 'Analytics', 'DSAR / GDPR'],
+    'hero_chips' => ['Kalendar', 'Karta klienta', 'Pripominky', 'Promo kody', 'Analytika', 'DSAR / GDPR'],
+    'launch' => [
+        'badge' => 'BRZY',
+        'title' => 'Aplikace Esticly bude brzy dostupna ve storech',
+        'subtitle' => 'Nechte telefon a email. Jakmile budou App Store a Google Play dostupne, dame vam vedet.',
+    ],
+    'waitlist' => [
+        'email_label' => 'Pracovni email',
+        'email_placeholder' => 'name@company.com',
+        'phone_label' => 'Telefonni cislo',
+        'phone_placeholder' => '+420 000 000 000',
+        'submit' => 'Upozornit pri spusteni',
+        'success' => 'Hotovo. Jakmile bude aplikace ve storech, posleme upozorneni.',
+    ],
+    'future' => [
+        'title' => 'Realne vysledky salonu s Esticly',
+        'subtitle' => 'Ukazte novym klientum realny dopad uz v prvnich tydnech provozu.',
+    ],
+    'pricing' => [
+        'note' => 'Vyberte plan podle aktualni faze a ruste s tymem bez zmeny systemu.',
+    ],
 ];
