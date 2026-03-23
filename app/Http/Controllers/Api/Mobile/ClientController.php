@@ -62,19 +62,6 @@ class ClientController extends Controller
 
         $nowUtc = Carbon::now()->utc();
 
-        // Whitelist: clients with at least one future visit (not cancelled).
-        if ($request->boolean('whitelist')) {
-            $q->whereExists(function ($sub) use ($orgId, $nowUtc) {
-                $sub->select(DB::raw(1))
-                    ->from('visits')
-                    ->whereColumn('visits.client_id', 'clients.id')
-                    ->where('visits.user_id', $orgId)
-                    ->whereNotNull('visits.client_id')
-                    ->where('visits.status', '!=', 'cancelled')
-                    ->where('visits.starts_at', '>', $nowUtc);
-            });
-        }
-
         // Sleepers: clients who haven't had any visits in the last 3+ months (and no future visits).
         // Includes clients who never visited.
         if ($request->boolean('sleepers')) {

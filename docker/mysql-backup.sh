@@ -57,26 +57,40 @@ prune_s3() {
   local prefix="$1"
 
   if [ "$BACKUP_S3_ENABLED" != "true" ] || [ -z "$BACKUP_S3_BUCKET" ]; then
+    echo "[mysql-backup] S3 prune skipped. enabled=$BACKUP_S3_ENABLED bucket_set=$([ -n "$BACKUP_S3_BUCKET" ] && echo yes || echo no)"
     return
   fi
 
   local cutoff_iso
   cutoff_iso="$(date -u -d "-${BACKUP_S3_RETENTION_DAYS} days" '+%Y-%m-%dT%H:%M:%SZ')"
+  echo "[mysql-backup] checking S3 retention. bucket=$BACKUP_S3_BUCKET prefix=$prefix/ cutoff=$cutoff_iso retention_days=$BACKUP_S3_RETENTION_DAYS"
 
   local old_keys
-  old_keys="$(aws_s3 s3api list-objects-v2 \
+  local list_output
+  if ! list_output="$(aws_s3 s3api list-objects-v2 \
     --bucket "$BACKUP_S3_BUCKET" \
     --prefix "$prefix/" \
     --query "Contents[?LastModified<=\`$cutoff_iso\`].Key" \
-    --output text 2>/dev/null || true)"
+    --output text 2>&1)"; then
+    echo "[mysql-backup] S3 prune list failed: $list_output"
+    return
+  fi
+  old_keys="$list_output"
 
   if [ -z "$old_keys" ] || [ "$old_keys" = "None" ]; then
+    echo "[mysql-backup] no S3 objects matched retention cutoff"
     return
   fi
 
   for key in $old_keys; do
     echo "[mysql-backup] deleting old S3 object: $key"
-    aws_s3 s3api delete-object --bucket "$BACKUP_S3_BUCKET" --key "$key" --only-show-errors || true
+    local delete_output
+    if ! delete_output="$(aws_s3 s3api delete-object --bucket "$BACKUP_S3_BUCKET" --key "$key" --only-show-errors 2>&1)"; then
+      echo "[mysql-backup] failed to delete S3 object: $key"
+      echo "[mysql-backup] delete error: $delete_output"
+      continue
+    fi
+    echo "[mysql-backup] deleted S3 object: $key"
   done
 }
 

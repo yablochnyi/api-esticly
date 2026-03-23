@@ -2,7 +2,9 @@
 
 namespace App\Support;
 
+use App\Jobs\SendVisitReminderSms;
 use App\Jobs\SendVisitReminderPush;
+use App\Models\MarketingAutomation;
 use App\Models\User;
 use App\Models\Visit;
 use App\Models\VisitReminderDelivery;
@@ -14,10 +16,7 @@ class VisitReminders
      */
     public static function run(): void
     {
-        if (!FcmV1::isConfigured()) {
-            // Not configured; don't crash.
-            return;
-        }
+        $pushConfigured = FcmV1::isConfigured();
 
         $now = now()->utc();
 
@@ -38,6 +37,7 @@ class VisitReminders
 
         $ownerIds = $visits->pluck('user_id')->unique()->values()->all();
         $staffIds = $visits->pluck('staff_id')->filter()->unique()->values()->all();
+        $orgIds = $visits->pluck('user_id')->unique()->values()->all();
 
         /** @var array<int, User> $ownersById */
         $ownersById = User::query()
@@ -56,13 +56,25 @@ class VisitReminders
                 ->all();
         }
 
+        /** @var array<int, MarketingAutomation> $smsReminderByOrg */
+        $smsReminderByOrg = [];
+        if (!empty($orgIds)) {
+            $smsReminderByOrg = MarketingAutomation::query()
+                ->whereIn('user_id', $orgIds)
+                ->where('key', 'visit_reminder_sms')
+                ->where('enabled', true)
+                ->get(['user_id', 'delay_min'])
+                ->keyBy('user_id')
+                ->all();
+        }
+
         foreach ($visits as $v) {
             $startsAt = $v->starts_at ? $v->starts_at->copy()->utc() : null;
             if (!$startsAt) continue;
 
             // Owner: remind for all org visits (owner is admin).
             $owner = $ownersById[(int) $v->user_id] ?? null;
-            if ($owner) {
+            if ($owner && $pushConfigured) {
                 self::sendForRecipient(
                     visit: $v,
                     recipient: $owner,
@@ -72,7 +84,7 @@ class VisitReminders
             }
 
             // Staff: remind only for own visits.
-            if (!empty($v->staff_id)) {
+            if ($pushConfigured && !empty($v->staff_id)) {
                 $staffUser = $staffUsersByStaffId[(int) $v->staff_id] ?? null;
                 if ($staffUser) {
                     self::sendForRecipient(
@@ -82,6 +94,16 @@ class VisitReminders
                         windowEnd: $windowEnd,
                     );
                 }
+            }
+
+            $smsAutomation = $smsReminderByOrg[(int) $v->user_id] ?? null;
+            if ($smsAutomation) {
+                self::sendSmsForVisit(
+                    visit: $v,
+                    delayMin: (int) ($smsAutomation->delay_min ?? 0),
+                    windowStart: $windowStart,
+                    windowEnd: $windowEnd,
+                );
             }
         }
     }
@@ -132,5 +154,16 @@ class VisitReminders
                 continue;
             }
         }
+    }
+
+    private static function sendSmsForVisit(Visit $visit, int $delayMin, $windowStart, $windowEnd): void
+    {
+        if ($delayMin <= 0) return;
+
+        $startsAt = $visit->starts_at->copy()->utc();
+        $dueAt = (clone $startsAt)->subMinutes($delayMin);
+        if ($dueAt->lt($windowStart) || $dueAt->gt($windowEnd)) return;
+
+        SendVisitReminderSms::dispatch((int) $visit->id, $delayMin);
     }
 }
