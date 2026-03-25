@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\Mobile\AnalyticsController;
+use App\Http\Controllers\Api\Mobile\AppleAppStoreNotificationsController;
 use App\Http\Controllers\Api\Mobile\AuthController;
+use App\Http\Controllers\Api\Mobile\BillingController;
 use App\Http\Controllers\Api\Mobile\ClientController;
+use App\Http\Controllers\Api\Mobile\GooglePlayRtdnController;
 use App\Http\Controllers\Api\Mobile\ClientDsarController;
 use App\Http\Controllers\Api\Mobile\ClientNoteController;
 use App\Http\Controllers\Api\Mobile\CurrencyController;
@@ -27,11 +30,16 @@ Route::prefix('mobile')->group(function () {
     Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:otp-send');
     Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
     Route::get('/currencies', [CurrencyController::class, 'index']);
+    Route::post('/billing/google/rtdn', GooglePlayRtdnController::class);
+    Route::post('/billing/apple/notifications', AppleAppStoreNotificationsController::class);
 
     // protected
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/register', [RegisterController::class, 'store']);
+        Route::post('/billing/google/verify', [BillingController::class, 'verifyGooglePlay']);
+        Route::post('/billing/apple/verify', [BillingController::class, 'verifyAppleAppStore']);
+        Route::post('/billing/google/sync', [BillingController::class, 'syncGooglePlay']);
 
         Route::get('/clients', [ClientController::class, 'index']);
         Route::post('/clients', [ClientController::class, 'store']);

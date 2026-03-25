@@ -39,6 +39,7 @@ class ProfileController extends Controller
             'logo_url' => MediaUrl::publicFile($org->logo_path),
             'is_staff' => (bool)$u->staff_id,
             'staff_id' => $u->staff_id,
+            'subscription_provider' => $org->subscription_provider,
             ...$subscription,
         ]);
     }

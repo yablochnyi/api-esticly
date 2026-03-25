@@ -111,6 +111,7 @@ class ClientController extends Controller
         $data = $request->validate([
             'name' => ['required','string','max:255'],
             'phone' => ['nullable','string','max:50'],
+            'instagram' => ['nullable','string','max:255'],
         ]);
 
         $org = \App\Models\User::query()->findOrFail($orgId);
@@ -122,7 +123,7 @@ class ClientController extends Controller
         }
         $client = $org->clients()->create($data);
 
-        return response()->json($client->only(['id','name','phone']), 201);
+        return response()->json($client->only(['id','name','phone','instagram']), 201);
     }
 
     public function show(Request $request, Client $client)

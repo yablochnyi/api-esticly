@@ -62,6 +62,7 @@ class User extends Authenticatable implements FilamentUser
             'language_code' => 'string',
             'registered_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
+            'subscription_provider' => 'string',
         ];
     }
 
@@ -115,6 +116,16 @@ class User extends Authenticatable implements FilamentUser
     public function visits()
     {
         return $this->hasMany(Visit::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function subscriptionTransactions()
+    {
+        return $this->hasMany(SubscriptionTransaction::class);
     }
 
     public function canAccessPanel(Panel $panel): bool

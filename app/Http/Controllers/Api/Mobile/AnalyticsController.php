@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\User;
 use App\Support\StaffGuard;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -36,7 +37,7 @@ class AnalyticsController extends Controller
         $toUtc   = $toLocal->copy()->utc();
 
         $q = DB::table('visits')
-            ->where('user_id', $orgId)
+            ->where('visits.user_id', $orgId)
             ->whereBetween('starts_at', [$fromUtc, $toUtc]);
 
         // staff-user analytics: only own staff_id
@@ -96,6 +97,46 @@ class AnalyticsController extends Controller
 
         $clientsCount = (int)$distinctClientIds + (int)$distinctPhones + (int)$anonCount;
 
+        $days = [];
+        $cursor = $fromLocal->copy()->startOfDay();
+        while ($cursor->lte($toLocal)) {
+            $days[$cursor->toDateString()] = [
+                'visits' => 0,
+                'cancelled' => 0,
+                'revenue' => 0.0,
+            ];
+            $cursor->addDay();
+        }
+
+        $hourLoad = array_fill(0, 24, 0);
+        $rows = (clone $q)
+            ->select(['starts_at', 'status', 'price'])
+            ->orderBy('starts_at')
+            ->get();
+
+        foreach ($rows as $row) {
+            $local = Carbon::parse($row->starts_at)->utc()->setTimezone($tz);
+            $dayKey = $local->toDateString();
+            if (!array_key_exists($dayKey, $days)) {
+                continue;
+            }
+
+            $days[$dayKey]['visits']++;
+
+            if (($row->status ?? null) === 'cancelled') {
+                $days[$dayKey]['cancelled']++;
+            } else {
+                $hour = (int) $local->format('G');
+                if ($hour >= 0 && $hour < 24) {
+                    $hourLoad[$hour]++;
+                }
+            }
+
+            if (($row->status ?? null) === 'completed') {
+                $days[$dayKey]['revenue'] += (float) ($row->price ?? 0);
+            }
+        }
+
         // services unique
         $servicesUnique = (clone $q)->distinct('service_id')->count('service_id');
 
@@ -130,6 +171,19 @@ class AnalyticsController extends Controller
             'visits' => (int)$visitsCount,
             'revenue' => $revenue,
             'avg_check' => (float)$avgCheck,
+            'revenue_by_day' => array_map(fn ($key, $item) => [
+                'date' => $key,
+                'value' => round((float) $item['revenue'], 2),
+            ], array_keys($days), array_values($days)),
+            'visits_by_day' => array_map(fn ($key, $item) => [
+                'date' => $key,
+                'value' => (int) $item['visits'],
+            ], array_keys($days), array_values($days)),
+            'cancellations_by_day' => array_map(fn ($key, $item) => [
+                'date' => $key,
+                'value' => (int) $item['cancelled'],
+            ], array_keys($days), array_values($days)),
+            'hour_load' => array_values($hourLoad),
 
             'services_unique' => (int)$servicesUnique,
             'top_services' => $top,
