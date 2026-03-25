@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Support\MediaUrl;
+use App\Support\OrgSubscription;
 use App\Support\StaffGuard;
 use Illuminate\Http\Request;
 
@@ -23,6 +24,7 @@ class ProfileController extends Controller
 
         // если это staff-user, профиль организации нужен для timezone/schedule
         $org = $u->organization_id ? \App\Models\User::find($u->organization_id) : $u;
+        $subscription = OrgSubscription::status($org);
 
         return response()->json([
             'id' => $org->id,
@@ -37,6 +39,7 @@ class ProfileController extends Controller
             'logo_url' => MediaUrl::publicFile($org->logo_path),
             'is_staff' => (bool)$u->staff_id,
             'staff_id' => $u->staff_id,
+            ...$subscription,
         ]);
     }
 

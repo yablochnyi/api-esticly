@@ -8,9 +8,11 @@ use App\Models\StaffTimeOff;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\MediaUrl;
+use App\Support\OrgSubscription;
 use App\Support\PhoneIndex;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -34,6 +36,14 @@ class StaffController extends Controller
     {
         if ($request->user()?->staff_id) {
             abort(403, 'access_denied');
+        }
+
+        $orgId = $request->user()->organization_id ?? $request->user()->id;
+        $org = User::query()->findOrFail($orgId);
+        if (! OrgSubscription::canManageStaff($org)) {
+            throw new HttpResponseException(
+                response()->json(['message' => 'subscription_pro_required'], 402)
+            );
         }
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Support\MediaUrl;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -43,6 +44,9 @@ class RegisterController extends Controller
         $user->description = $data['description'] ?? null;
         $user->currency_code = strtoupper($data['currency_code']);
         $user->schedule = $data['schedule'];
+        if (empty($user->registered_at)) {
+            $user->registered_at = Carbon::now();
+        }
 
         $user->save();
 

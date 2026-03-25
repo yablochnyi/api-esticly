@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Models\VisitAgreement;
 use App\Support\PromoCodes;
+use App\Support\OrgSubscription;
 use App\Support\StaffGuard;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -36,6 +37,9 @@ class VisitController extends Controller
         $orgId = $user->organization_id ?? $user->id;
 
         $org = User::query()->findOrFail($orgId);
+        if (!OrgSubscription::canCreateVisits($org)) {
+            return response()->json(['message' => 'subscription_required'], 402);
+        }
         $tz = $org->timezone ?: 'Europe/Warsaw';
 
         $fromLocal = Carbon::createFromFormat('Y-m-d', $data['from'], $tz)->startOfDay();
