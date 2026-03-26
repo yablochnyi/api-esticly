@@ -15,6 +15,26 @@ use Twilio\Rest\Client as TwilioClient;
 
 class AuthController extends Controller
 {
+    private function reviewOtpPhone(): string
+    {
+        return trim((string) env('REVIEW_OTP_PHONE', ''));
+    }
+
+    private function reviewOtpCode(): string
+    {
+        return trim((string) env('REVIEW_OTP_CODE', '123456'));
+    }
+
+    private function isReviewOtpPhone(string $phone): bool
+    {
+        $configured = $this->reviewOtpPhone();
+        if ($configured === '') {
+            return false;
+        }
+
+        return $this->normalizeE164($phone) === $this->normalizeE164($configured);
+    }
+
     public function logout(Request $request)
     {
         $token = $request->user()?->currentAccessToken();
@@ -213,6 +233,16 @@ class AuthController extends Controller
 
         $to = $this->normalizeE164($data['phone']);
 
+        if ($this->isReviewOtpPhone($data['phone'])) {
+            Cache::put($this->otpCacheKey($data['phone']), $this->reviewOtpCode(), now()->addMinutes(10));
+
+            return response()->json([
+                'ok' => true,
+                'expires_in' => 600,
+                'channel' => 'review',
+            ]);
+        }
+
         // Prefer Twilio Verify if configured: no FROM needed, Twilio manages OTP.
         $sentViaTwilio = false;
         try {
@@ -264,26 +294,33 @@ class AuthController extends Controller
         $to = $this->normalizeE164($data['phone']);
         $code = (string)$data['code'];
 
-        // Prefer Twilio Verify check when configured.
-        $va = (string)config('services.twilio.verify_service_sid');
-        if (trim($va) !== '') {
-            try {
-                $ok = $this->checkOtpViaTwilioVerify($to, $code);
-            } catch (Throwable $e) {
-                report($e);
-                $ok = false;
-            }
-            if (!$ok) {
+        if ($this->isReviewOtpPhone($data['phone'])) {
+            if ($code !== $this->reviewOtpCode()) {
                 return response()->json(['message' => 'Invalid code'], 422);
             }
         } else {
-            // Fallback to cached OTP.
-            $key = $this->otpCacheKey($data['phone']);
-            $expected = Cache::get($key);
-            if (!$expected || $expected !== $code) {
-                return response()->json(['message' => 'Invalid code'], 422);
+
+            // Prefer Twilio Verify check when configured.
+            $va = (string)config('services.twilio.verify_service_sid');
+            if (trim($va) !== '') {
+                try {
+                    $ok = $this->checkOtpViaTwilioVerify($to, $code);
+                } catch (Throwable $e) {
+                    report($e);
+                    $ok = false;
+                }
+                if (!$ok) {
+                    return response()->json(['message' => 'Invalid code'], 422);
+                }
+            } else {
+                // Fallback to cached OTP.
+                $key = $this->otpCacheKey($data['phone']);
+                $expected = Cache::get($key);
+                if (!$expected || $expected !== $code) {
+                    return response()->json(['message' => 'Invalid code'], 422);
+                }
+                Cache::forget($key);
             }
-            Cache::forget($key);
         }
 
         $user = $this->findUserByPhone($data['phone']);
