@@ -13,6 +13,8 @@ services:
       - api_storage:/var/www/html/storage
       # Firebase service-account key (FCM HTTP v1)
       - ./firebase-service-account.json:/var/www/html/firebase-service-account.json:ro
+      # Google Play service-account key (subscriptions / RTDN sync)
+      - ./google-play-service-account.json:/var/www/html/google-play-service-account.json:ro
       # backups will be written to host folder (inside api/)
       - ./backups/mysql:/backups/mysql
       - ./backups/project:/backups/project

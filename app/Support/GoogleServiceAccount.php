@@ -18,7 +18,10 @@ class GoogleServiceAccount
             return self::$cachedCreds;
         }
 
-        $path = trim((string) env('GOOGLE_APPLICATION_CREDENTIALS', ''));
+        $path = trim((string) env('GOOGLE_PLAY_APPLICATION_CREDENTIALS', ''));
+        if ($path === '') {
+            $path = trim((string) env('GOOGLE_APPLICATION_CREDENTIALS', ''));
+        }
         if ($path === '' || !is_file($path)) {
             return null;
         }
