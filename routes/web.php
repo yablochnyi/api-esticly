@@ -74,6 +74,10 @@ Route::get('/sitemap.xml', function () use ($siteLocaleCodes, $siteLocales, $sit
             'lastmod' => now()->toAtomString(),
             'alternates' => [],
         ],
+        'account_deletion' => [
+            'lastmod' => now()->toAtomString(),
+            'alternates' => [],
+        ],
     ];
 
     foreach ($siteLocaleCodes as $code) {
@@ -81,9 +85,10 @@ Route::get('/sitemap.xml', function () use ($siteLocaleCodes, $siteLocales, $sit
         $pages['landing']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('marketing.localized', ['locale' => $code])];
         $pages['privacy']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('legal.privacy.localized', ['locale' => $code])];
         $pages['terms']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('legal.terms.localized', ['locale' => $code])];
+        $pages['account_deletion']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('legal.account-deletion.localized', ['locale' => $code])];
     }
 
-    foreach (['landing' => 'marketing.localized', 'privacy' => 'legal.privacy.localized', 'terms' => 'legal.terms.localized'] as $key => $routeName) {
+    foreach (['landing' => 'marketing.localized', 'privacy' => 'legal.privacy.localized', 'terms' => 'legal.terms.localized', 'account_deletion' => 'legal.account-deletion.localized'] as $key => $routeName) {
         $pages[$key]['alternates'][] = [
             'hreflang' => 'x-default',
             'href' => route($routeName, ['locale' => $siteXDefaultLocale]),
@@ -139,6 +144,26 @@ Route::get('/{locale}/terms', function (string $locale) use ($siteLocaleCodes) {
     App::setLocale($locale);
     return view('legal.terms', ['lang' => $locale, 'requested_lang' => $locale]);
 })->where('locale', $siteLocalePattern)->name('legal.terms.localized');
+
+Route::get('/delete-account', function (\Illuminate\Http\Request $request) {
+    $requested = strtolower(trim((string) $request->query('lang', 'uk')));
+
+    $supported = ['uk', 'pl', 'en', 'it', 'fr', 'pt', 'de', 'es', 'cs'];
+    $lang = in_array($requested, $supported, true) ? $requested : 'en';
+
+    return view('legal.account-deletion', [
+        'lang' => $lang,
+        'requested_lang' => $requested,
+    ]);
+})->name('legal.account-deletion');
+
+Route::get('/{locale}/delete-account', function (string $locale) use ($siteLocaleCodes) {
+    if (! in_array($locale, $siteLocaleCodes, true)) {
+        abort(404);
+    }
+    App::setLocale($locale);
+    return view('legal.account-deletion', ['lang' => $locale, 'requested_lang' => $locale]);
+})->where('locale', $siteLocalePattern)->name('legal.account-deletion.localized');
 
 // Public booking (path-based)
 Route::get('/b/{slug}', [PublicBookingController::class, 'landing'])->middleware('throttle:public-booking-view')->name('booking.landing');
