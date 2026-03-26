@@ -144,6 +144,43 @@ class GooglePlaySubscriptions
         return $subscription;
     }
 
+    public static function fetchSubscriptionData(string $purchaseToken): array
+    {
+        if (!self::isConfigured()) {
+            throw new \RuntimeException('google_play_not_configured');
+        }
+
+        return self::fetchSubscription($purchaseToken);
+    }
+
+    public static function linkedPurchaseToken(array $body): ?string
+    {
+        $linked = trim((string) ($body['linkedPurchaseToken'] ?? ''));
+
+        return $linked !== '' ? $linked : null;
+    }
+
+    public static function resolveProductId(array $body): ?string
+    {
+        $lineItems = $body['lineItems'] ?? null;
+        if (!is_array($lineItems) || $lineItems === []) {
+            return null;
+        }
+
+        foreach ($lineItems as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $productId = trim((string) ($item['productId'] ?? ''));
+            if ($productId !== '') {
+                return $productId;
+            }
+        }
+
+        return null;
+    }
+
     private static function fetchSubscription(string $purchaseToken): array
     {
         $token = GoogleServiceAccount::accessToken(self::SCOPE);

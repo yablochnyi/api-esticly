@@ -76,11 +76,39 @@ class GooglePlayRtdnController extends Controller
             ->where('purchase_token', $purchaseToken)
             ->first();
 
+        $resolvedProductId = null;
+        $linkedPurchaseToken = null;
+
+        if (!$subscription) {
+            try {
+                $remoteSubscription = GooglePlaySubscriptions::fetchSubscriptionData($purchaseToken);
+                $linkedPurchaseToken = GooglePlaySubscriptions::linkedPurchaseToken($remoteSubscription);
+                $resolvedProductId = GooglePlaySubscriptions::resolveProductId($remoteSubscription);
+
+                if ($linkedPurchaseToken) {
+                    $subscription = Subscription::query()
+                        ->with('user')
+                        ->where('provider', GooglePlaySubscriptions::PROVIDER)
+                        ->where('purchase_token', $linkedPurchaseToken)
+                        ->first();
+                }
+            } catch (\Throwable $e) {
+                Log::warning('google_play_rtdn_lookup_failed', [
+                    'message_id' => $messageId,
+                    'purchase_token' => $purchaseToken,
+                    'notification_type' => $notificationType,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         if (!$subscription || !$subscription->user) {
             Log::warning('google_play_rtdn_subscription_not_found', [
                 'message_id' => $messageId,
                 'purchase_token' => $purchaseToken,
                 'notification_type' => $notificationType,
+                'linked_purchase_token' => $linkedPurchaseToken,
+                'product_id' => $resolvedProductId,
             ]);
 
             return response()->json(['ok' => true]);
@@ -89,7 +117,7 @@ class GooglePlayRtdnController extends Controller
         try {
             GooglePlaySubscriptions::syncPurchase(
                 $subscription->user,
-                (string) $subscription->product_id,
+                $resolvedProductId ?: (string) $subscription->product_id,
                 $purchaseToken,
             );
 
@@ -98,6 +126,7 @@ class GooglePlayRtdnController extends Controller
                 'subscription_id' => $subscription->id,
                 'user_id' => $subscription->user_id,
                 'notification_type' => $notificationType,
+                'linked_purchase_token' => $linkedPurchaseToken,
             ]);
         } catch (\Throwable $e) {
             Log::warning('google_play_rtdn_sync_failed', [
@@ -105,6 +134,7 @@ class GooglePlayRtdnController extends Controller
                 'subscription_id' => $subscription->id,
                 'user_id' => $subscription->user_id,
                 'notification_type' => $notificationType,
+                'linked_purchase_token' => $linkedPurchaseToken,
                 'error' => $e->getMessage(),
             ]);
 
