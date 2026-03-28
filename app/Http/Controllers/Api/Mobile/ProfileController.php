@@ -131,6 +131,25 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function updateLanguage(Request $request)
+    {
+        $this->forbidStaffUser($request);
+        $data = $request->validate([
+            'language_code' => ['required', 'string', 'max:8'],
+        ]);
+
+        $u = $request->user();
+        $org = $u->organization_id ? \App\Models\User::findOrFail($u->organization_id) : $u;
+
+        $org->language_code = strtolower(trim($data['language_code']));
+        $org->save();
+
+        return response()->json([
+            'id' => $org->id,
+            'language_code' => $org->language_code,
+        ]);
+    }
+
     public function schedule(Request $request)
     {
         $u = $request->user();

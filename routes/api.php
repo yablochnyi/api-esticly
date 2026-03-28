@@ -64,6 +64,7 @@ Route::prefix('mobile')->group(function () {
         Route::patch('/services/{service}', [ServiceController::class, 'update']);
 
         Route::patch('/profile/currency', [ProfileController::class, 'updateCurrency']);
+        Route::patch('/profile/language', [ProfileController::class, 'updateLanguage']);
 
         Route::get('/staff', [StaffController::class, 'index']);
         Route::post('/staff', [StaffController::class, 'store']);
