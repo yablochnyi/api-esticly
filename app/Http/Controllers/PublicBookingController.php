@@ -164,8 +164,13 @@ class PublicBookingController extends Controller
         $endLocal = (clone $dayLocal)->setTime((int)$eh, (int)$em, 0);
         if (!$endLocal->greaterThan($startLocal)) return false;
 
+        $nowLocal = Carbon::now($this->tz($org));
+        $isToday = $dayLocal->isSameDay($nowLocal);
         $stepMin = 10;
         for ($t = clone $startLocal; $t->lessThan($endLocal); $t->addMinutes($stepMin)) {
+            if ($isToday && $t->lt($nowLocal)) {
+                continue;
+            }
             $endT = (clone $t)->addMinutes($occupyMin);
             if ($endT->greaterThan($endLocal)) break;
 
@@ -441,6 +446,8 @@ class PublicBookingController extends Controller
         $occupyMin = max($this->durationMin($service), 10);
         $candBefore = (int)($service->buffer_before_min ?? 0);
         $candAfter = (int)($service->buffer_after_min ?? 0);
+        $nowLocal = Carbon::now($tz);
+        $isToday = $dayLocal->isSameDay($nowLocal);
 
         // Pull visits for the local day (converted to UTC range)
         $startUtc = (clone $dayLocal)->startOfDay()->utc();
@@ -456,6 +463,9 @@ class PublicBookingController extends Controller
 
         $times = [];
         for ($t = clone $startLocal; $t->lessThan($endLocal); $t->addMinutes(10)) {
+            if ($isToday && $t->lt($nowLocal)) {
+                continue;
+            }
             $endT = (clone $t)->addMinutes($occupyMin);
             if ($endT->greaterThan($endLocal)) break;
 
