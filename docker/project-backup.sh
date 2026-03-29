@@ -57,28 +57,42 @@ prune_s3() {
     return
   fi
 
-  local cutoff_iso
-  cutoff_iso="$(date -u -d "-${BACKUP_S3_RETENTION_DAYS} days" '+%Y-%m-%dT%H:%M:%SZ')"
-  echo "[project-backup] checking S3 retention. bucket=$BACKUP_S3_BUCKET prefix=$prefix/ cutoff=$cutoff_iso retention_days=$BACKUP_S3_RETENTION_DAYS"
+  local now_epoch cutoff_epoch
+  now_epoch="$(date -u +%s)"
+  cutoff_epoch="$((now_epoch - BACKUP_S3_RETENTION_DAYS * 86400))"
+  echo "[project-backup] checking S3 retention. bucket=$BACKUP_S3_BUCKET prefix=$prefix/ cutoff_epoch=$cutoff_epoch retention_days=$BACKUP_S3_RETENTION_DAYS"
 
-  local old_keys
   local list_output
   if ! list_output="$(aws_s3 s3api list-objects-v2 \
     --bucket "$BACKUP_S3_BUCKET" \
     --prefix "$prefix/" \
-    --query "Contents[?LastModified<=\`$cutoff_iso\`].Key" \
+    --query 'Contents[].[Key,LastModified]' \
     --output text 2>&1)"; then
     echo "[project-backup] S3 prune list failed: $list_output"
     return
   fi
-  old_keys="$list_output"
 
-  if [ -z "$old_keys" ] || [ "$old_keys" = "None" ]; then
-    echo "[project-backup] no S3 objects matched retention cutoff"
+  if [ -z "$list_output" ] || [ "$list_output" = "None" ]; then
+    echo "[project-backup] no S3 objects found under prefix"
     return
   fi
 
-  for key in $old_keys; do
+  local old_count=0
+  while IFS=$'\t' read -r key last_modified_raw _rest; do
+    [ -z "${key:-}" ] && continue
+    [ -z "${last_modified_raw:-}" ] && continue
+
+    local last_modified_epoch
+    if ! last_modified_epoch="$(date -u -d "$last_modified_raw" +%s 2>/dev/null)"; then
+      echo "[project-backup] failed to parse LastModified for key=$key value=$last_modified_raw"
+      continue
+    fi
+
+    if [ "$last_modified_epoch" -gt "$cutoff_epoch" ]; then
+      continue
+    fi
+
+    old_count=$((old_count + 1))
     echo "[project-backup] deleting old S3 object: $key"
     local delete_output
     if ! delete_output="$(aws_s3 s3api delete-object --bucket "$BACKUP_S3_BUCKET" --key "$key" --only-show-errors 2>&1)"; then
@@ -87,7 +101,13 @@ prune_s3() {
       continue
     fi
     echo "[project-backup] deleted S3 object: $key"
-  done
+  done <<< "$list_output"
+
+  if [ "$old_count" -eq 0 ]; then
+    echo "[project-backup] no S3 objects matched retention cutoff"
+  else
+    echo "[project-backup] S3 prune finished. matched_old_objects=$old_count"
+  fi
 }
 
 echo "[project-backup] started. interval=${INTERVAL_MIN}min retention=${RETENTION_DAYS}d dir=${BACKUP_DIR}"
