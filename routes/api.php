@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Mobile\DeviceController;
 use App\Http\Controllers\Api\Mobile\MarketingAutomationController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\OnlineBookingController;
+use App\Http\Controllers\Api\Mobile\PersonalNoteController;
 use App\Http\Controllers\Api\Mobile\PortfolioController;
 use App\Http\Controllers\Api\Mobile\RegisterController;
 use App\Http\Controllers\Api\Mobile\ReviewController;
@@ -51,6 +52,11 @@ Route::prefix('mobile')->group(function () {
         Route::get('/clients/{client}/notes', [ClientNoteController::class, 'index']);
         Route::post('/clients/{client}/notes', [ClientNoteController::class, 'store']);
         Route::patch('/client-notes/{note}', [ClientNoteController::class, 'update']);
+
+        Route::get('/notes', [PersonalNoteController::class, 'index']);
+        Route::post('/notes', [PersonalNoteController::class, 'store']);
+        Route::patch('/notes/{note}', [PersonalNoteController::class, 'update']);
+        Route::delete('/notes/{note}', [PersonalNoteController::class, 'destroy']);
 
         Route::get('/me', [ProfileController::class, 'me']);
         Route::get('/me/staff', [ProfileController::class, 'staffMe']);

@@ -73,9 +73,9 @@ class ProfileController extends Controller
         $org = $u->organization_id ? \App\Models\User::findOrFail($u->organization_id) : $u;
 
         $data = $request->validate([
-            'company_name' => ['required','string','max:255'],
+            'company_name' => ['required','string','max:1000'],
             'description' => ['nullable','string','max:2000'],
-            'address' => ['nullable','string','max:255'],
+            'address' => ['nullable','string','max:5000'],
             'email' => ['nullable','email','max:255'],
             'timezone' => ['nullable','string','max:64'],
             'language_code' => ['nullable','string','max:8'],

@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\ClientNote;
-use App\Models\Visit;
 use App\Support\StaffGuard;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 
 class ClientNoteController extends Controller
 {
@@ -27,22 +25,6 @@ class ClientNoteController extends Controller
         if ($u->staff_id) {
             $staff = StaffGuard::currentOrAbort($request);
             StaffGuard::requirePermission($staff, 'clients_access');
-
-            if (Schema::hasColumn('clients', 'created_by_staff_id')) {
-                $allowed = ($client->created_by_staff_id && (int)$client->created_by_staff_id === (int)$staff->id)
-                    || Visit::query()
-                        ->where('user_id', $orgId)
-                        ->where('staff_id', (int)$staff->id)
-                        ->where('client_id', (int)$client->id)
-                        ->exists();
-            } else {
-                $allowed = Visit::query()
-                    ->where('user_id', $orgId)
-                    ->where('staff_id', (int)$staff->id)
-                    ->where('client_id', (int)$client->id)
-                    ->exists();
-            }
-            abort_unless($allowed, 404);
         }
     }
 

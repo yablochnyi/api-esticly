@@ -10,8 +10,16 @@ use Illuminate\Support\Facades\DB;
 
 class MarketingAutomationController extends Controller
 {
+    private function forbidStaffUser(Request $request): void
+    {
+        if ($request->user()?->staff_id) {
+            abort(403, 'access_denied');
+        }
+    }
+
     public function index(Request $request)
     {
+        $this->forbidStaffUser($request);
         $u = $request->user();
         $orgId = $u->organization_id ?? $u->id;
 
@@ -47,6 +55,7 @@ class MarketingAutomationController extends Controller
 
     public function upsert(Request $request, string $id)
     {
+        $this->forbidStaffUser($request);
         $u = $request->user();
         $orgId = $u->organization_id ?? $u->id;
 

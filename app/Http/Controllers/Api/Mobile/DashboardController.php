@@ -33,15 +33,12 @@ class DashboardController extends Controller
             $staff = StaffGuard::currentOrAbort($request);
             $visitsQ->where('staff_id', (int)$staff->id);
 
-            // Only count clients that staff can actually access.
             $clientsAccess = (bool)($staff->permissions['clients_access'] ?? false);
             if ($clientsAccess) {
-                $clientsCount = (int) DB::table('visits')
+                $clientsCount = (int) DB::table('clients')
                     ->where('user_id', $orgId)
-                    ->where('staff_id', (int)$staff->id)
-                    ->whereNotNull('client_id')
-                    ->distinct()
-                    ->count('client_id');
+                    ->whereNull('deleted_at')
+                    ->count();
             } else {
                 $clientsCount = 0;
             }
@@ -71,4 +68,3 @@ class DashboardController extends Controller
         ]);
     }
 }
-

@@ -180,7 +180,7 @@
                 datetime: @json(__('booking.steps.datetime')),
                 details: @json(__('booking.steps.details')),
             },
-            salon: @json(__('booking.salon')),
+            salon: @json($org->company_name ?: __('booking.salon')),
             dayShort: [
                 @json(__('booking.days_short.mon')),
                 @json(__('booking.days_short.tue')),
@@ -339,7 +339,7 @@
             staffList.innerHTML = '';
             staffEmpty.style.display = 'none';
 
-            // "Salon" option (no master) => staff_id=0
+            // Organization-wide option (no specific master) => staff_id=0
             const salonBtn = document.createElement('button');
             salonBtn.type = 'button';
             salonBtn.textContent = I18N.salon;

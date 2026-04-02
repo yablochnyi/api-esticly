@@ -503,11 +503,15 @@ class StaffController extends Controller
 
         // Disable & revoke tokens (but keep DB history)
         $staff->is_active = false;
+        $staff->phone = null;
         $staff->save();
 
         $u = User::where('staff_id', $staff->id)->first();
         if ($u) {
             $u->tokens()->delete();
+            $u->phone = null;
+            $u->phone_verified_at = null;
+            $u->save();
         }
 
         $staff->delete(); // soft delete (migration adds deleted_at)

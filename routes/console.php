@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Support\VisitReminders;
 use App\Support\Audit;
 use App\Support\Dsar;
+use App\Support\PersonalNoteReminders;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -17,6 +18,10 @@ Artisan::command('inspire', function () {
 Artisan::command('reminders:send', function () {
     VisitReminders::run();
 })->purpose('Send upcoming visit reminders via push');
+
+Artisan::command('notes:send-reminders', function () {
+    PersonalNoteReminders::run();
+})->purpose('Send personal note reminders via push');
 
 Artisan::command('audit:prune {--days=}', function () {
     $daysOpt = $this->option('days');
@@ -168,6 +173,11 @@ Artisan::command('backup:verify-mysql {--file=}', function () {
 })->purpose('Restore latest MySQL backup into temp DB and verify it');
 
 Schedule::command('reminders:send')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+Schedule::command('notes:send-reminders')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();

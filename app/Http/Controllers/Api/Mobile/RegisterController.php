@@ -22,8 +22,8 @@ class RegisterController extends Controller
         }
 
         $data = $request->validate([
-            'company_name' => ['required', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'company_name' => ['required', 'string', 'max:1000'],
+            'address' => ['nullable', 'string', 'max:5000'],
             'description' => ['nullable', 'string', 'max:2000'],
             'currency_code' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
             'schedule' => ['required', 'array'],

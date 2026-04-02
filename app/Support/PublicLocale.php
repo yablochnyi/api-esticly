@@ -6,6 +6,29 @@ use Illuminate\Http\Request;
 
 class PublicLocale
 {
+    private static function normalizeCandidate(?string $locale, array $supported): ?string
+    {
+        $value = strtolower(trim((string) $locale));
+        if ($value === '') {
+            return null;
+        }
+
+        if (in_array($value, $supported, true)) {
+            return $value;
+        }
+
+        $base = explode('-', $value)[0] ?? $value;
+        $base = strtolower(trim((string) $base));
+        if ($base !== '' && in_array($base, $supported, true)) {
+            return $base;
+        }
+
+        return match ($base) {
+            'ru', 'be' => in_array('uk', $supported, true) ? 'uk' : null,
+            default => null,
+        };
+    }
+
     /**
      * @return array<int, string>
      */
@@ -24,27 +47,28 @@ class PublicLocale
     {
         $supported = self::supported();
 
-        $explicit = strtolower(trim((string)$request->query('lang', $request->input('lang', ''))));
-        if ($explicit !== '' && in_array($explicit, $supported, true)) {
+        $explicit = self::normalizeCandidate($request->query('lang', $request->input('lang', '')), $supported);
+        if ($explicit !== null) {
             return $explicit;
         }
 
-        $preferred = $request->getPreferredLanguage($supported);
-        if (is_string($preferred) && in_array($preferred, $supported, true)) {
-            return $preferred;
+        foreach ($request->getLanguages() as $candidate) {
+            $preferred = self::normalizeCandidate($candidate, $supported);
+            if ($preferred !== null) {
+                return $preferred;
+            }
         }
 
-        $orgLang = strtolower(trim((string)$orgLanguageCode));
-        if ($orgLang !== '' && in_array($orgLang, $supported, true)) {
+        $orgLang = self::normalizeCandidate($orgLanguageCode, $supported);
+        if ($orgLang !== null) {
             return $orgLang;
         }
 
-        $default = strtolower(trim((string)config('site_locales.default', 'en')));
-        if (in_array($default, $supported, true)) {
+        $default = self::normalizeCandidate(config('site_locales.default', 'en'), $supported);
+        if ($default !== null) {
             return $default;
         }
 
         return 'en';
     }
 }
-

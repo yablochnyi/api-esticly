@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
-use App\Models\Visit;
 use App\Support\StaffGuard;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -25,35 +24,6 @@ class ClientController extends Controller
         if ($u->staff_id) {
             $staff = StaffGuard::currentOrAbort($request);
             StaffGuard::requirePermission($staff, 'clients_access');
-
-            // Backward compatible: created_by_staff_id may not exist yet (migration pending).
-            if (Schema::hasColumn('clients', 'created_by_staff_id')) {
-                // Staff sees only "their" clients:
-                // - clients created by this staff member
-                // - clients that already have at least one visit with this staff member
-                $q->where(function ($sub) use ($orgId, $staff) {
-                    $sub->where('created_by_staff_id', (int)$staff->id)
-                        ->orWhereExists(function ($v) use ($orgId, $staff) {
-                            $v->select(DB::raw(1))
-                                ->from('visits')
-                                ->whereColumn('visits.client_id', 'clients.id')
-                                ->where('visits.user_id', $orgId)
-                                ->where('visits.staff_id', (int)$staff->id)
-                                ->whereNotNull('visits.client_id')
-                                ->where('visits.status', '!=', 'cancelled');
-                        });
-                });
-            } else {
-                // Old behavior: only clients that already have at least one visit with this staff.
-                $clientIds = Visit::query()
-                    ->where('user_id', $orgId)
-                    ->where('staff_id', (int)$staff->id)
-                    ->whereNotNull('client_id')
-                    ->distinct()
-                    ->pluck('client_id')
-                    ->all();
-                $q->whereIn('id', $clientIds);
-            }
         }
 
         if ($request->boolean('blocked')) {
@@ -135,22 +105,6 @@ class ClientController extends Controller
         if ($u->staff_id) {
             $staff = StaffGuard::currentOrAbort($request);
             StaffGuard::requirePermission($staff, 'clients_access');
-
-            if (Schema::hasColumn('clients', 'created_by_staff_id')) {
-                $allowed = ($client->created_by_staff_id && (int)$client->created_by_staff_id === (int)$staff->id)
-                    || Visit::query()
-                        ->where('user_id', $orgId)
-                        ->where('staff_id', (int)$staff->id)
-                        ->where('client_id', $client->id)
-                        ->exists();
-            } else {
-                $allowed = Visit::query()
-                    ->where('user_id', $orgId)
-                    ->where('staff_id', (int)$staff->id)
-                    ->where('client_id', $client->id)
-                    ->exists();
-            }
-            abort_unless($allowed, 404);
         }
 
         return response()->json([
@@ -171,22 +125,6 @@ class ClientController extends Controller
         if ($u->staff_id) {
             $staff = StaffGuard::currentOrAbort($request);
             StaffGuard::requirePermission($staff, 'clients_access');
-
-            if (Schema::hasColumn('clients', 'created_by_staff_id')) {
-                $allowed = ($client->created_by_staff_id && (int)$client->created_by_staff_id === (int)$staff->id)
-                    || Visit::query()
-                        ->where('user_id', $orgId)
-                        ->where('staff_id', (int)$staff->id)
-                        ->where('client_id', $client->id)
-                        ->exists();
-            } else {
-                $allowed = Visit::query()
-                    ->where('user_id', $orgId)
-                    ->where('staff_id', (int)$staff->id)
-                    ->where('client_id', $client->id)
-                    ->exists();
-            }
-            abort_unless($allowed, 404);
         }
 
         $data = $request->validate([
