@@ -11,17 +11,14 @@
 </head>
 <body>
 
-<!-- Header Navigation -->
 <header class="header">
     <div class="header__container">
         <button class="header__menu-btn" id="menuBtn">
-            <span></span>
-            <span></span>
-            <span></span>
+            <img src="{{asset('assets/public/burger-mobile.svg')}}" alt="">
         </button>
 
         <div class="header__logo">
-            <img src="{{asset('assets/public/logo.png')}}" alt="Logo" width="80" height="80">
+            <img class="header__logo__inner" src="{{asset('assets/public/logo.svg')}}" alt="Logo" >
         </div>
 
         <nav class="header__nav" id="mobileMenu">
@@ -36,11 +33,14 @@
         </nav>
 
         <div class="header__actions">
-            <select class="header__lang-select">
-                <option value="ru">RU</option>
-                <option value="en">EN</option>
-                <option value="ua">UA</option>
-            </select>
+            <div class="header__lang-wrapper">
+                <select class="header__lang-select">
+                    <option value="ru">RU</option>
+                    <option value="en">EN</option>
+                    <option value="ua">UA</option>
+                </select>
+                <img src="{{asset('assets/public/vector-down.svg')}}" alt="" class="header__lang-icon" width="8px">
+            </div>
             <button class="header__btn header__btn--desktop">Скачать приложение</button>
         </div>
     </div>
@@ -54,7 +54,7 @@
 <section class="hero">
     <div class="hero__container">
         <div class="hero__content">
-            <h1 class="hero__title">Управляйте записями и клиентами без хаоса</h1>
+            <h1 class="hero__title">Управляйте записями <br> и клиентами без хаоса</h1>
 
             <p class="hero__description">
                 Esticly — это CRM для салонов красоты и частных мастеров, которая помогает автоматизировать запись клиентов, управлять клиентской базой, отправлять напоминания и контролировать доход в одном приложении.
@@ -62,17 +62,17 @@
 
             <div class="hero__features">
                 <div class="hero__feature">
-                    <img src="{{asset('assets/public/purplestar.png')}}" alt="">
+                    <img src="{{asset('assets/public/purplestar.svg')}}" alt="">
                     <p>Система онлайн-записи клиентов позволяет принимать заявки 24/7 без звонков, сообщений и длительных переписок.</p>
                 </div>
 
                 <div class="hero__feature">
-                    <img src="{{asset('assets/public/purplestar.png')}}" alt="">
+                    <img src="{{asset('assets/public/purplestar.svg')}}" alt="">
                     <p>Это снижает нагрузку на мастера или администратора, уменьшает количество ошибок и помогает увеличить число записей.</p>
                 </div>
 
                 <div class="hero__feature">
-                    <img src="{{asset('assets/public/purplestar.png')}}" alt="">
+                    <img src="{{asset('assets/public/purplestar.svg')}}" alt="">
                     <p >Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более организованным и предсказуемым.</p>
                 </div>
             </div>
@@ -84,7 +84,7 @@
         </div>
 
         <div class="hero__image">
-            <img src="{{asset('assets/public/hero-section-image.png')}}" alt="App mockup" class="hero__phones">
+            <img src="{{asset('assets/public/hero-phone.png')}}" alt="App mockup" class="hero__phones">
         </div>
     </div>
 
@@ -93,8 +93,8 @@
         <div class="hero__bottom-container">
             <p class="hero__bottom-text">Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более организованным и предсказуемым.</p>
             <div class="hero__apps">
-                <img src="{{asset('assets/public/appstore.png')}}" alt="App Store" class="hero__app-badge">
-                <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play" class="hero__app-badge">
+                <img src="{{asset('assets/public/appstore.svg')}}" alt="App Store" class="hero__app-badge">
+                <img src="{{asset('assets/public/playstore.svg')}}" alt="Google Play" class="hero__app-badge">
             </div>
         </div>
     </div>
@@ -111,10 +111,9 @@
         <h2 class="problems__title">Проблемы и решения</h2>
 
         <div class="problems__content">
-            <!-- Left Card -->
             <div class="problems__card problems__card--white">
                 <h3 class="problems__card-title">
-                    <span class="problems__icon"><img src="{{asset('assets/public/message-icon.png')}}" alt=""></span>
+                    <span class="problems__icon"><img src="{{asset('assets/public/message-icon.svg')}}" alt=""></span>
                     Записи вручную/мессенджеры/соц.сети
                 </h3>
 
@@ -124,19 +123,19 @@
 
                 <ul class="problems__list">
                     <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.png')}}" alt=""></span>
+                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
                         Мессенджеры
                     </li>
                     <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.png')}}" alt=""></span>
+                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
                         Социальные сети
                     </li>
                     <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.png')}}" alt=""></span>
+                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
                         Блокноты
                     </li>
                     <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.png')}}" alt=""></span>
+                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
                         Заметки в телефоне
                     </li>
                 </ul>
@@ -150,10 +149,9 @@
                 </p>
             </div>
 
-            <!-- Right Card - Blue -->
             <div class="problems__card problems__card--blue">
                 <div class="problems__card-header">
-                    <span class="problems__brand-icon"><img src="{{asset('assets/public/mini_logo.png')}}" alt=""></span>
+                    <span class="problems__brand-icon"><img src="{{asset('assets/public/mini_logo.svg')}}" alt=""></span>
                     <h3 class="problems__card-title problems__card-title--blue">Esticly</h3>
                 </div>
 
@@ -163,25 +161,25 @@
 
                 <ul class="problems__features-list">
                     <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.png')}}" alt=""></span>
+                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Запись клиентов
                     </li>
                     <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.png')}}" alt=""></span>
+                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Клиентскую базу
                     </li>
                     <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.png')}}" alt=""></span>
+                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Автоматические напоминания
                     </li>
                     <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.png')}}" alt=""></span>
+                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Аналитику и управление ежедневными задачами
                     </li>
                 </ul>
 
                 <p class="problems__card-text problems__card-text--blue">
-                    Вместо нескольких разрозненных инструментов вы получаете одну CRM для мастеров и салонов красоты, в которой все процессы связаны между собой.
+                    Вместо нескольких разрозненных инструментов вы получаете <br> одну CRM для мастеров и салонов красоты, в которой все процессы связаны между собой.
                 </p>
 
                 <p class="problems__highlight">
@@ -204,7 +202,7 @@
                     <img src="{{asset('assets/public/features1.png')}}" alt="Онлайн-запись" class="features__img">
                 </div>
                 <h3 class="features__card-title">
-                    <span class="features__icon"><img src="{{asset('assets/public/phone_icon.png')}}" alt=""></span>
+                    <span class="features__icon"><img class="features_icon__inner" src="{{asset('assets/public/phone_icon.png')}}" alt=""></span>
                     Онлайн-запись клиентов.
                 </h3>
                 <p class="features__card-text">
@@ -214,7 +212,7 @@
 
             <div class="features__card">
                 <div class="features__image">
-                    <img src="{{asset('assets/public/feature2.png')}}" alt="Автоматические напоминания" class="features__img">
+                    <img src="{{asset('assets/public/features2.png')}}" alt="Автоматические напоминания" class="features__img">
                 </div>
                 <h3 class="features__card-title">
                     <span class="features__icon"><img src="{{asset('assets/public/icon2.png')}}" alt=""></span>
@@ -257,36 +255,45 @@
 
 
 
-<!-- CTA Section -->
 <section class="hero-cta">
-    <div class="hero-cta__container">
-        <div class="hero-cta__content">
-            <h2 class="hero-cta__title">
-                Управляйте записями Esticly развивается вместе с пользователями.
-            </h2>
+    <div class="hero-cta__card">
 
-            <p class="hero-cta__text">
-                Если вам не хватает какой-то функции, вы можете отправить запрос прямо из приложения, и команда рассмотрит возможность ее добавления. Это важное отличие от многих CRM-систем, где пользователю приходится подстраиваться под продукт.
-            </p>
-
-
-        </div>
-
-        <div class="hero-cta__image">
-            <img src="{{asset('assets/public/Frame 11.png')}}" alt="Esticly App">
-        </div>
-    </div>
-
-
-    </div>
-    <div class="hero-cta__bottom">
-        <div class="hero-cta__bottom-container">
-            <p class="hero-cta__bottom-text">Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.</p>
-            <div class="hero-cta__apps">
-                <img src="{{asset('assets/public/appstore.png')}}" alt="App Store" class="hero-cta__app-badge">
-                <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play" class="hero-cta__app-badge">
+        <div class="hero-cta__phone-bg">
+            <div class="hero-cta__badge">
+                <img src="{{asset('assets/public/esticly-mini.png')}}" alt="Esticly Logo">
+            </div>
+            <img src="{{asset('assets/public/secondphone.png')}}" alt="" class="hero-cta__phone" aria-hidden="true">
+            <div class="hero-cta__ellipse">
+                <img src="{{asset('assets/public/ellipse_top_right.svg')}}" alt="" class="hero-cta__ellipse-img">
+            </div>
+            <div class="center-cta__ellipse">
+                <img src="{{asset('assets/public/center-ellipse.svg')}}" alt="" class="hero-cta__ellipse-img">
             </div>
         </div>
+
+        <div class="hero-cta__body">
+            <h2 class="hero-cta__title">Esticly развивается вместе с пользователями.</h2>
+            <p class="hero-cta__description">Если вам не хватает какой-то функции, вы можете отправить <br> запрос прямо из приложения, и команда рассмотрит <br> возможность ее добавления. Это важное отличие от многих <br> CRM-систем, где пользователю приходится подстраиваться <br> под продукт.</p>
+        </div>
+
+        <div class="hero-cta__bottom">
+            <p class="hero-cta__bottom-text">Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.</p>
+            <div class="hero-cta__buttons">
+                <img src="{{asset('assets/public/appstore.png')}}" alt="App Store" class="hero-cta__btn-img">
+                <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play" class="hero-cta__btn-img">
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<div class="hero-cta__bottom">
+    <p class="hero-cta__bottom-text">
+        Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.
+    </p>
+
+</div>
+</div>
 </section>
 
 
@@ -302,6 +309,7 @@
                     <span class="for-whom__icon"><img src="{{asset('assets/public/icon5.png')}}" alt=""></span>
                     Для частных мастеров.
                 </h3>
+                <hr class="hr">
 
                 <p class="for-whom__card-text">
                     Esticly помогает упростить ежедневную работу:
@@ -309,22 +317,23 @@
 
                 <ul class="for-whom__list">
                     <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
+                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Быстро вести запись клиентов
                     </li>
                     <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
+                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Не терять контакты
                     </li>
                     <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
+                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Отправлять напоминания
                     </li>
                     <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
+                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
                         Контролировать доход без сложных настроек
                     </li>
                 </ul>
+                <hr>
 
                 <p class="for-whom__card-text">
                     Это удобная CRM для мастера маникюра, косметолога, бровиста, парикмахера и других специалистов.
@@ -336,6 +345,8 @@
                     <span class="for-whom__icon"><img src="{{asset('assets/public/icon6.png')}}" alt=""></span>
                     Для салонов красоты.
                 </h3>
+
+                <hr class="hr hr-blue">
 
                 <p class="for-whom__card-text for-whom__card-text--blue">
                     Esticly поддержит салонам, которым важно:
@@ -359,6 +370,8 @@
                         Системно работать с клиентами
                     </li>
                 </ul>
+
+                <hr class="hr-blue hr">
 
                 <p class="for-whom__card-text for-whom__card-text--blue">
                     В будущем это станется основой для масштабирования бизнеса, роста повторных визитов и повышения качества сервиса.
@@ -384,7 +397,7 @@
         <div class="pricing__grid">
             <div class="pricing__card">
                 <h3 class="pricing__card-title">Обычный тариф</h3>
-
+                <hr>
                 <div class="pricing__price">
                     <span class="pricing__amount">59 zł</span>
                     <span class="pricing__currency"></span>
@@ -414,13 +427,16 @@
                     </li>
                 </ul>
 
+                <hr>
+
                 <button class="pricing__btn">Выбрать</button>
             </div>
 
-            <div class="pricing__card pricing__card--featured">
+            <div class="pricing__card pricing__card--featured pricing__card--blue">
                 <div class="pricing__badge">MOST POPULAR</div>
 
                 <h3 class="pricing__card-title">PRO тариф</h3>
+                <hr>
 
                 <div class="pricing__price">
                     <span class="pricing__amount">89 zł</span>
@@ -451,6 +467,7 @@
                         Прозрачная модель
                     </li>
                 </ul>
+                <hr>
 
                 <button class="pricing__btn pricing__btn--primary">Выбрать</button>
             </div>
@@ -466,7 +483,7 @@
 <section class="hero-cta-download">
     <div class="hero-cta-download__container">
         <div class="hero-cta-download__image">
-            <img  src="{{asset('assets/public/secondphone.jpg')}}" alt="Esticly App" class="hero-cta-download__phone">
+            <img  src="{{asset('assets/public/phone-upscayl.png')}}" alt="Esticly App" class="hero-cta-download__phone">
             <img class="hero-cta-download__logo" src="{{asset('assets/public/logotbn.png')}}" alt="">
         </div>
 
@@ -484,7 +501,7 @@
 
     <div class="hero-cta-download__bottom">
         <div class="hero-cta-download__bottom-container">
-            <p class="hero-cta-download__bottom-text  change_to_black">Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более организованным и предсказуемым.</p>
+            <p class="hero-cta-download__bottom-text  change_to_black">Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.</p>
             <div class="hero-cta-download__apps">
                 <img src="{{asset('assets/public/appstore.png')}}" alt="App Store" class="hero-cta-download__app-badge">
                 <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play" class="hero-cta-download__app-badge">
@@ -502,16 +519,16 @@
 
         <div class="reviews__grid">
             <div class="reviews__card">
-                <div class="reviews__quote"><img src="{{asset('assets/public/vector.png')}}" alt=""></div>
+                <div class="reviews__quote"><img class="vector" src="{{asset('assets/public/vector.png')}}" alt=""></div>
                 <p class="reviews__text">
-                    Действительно полезный инструмент для роста и удобства 💅✨
+                    Действительно полезный инструмент для роста и <br> удобства 💅✨
                 </p>
                 <p class="reviews__description">
                     Очень удобно, что клиенты сами выбирают свободное время, а я вижу весь свой график в одном месте. Есть напоминания, благодаря которым стало намного меньше “пропусков” записей. Интерфейс понятный, разобралась буквально за один день.
 
                 </p>
                 <p class="reviews__description">
-                    Отдельный плюс — это экономия времени и более организованный работ...
+                    Отдельный плюс — это экономия времени и более <br> организованный работ...
                 </p>
                 <a href="#" class="reviews__link">Читать полностью</a>
 
@@ -525,7 +542,7 @@
             </div>
 
             <div class="reviews__card">
-                <div class="reviews__quote"><img src="{{asset('assets/public/vector.png')}}" alt=""></div>
+                <div class="reviews__quote"><img class="vector" src="{{asset('assets/public/vector.png')}}" alt=""></div>
                 <p class="reviews__text">
                     Однозначно рекомендуем для салонов, работать более системно и удобно!
                 </p>
@@ -547,9 +564,9 @@
             </div>
 
             <div class="reviews__card">
-                <div class="reviews__quote"><img src="{{asset('assets/public/vector.png')}}" alt=""></div>
+                <div class="reviews__quote"><img class="vector" src="{{asset('assets/public/vector.png')}}" alt=""></div>
                 <p class="reviews__text">
-                    Действительно полезный инструмент для роста и удобства 🚀✨
+                    Действительно полезный инструмент для роста и <br> удобства 🚀✨
                 </p>
                 <p class="reviews__description">
                     Очень удобно, что клиенты сами выбирают свободное время, а я вижу весь свой график в одном месте. Есть напоминания, благодаря которым стало намного меньше "пропусков" записей. Интерфейс понятный, разобралась буквально за один день.
@@ -594,23 +611,21 @@
     </div>
 </section>
 
-<!-- CTA Text Section -->
-<section class="cta-text">
-    <div class="cta-text__container">
-        <h2 class="cta-text__title">
-            CRM для салона красоты — это не просто программа для записи клиентов, а полноценный инструмент для автоматизации бизнеса.
+<!-- Information Text Section -->
+<section class="info-section">
+    <div class="info-section__container">
+        <h2 class="info-section__title">
+            CRM для салона красоты — это не просто программа для записи <br> клиентов, а полноценный инструмент для автоматизации бизнеса.
         </h2>
 
-        <p class="cta-text__description">
-            Такая система помогает мастерам и салонам управлять клиентской базой, фиксировать визиты, отправлять напоминания, анализировать доход и систематично выстраивать процессы.
-        </p>
-
-        <p class="cta-text__description">
-            Такая система помогает мастерам и салонам управлять клиентской базой, фиксировать визиты, отправлять напоминания, анализировать доход и системно выстраивать процессы.
+        <p class="info-section__text">
+            Такая система помогает мастерам и салонам управлять клиентской базой, фиксировать визиты, отправлять напоминания, анализировать доход и <br> систематично выстраивать процессы. <br> <br>
             Использование CRM для beauty-бизнеса помогает уменьшить количество ошибок, улучшить клиентский опыт и увеличить прибыль. Когда все данные собраны в одном месте, владельцу проще контролировать работу, видеть слабые зоны и принимать решения на основе аналитики. Esticly создан именно для таких задач и помогает перевести хаотичное управление в понятную систему.
         </p>
 
-        <a href="#" class="cta-text__btn">Читать полностью</a>
+
+
+{{--        <a href="#" class="info-section__btn">Читать полностью</a>--}}
     </div>
 </section>
 
@@ -626,10 +641,13 @@
             <div class="faq__item">
                 <button class="faq__question">
                     <span>Что такое CRM для салона красоты?</span>
+                    <hr class="hr-blue hr">
+
                     <span class="faq__icon">
-             <img src="{{asset('assets/public/vector_button.png')}}" alt="" width="30px" object-fit="cover">
+             <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="contain">
           </span>
                 </button>
+
                 <div class="faq__answer">
                     <p>Это система управления клиентами, записями, напоминаниями и доходом, которая помогает автоматизировать ежедневную работу и улучшать сервис.</p>
                 </div>
@@ -638,8 +656,9 @@
             <div class="faq__item">
                 <button class="faq__question">
                     <span>Зачем CRM нужна частному мастеру?</span>
+                    <hr class="hr-blue hr">
                     <span class="faq__icon">
-             <img src="{{asset('assets/public/vector_button.png')}}" alt="" width="30px" object-fit="cover">
+             <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="contain">
           </span>
                 </button>
                 <div class="faq__answer">
@@ -650,10 +669,12 @@
             <div class="faq__item">
                 <button class="faq__question">
                     <span>Сложно ли пользоваться Esticly?</span>
+
                     <span class="faq__icon">
-            <img src="{{asset('assets/public/vector_button.png')}}" alt="" width="30px" object-fit="cover">
+            <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="contain">
           </span>
                 </button>
+                <hr class="hr-blue hr">
                 <div class="faq__answer">
                     <p>Нет, Esticly имеет интуитивный интерфейс. Большинство пользователей разбираются в приложении за 1-2 дня. Есть также поддержка и документация, которые помогут вам начать.</p>
                 </div>
@@ -662,8 +683,9 @@
             <div class="faq__item">
                 <button class="faq__question">
                     <span>Можно ли начать бесплатно?</span>
+                    <hr class="hr-blue hr">
                     <span class="faq__icon">
-             <img src="{{asset('assets/public/vector_button.png')}}" alt="" width="30px" object-fit="cover">
+             <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="cover">
           </span>
                 </button>
                 <div class="faq__answer">
@@ -674,30 +696,33 @@
     </div>
 </section>
 
-<section class="hero-cta">
-    <div class="hero-cta__container">
-        <div class="hero-cta__content">
-            <h2 class="hero-cta__title">
-                Начните наводить порядок в бизнесе уже сегодня.
+<!-- Final CTA Section -->
+<section class="final-cta">
+    <div class="final-cta__container">
+        <div class="final-cta__content">
+            <h2 class="final-cta__title">
+                Начните наводить порядок  в бизнесе уже сегодня.
             </h2>
 
-            <p class="hero-cta__text">
+            <p class="final-cta__text">
                 Скачайте Esticly и попробуйте современную CRM для салонов красоты и частных мастеров, которая помогает автоматизировать запись клиентов, улучшить сервис и увеличить доход. Бесплатный старт позволяет быстро протестировать возможности приложения и перейти от хаоса к системе.
             </p>
 
-            <div class="hero-cta__app-buttons">
-                <a href="#" class="hero-cta__app-link">
-                    <img src="{{asset('assets/public/appstore.png')}}" alt="App Store">
+            <div class="final-cta__buttons">
+                <a href="#" class="final-cta__btn">
+                    <img src="{{asset('assets/public/appstore.svg')}}" alt="">
                 </a>
-                <a href="#" class="hero-cta__app-link">
-                    <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play">
+                <a href="#" class="final-cta__btn">
+                    <img src="{{asset('assets/public/playstore.svg')}}" alt="">
+
                 </a>
             </div>
         </div>
 
-        <div class="hero-cta__image">
-{{--            <img class="logo_btn" src="{{asset('assets/public/logotbn.png')}}" alt="">--}}
-            <img src="{{asset('assets/public/Frame 11.png')}}" alt="Esticly App" class="hero-cta__phone">
+        <div class="final-cta__image">
+            <img src="{{asset('assets/public/hero-phone.png')}}" alt="Esticly App" class="final-cta__phone">
+            <img class="top-right" src="{{asset('assets/public/final-cta-top-right.svg')}}" alt="">
+            <img class="bottom-left" src="{{asset('assets/public/final-cta-bottom.svg')}}" alt="">
         </div>
     </div>
 </section>
@@ -725,65 +750,92 @@
     </div>
 </section>
 
+
+
 <!-- Footer -->
-<footer class="footer">
-    <div class="footer__container">
-        <div class="footer__main">
-            <div class="footer__column footer__column--left">
-                <div class="footer__logo">
-                    <img src="{{asset('assets/public/logo.png')}}" alt="Esticly" class="footer__logo-img">
+<footer>
+    <div class="footer-top">
+
+        <div class="footer-brand">
+            <div class="footer-logo">
+                <img src="{{asset('assets/public/footer-logo.svg')}}" alt="">
+            </div>
+            <p class="footer-desc">
+                Попробуйте современную CRM для салонов
+                красоты и частных мастеров, которая помогает
+                автоматизировать запись клиентов, улучшить
+                сервис и увеличить доход.
+            </p>
+            <div class="lang-buttons lang-desktop">
+                <button class="lang-btn">RU</button>
+                <button class="lang-btn">EN</button>
+                <button class="lang-btn">PL</button>
+                <button class="lang-btn">IT</button>
+                <button class="lang-btn">FR</button>
+            </div>
+        </div>
+
+        <div class="footer-nav">
+            <p class="footer-nav-title">Клиентам</p>
+            <ul>
+                <li><a href="#">Возможности</a></li>
+                <li><a href="#">Для мастеров</a></li>
+                <li><a href="#">Для салонов</a></li>
+                <li><a href="#">Цены</a></li>
+                <li><a href="#">FAQ</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-contacts">
+            <p class="footer-contacts-title">Контакти</p>
+
+            <div class="contact-item">
+                <img src="{{asset('assets/public/footer-phone.svg')}}" alt="" class="contact-icon">
+                <div class="contact-details">
+                    <span class="contact-main">+48 577 000 000</span>
+                    <p class="contact-sub">ПН-СБ: 09:00 – 20:00, ВС: выходной</p>
                 </div>
-                <p class="footer__description">Попробуйте современную CRM для салонов красоты и частных мастеров, которая помогает автоматизировать запись клиентов, улучшить сервис и увеличить доход.</p>
-                <div class="footer__languages">
-                    <a href="#" class="footer__lang">RU</a>
-                    <a href="#" class="footer__lang">EN</a>
-                    <a href="#" class="footer__lang">PL</a>
-                    <a href="#" class="footer__lang">IT</a>
-                    <a href="#" class="footer__lang">FR</a>
-                </div>
-                <p class="footer__copyright">2026 EVA. Все права защищены</p>
             </div>
 
-            <div class="footer__column">
-                <h3 class="footer__title">Клиентам</h3>
-                <ul class="footer__menu">
-                    <li><a href="#" class="footer__link">Возможности</a></li>
-                    <li><a href="#" class="footer__link">Для мастеров</a></li>
-                    <li><a href="#" class="footer__link">Для салонов</a></li>
-                    <li><a href="#" class="footer__link">Цены</a></li>
-                    <li><a href="#" class="footer__link">FAQ</a></li>
-                </ul>
+            <div class="contact-item">
+                <img src="{{asset('assets/public/footer-email.svg')}}" alt="" class="contact-icon">
+                <div class="contact-details">
+                    <a href="mailto:esticly@gmail.com" class="contact-email-link">esticly@gmail.com</a>
+                    <a href="mailto:esticly@gmail.com" class="contact-write">Написать</a>
+                </div>
             </div>
 
-            <div class="footer__column footer__column--right">
-                <h3 class="footer__title">Контакты</h3>
-                <div class="footer__contact">
-                    <p class="footer__contact-label"> <img src="{{asset('assets/public/phone.png')}}" alt="Location" class="footer__contact-icon">+48 577 000 000</p>
-                    <p class="footer__contact-time">ПН-СБ: 09:00 - 20:00, ВС: выходной</p>
-                </div>
-                <div class="footer__contact">
-                    <p class="footer__contact-label">
-                        <img src="{{asset('assets/public/emial.png')}}" alt="Email" class="footer__contact-icon">
-                        esticly@gmail.com
-                    </p>
-                    <a href="mailto:esticly@gmail.com" class="footer__write-btn">Написать</a>
-                </div>
-                <div class="footer__contact">
-                    <p class="footer__contact-label">
-                        <img src="{{asset('assets/public/location.png')}}" alt="Location" class="footer__contact-icon">
-                        М.Киев
-                    </p>
-                    <p class="footer__contact-address">ул. Соборная 29, кабинет 32</p>
+            <div class="contact-item">
+                <img src="{{asset('assets/public/footer-location.svg')}}" alt="" class="contact-icon">
+                <div class="contact-details">
+                    <span class="contact-city">м.Киев</span>
+                    <p class="contact-address">ул. Соборная 29, кабинет 32</p>
                 </div>
             </div>
         </div>
 
-        <div class="footer__bottom">
-            <a href="#" class="footer__bottom-link">Политика конфиденциальности</a>
-            <a href="#" class="footer__bottom-link">Условия использования</a>
+    </div>
+
+    <div class="lang-buttons lang-mobile">
+        <button class="lang-btn">RU</button>
+        <button class="lang-btn">EN</button>
+        <button class="lang-btn">PL</button>
+        <button class="lang-btn">IT</button>
+        <button class="lang-btn">FR</button>
+    </div>
+
+    <div class="footer-bottom">
+        <span class="footer-copyright">2026 EVA. Все права защищены</span>
+        <div class="footer-links">
+            <a href="#">Политика конфиденційності</a>
+            <a href="#">Условия использования</a>
         </div>
     </div>
+
 </footer>
+
+
+
 
 <div id="app"></div>
 <script type="module" src="{{asset('assets/src/main.js')}}"></script>
