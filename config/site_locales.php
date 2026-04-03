@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'default' => 'pl',
-    'x_default' => 'pl',
+    'default' => 'en',
+    'x_default' => 'en',
     'supported' => [
         'pl' => ['native' => 'Polski', 'hreflang' => 'pl-PL', 'flag' => '🇵🇱'],
         'en' => ['native' => 'English', 'hreflang' => 'en', 'flag' => '🇬🇧'],

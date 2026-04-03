@@ -7,6 +7,7 @@ use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\PublicLaunchWaitlistController;
 use App\Http\Controllers\PublicReviewController;
 use App\Http\Controllers\PublicShortLinkController;
+use App\Support\PublicLocale;
 use App\Support\PublicPageViewData;
 
 $siteLocales = config('site_locales.supported', []);
@@ -46,10 +47,8 @@ $renderMarketing = function (string $locale) use ($siteLocales, $siteLocaleCodes
     return view('marketing', PublicPageViewData::marketing($locale, $siteLocales, $seo));
 };
 
-$resolveLegalLocale = function (\Illuminate\Http\Request $request) use ($siteLocaleCodes): string {
-    $requested = strtolower(trim((string) $request->query('lang', 'uk')));
-
-    return in_array($requested, $siteLocaleCodes, true) ? $requested : 'en';
+$resolvePublicLocale = function (\Illuminate\Http\Request $request): string {
+    return PublicLocale::resolve($request);
 };
 
 $buildLegalAlternates = function (string $routeName) use ($siteLocales, $siteLocaleCodes): array {
@@ -120,8 +119,8 @@ $renderLegalPage = function (string $page, string $locale) use ($siteLocales, $s
     ));
 };
 
-Route::get('/', function () use ($siteDefaultLocale) {
-    return redirect()->route('marketing.localized', ['locale' => $siteDefaultLocale], 301);
+Route::get('/', function (\Illuminate\Http\Request $request) use ($resolvePublicLocale) {
+    return redirect()->route('marketing.localized', ['locale' => $resolvePublicLocale($request)], 301);
 })->name('marketing.root');
 
 Route::post('/waitlist', [PublicLaunchWaitlistController::class, 'store'])
@@ -173,31 +172,28 @@ Route::get('/{locale}', function (string $locale) use ($renderMarketing) {
     return $renderMarketing($locale);
 })->where('locale', $siteLocalePattern)->name('marketing.localized');
 
-Route::get('/privacy', function (\Illuminate\Http\Request $request) use ($resolveLegalLocale, $renderLegalPage) {
-    return $renderLegalPage('privacy', $resolveLegalLocale($request));
+Route::get('/privacy', function (\Illuminate\Http\Request $request) use ($resolvePublicLocale, $renderLegalPage) {
+    return $renderLegalPage('privacy', $resolvePublicLocale($request));
 })->name('legal.privacy');
 
 Route::get('/{locale}/privacy', function (string $locale) use ($renderLegalPage) {
     return $renderLegalPage('privacy', $locale);
 })->where('locale', $siteLocalePattern)->name('legal.privacy.localized');
 
-Route::get('/terms', function (\Illuminate\Http\Request $request) use ($resolveLegalLocale, $renderLegalPage) {
-    return $renderLegalPage('terms', $resolveLegalLocale($request));
+Route::get('/terms', function (\Illuminate\Http\Request $request) use ($resolvePublicLocale, $renderLegalPage) {
+    return $renderLegalPage('terms', $resolvePublicLocale($request));
 })->name('legal.terms');
 
 Route::get('/{locale}/terms', function (string $locale) use ($renderLegalPage) {
     return $renderLegalPage('terms', $locale);
 })->where('locale', $siteLocalePattern)->name('legal.terms.localized');
 
-Route::get('/delete-account', function (\Illuminate\Http\Request $request) {
-    $requested = strtolower(trim((string) $request->query('lang', 'uk')));
-
-    $supported = ['uk', 'pl', 'en', 'it', 'fr', 'pt', 'de', 'es', 'cs'];
-    $lang = in_array($requested, $supported, true) ? $requested : 'en';
+Route::get('/delete-account', function (\Illuminate\Http\Request $request) use ($resolvePublicLocale) {
+    $lang = $resolvePublicLocale($request);
 
     return view('legal.account-deletion', [
         'lang' => $lang,
-        'requested_lang' => $requested,
+        'requested_lang' => $lang,
     ]);
 })->name('legal.account-deletion');
 
