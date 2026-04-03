@@ -379,7 +379,7 @@ body {
     display: flex;
     gap: 1rem;
     align-items: center;
-    justify-content: center;
+    /*justify-content: center;*/
 }
 
 .hero__feature-icon {
@@ -1113,7 +1113,7 @@ body {
     line-height: 100%;
     letter-spacing: 0%;
     color: rgba(17, 24, 39, 1);
-    margin-top: 20px;
+    /*margin-top: 20px;*/
 
     border-top: 1px solid #ccc; /* линия сверху */
     padding-top: 10px; /* отступ от линии до текста */

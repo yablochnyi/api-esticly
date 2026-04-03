@@ -7,6 +7,7 @@ use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\PublicLaunchWaitlistController;
 use App\Http\Controllers\PublicReviewController;
 use App\Http\Controllers\PublicShortLinkController;
+use App\Support\PublicPageViewData;
 
 $siteLocales = config('site_locales.supported', []);
 $siteLocaleCodes = array_keys($siteLocales);
@@ -42,14 +43,81 @@ $renderMarketing = function (string $locale) use ($siteLocales, $siteLocaleCodes
 
     $seo = $buildLandingSeo($locale);
 
-    return view('marketing', [
-        'currentLocale' => $locale,
-        'siteLocales' => $siteLocales,
-        'seoCanonicalUrl' => $seo['canonical_url'],
-        'seoAlternateUrls' => $seo['alternate_urls'],
-        'seoXDefaultUrl' => $seo['x_default_url'],
-        'localizedLandingUrls' => $seo['localized_urls'],
-    ]);
+    return view('marketing', PublicPageViewData::marketing($locale, $siteLocales, $seo));
+};
+
+$resolveLegalLocale = function (\Illuminate\Http\Request $request) use ($siteLocaleCodes): string {
+    $requested = strtolower(trim((string) $request->query('lang', 'uk')));
+
+    return in_array($requested, $siteLocaleCodes, true) ? $requested : 'en';
+};
+
+$buildLegalAlternates = function (string $routeName) use ($siteLocales, $siteLocaleCodes): array {
+    $alternateUrls = [];
+    foreach ($siteLocaleCodes as $code) {
+        $alternateUrls[$siteLocales[$code]['hreflang'] ?? $code] = route($routeName, ['locale' => $code]);
+    }
+
+    return $alternateUrls;
+};
+
+$renderLegalPage = function (string $page, string $locale) use ($siteLocales, $siteLocaleCodes, $siteXDefaultLocale, $buildLegalAlternates) {
+    if (! in_array($locale, $siteLocaleCodes, true)) {
+        abort(404);
+    }
+
+    App::setLocale($locale);
+
+    $routeName = $page === 'privacy' ? 'legal.privacy.localized' : 'legal.terms.localized';
+    $otherRouteName = $page === 'privacy' ? 'legal.terms.localized' : 'legal.privacy.localized';
+    $dataFile = $page === 'privacy'
+        ? resource_path('data/legal_privacy.php')
+        : resource_path('data/legal_terms.php');
+    $lang = $locale;
+    $pageData = require $dataFile;
+    $title = $pageData['titles'][$locale] ?? $pageData['titles']['en'];
+    $copy = $pageData['content'][$locale] ?? $pageData['content']['en'];
+
+    $languageSwitcherUrls = [];
+    foreach ($siteLocaleCodes as $code) {
+        $languageSwitcherUrls[$code] = route($routeName, ['locale' => $code]);
+    }
+
+    $headerNavLinks = [
+        ['label' => __('landing.nav.features'), 'url' => route('marketing.localized', ['locale' => $locale]) . '#features'],
+        ['label' => __('landing.nav.pricing'), 'url' => route('marketing.localized', ['locale' => $locale]) . '#pricing'],
+        [
+            'label' => $page === 'privacy'
+                ? ($pageData['termsLabel'][$locale] ?? $pageData['termsLabel']['en'])
+                : ($pageData['privacyLabel'][$locale] ?? $pageData['privacyLabel']['en']),
+            'url' => route($otherRouteName, ['locale' => $locale]),
+        ],
+        ['label' => $title, 'url' => route($routeName, ['locale' => $locale])],
+    ];
+
+    return view("legal.{$page}", array_merge(
+        PublicPageViewData::legal(
+            locale: $locale,
+            siteLocales: $siteLocales,
+            canonicalUrl: route($routeName, ['locale' => $locale]),
+            xDefaultUrl: route($routeName, ['locale' => $siteXDefaultLocale]),
+            languageSwitcherUrls: $languageSwitcherUrls,
+            alternateUrls: $buildLegalAlternates($routeName),
+            seoTitle: $title,
+            seoDescription: "{$title} - Esticly",
+            headerNavLinks: $headerNavLinks,
+        ),
+        [
+            'lang' => $locale,
+            'title' => $title,
+            'copy' => $copy,
+            'updated' => $pageData['updated'],
+            'email' => $pageData['email'],
+            'allLangs' => $pageData['allLangs'],
+            'languageSwitcherUrls' => $languageSwitcherUrls,
+            'metaUpdatedLabel' => $pageData['metaUpdated'][$locale] ?? $pageData['metaUpdated']['en'],
+        ]
+    ));
 };
 
 Route::get('/', function () use ($siteDefaultLocale) {
@@ -105,44 +173,20 @@ Route::get('/{locale}', function (string $locale) use ($renderMarketing) {
     return $renderMarketing($locale);
 })->where('locale', $siteLocalePattern)->name('marketing.localized');
 
-Route::get('/privacy', function (\Illuminate\Http\Request $request) {
-    $requested = strtolower(trim((string) $request->query('lang', 'uk')));
-
-    $supported = ['uk', 'pl', 'en', 'it', 'fr', 'pt', 'de', 'es', 'cs'];
-    $lang = in_array($requested, $supported, true) ? $requested : 'en';
-
-    return view('legal.privacy', [
-        'lang' => $lang,
-        'requested_lang' => $requested,
-    ]);
+Route::get('/privacy', function (\Illuminate\Http\Request $request) use ($resolveLegalLocale, $renderLegalPage) {
+    return $renderLegalPage('privacy', $resolveLegalLocale($request));
 })->name('legal.privacy');
 
-Route::get('/{locale}/privacy', function (string $locale) use ($siteLocaleCodes) {
-    if (! in_array($locale, $siteLocaleCodes, true)) {
-        abort(404);
-    }
-    App::setLocale($locale);
-    return view('legal.privacy', ['lang' => $locale, 'requested_lang' => $locale]);
+Route::get('/{locale}/privacy', function (string $locale) use ($renderLegalPage) {
+    return $renderLegalPage('privacy', $locale);
 })->where('locale', $siteLocalePattern)->name('legal.privacy.localized');
 
-Route::get('/terms', function (\Illuminate\Http\Request $request) {
-    $requested = strtolower(trim((string) $request->query('lang', 'uk')));
-
-    $supported = ['uk', 'pl', 'en', 'it', 'fr', 'pt', 'de', 'es', 'cs'];
-    $lang = in_array($requested, $supported, true) ? $requested : 'en';
-
-    return view('legal.terms', [
-        'lang' => $lang,
-        'requested_lang' => $requested,
-    ]);
+Route::get('/terms', function (\Illuminate\Http\Request $request) use ($resolveLegalLocale, $renderLegalPage) {
+    return $renderLegalPage('terms', $resolveLegalLocale($request));
 })->name('legal.terms');
 
-Route::get('/{locale}/terms', function (string $locale) use ($siteLocaleCodes) {
-    if (! in_array($locale, $siteLocaleCodes, true)) {
-        abort(404);
-    }
-    App::setLocale($locale);
-    return view('legal.terms', ['lang' => $locale, 'requested_lang' => $locale]);
+Route::get('/{locale}/terms', function (string $locale) use ($renderLegalPage) {
+    return $renderLegalPage('terms', $locale);
 })->where('locale', $siteLocalePattern)->name('legal.terms.localized');
 
 Route::get('/delete-account', function (\Illuminate\Http\Request $request) {
