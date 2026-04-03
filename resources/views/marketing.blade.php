@@ -1,592 +1,474 @@
+@php
+    $faviconIco = file_exists(public_path('favicon.ico')) ? asset('favicon.ico') : null;
+    $iconPng = file_exists(public_path('icon.png')) ? asset('icon.png') : null;
+    $logoPng = file_exists(public_path('logo.png')) ? asset('logo.png') : null;
+    $appleTouchIcon = $iconPng ?? $logoPng;
+    $socialImage = $logoPng ?? $iconPng;
+    $languages = $siteLocales ?? config('site_locales.supported', []);
+    $currentLocale = $currentLocale ?? app()->getLocale();
+    $localizedLandingUrls = $localizedLandingUrls ?? [];
+    $seoAlternateUrls = $seoAlternateUrls ?? [];
+    $seoCanonicalUrl = $seoCanonicalUrl ?? url()->current();
+    $seoXDefaultUrl = $seoXDefaultUrl ?? $seoCanonicalUrl;
+    $heroImagePath = "assets/public/hero-{$currentLocale}.png";
+    $heroImage = file_exists(public_path($heroImagePath))
+        ? asset($heroImagePath)
+        : asset('assets/public/hero-uk.png');
+    $reviews = __('landing.reviews.items');
+    $faqItems = __('landing.faq.items');
+    $featureItems = __('landing.features.items');
+    $proItems = __('landing.audience.pros_items');
+    $salonItems = __('landing.audience.salons_items');
+    $basicItems = __('landing.pricing.basic_items');
+    $proPlanItems = __('landing.pricing.pro_items');
+@endphp
 <!doctype html>
-<html lang="en">
+<html lang="{{ $currentLocale }}">
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>website-esticly</title>
+    <title>{{ __('landing.seo.title') }}</title>
+    <meta name="description" content="{{ __('landing.seo.description') }}" />
+    <link rel="canonical" href="{{ $seoCanonicalUrl }}" />
+    @foreach($seoAlternateUrls as $hreflang => $href)
+        <link rel="alternate" hreflang="{{ $hreflang }}" href="{{ $href }}" />
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ $seoXDefaultUrl }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ __('landing.seo.title') }}" />
+    <meta property="og:description" content="{{ __('landing.seo.description') }}" />
+    <meta property="og:url" content="{{ $seoCanonicalUrl }}" />
+    @if($socialImage)
+        <meta property="og:image" content="{{ $socialImage }}" />
+    @endif
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ __('landing.seo.title') }}" />
+    <meta name="twitter:description" content="{{ __('landing.seo.description') }}" />
+    @if($socialImage)
+        <meta name="twitter:image" content="{{ $socialImage }}" />
+    @endif
+    @if($faviconIco)
+        <link rel="icon" href="{{ $faviconIco }}" sizes="any" />
+    @endif
+    @if($iconPng)
+        <link rel="icon" type="image/png" href="{{ $iconPng }}" />
+    @endif
+    @if($appleTouchIcon)
+        <link rel="apple-touch-icon" href="{{ $appleTouchIcon }}" />
+    @endif
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/src/style.css') }}">
-
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N67PPKX0S8"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-N67PPKX0S8');
+    </script>
 </head>
 <body>
 
 <header class="header">
     <div class="header__container">
         <button class="header__menu-btn" id="menuBtn">
-            <img src="{{asset('assets/public/burger-mobile.svg')}}" alt="">
+            <img src="{{ asset('assets/public/burger-mobile.svg') }}" alt="">
         </button>
 
         <div class="header__logo">
-            <img class="header__logo__inner" src="{{asset('assets/public/logo.svg')}}" alt="Logo" >
+            <img class="header__logo__inner" src="{{ asset('assets/public/logo.svg') }}" alt="Logo" >
         </div>
 
         <nav class="header__nav" id="mobileMenu">
-            <button class="header__close-btn" id="closeBtn">
-            </button>
-            <a href="#" class="header__link">Возможности</a>
-            <a href="#" class="header__link">Для мастеров</a>
-            <a href="#" class="header__link">Для салонов</a>
-            <a href="#" class="header__link">Цены</a>
-            <a href="#" class="header__link">FAQ</a>
-            <button class="header__btn header__btn--mobile">Скачать приложение</button>
+            <button class="header__close-btn" id="closeBtn"></button>
+            <a href="#features" class="header__link">{{ __('landing.nav.features') }}</a>
+            <a href="#for-professionals" class="header__link">{{ __('landing.nav.professionals') }}</a>
+            <a href="#for-salons" class="header__link">{{ __('landing.nav.salons') }}</a>
+            <a href="#pricing" class="header__link">{{ __('landing.nav.pricing') }}</a>
+            <a href="#faq" class="header__link">{{ __('landing.nav.faq') }}</a>
+            <button class="header__btn header__btn--mobile">{{ __('landing.nav.download') }}</button>
         </nav>
 
         <div class="header__actions">
             <div class="header__lang-wrapper">
-                <select class="header__lang-select">
-                    <option value="ru">RU</option>
-                    <option value="en">EN</option>
-                    <option value="ua">UA</option>
+                <select class="header__lang-select" onchange="if (this.value) window.location.href = this.value;">
+                    @foreach($languages as $code => $meta)
+                        <option value="{{ $localizedLandingUrls[$code] ?? route('marketing.localized', ['locale' => $code]) }}" @selected($code === $currentLocale)>
+                            {{ strtoupper($code) }}
+                        </option>
+                    @endforeach
                 </select>
-                <img src="{{asset('assets/public/vector-down.svg')}}" alt="" class="header__lang-icon" width="8px">
+                <img src="{{ asset('assets/public/vector-down.svg') }}" alt="" class="header__lang-icon" width="8px">
             </div>
-            <button class="header__btn header__btn--desktop">Скачать приложение</button>
+            <button class="header__btn header__btn--desktop">{{ __('landing.nav.download') }}</button>
         </div>
     </div>
 </header>
 
-
-
-
-
-<!-- Hero Section -->
 <section class="hero">
     <div class="hero__container">
         <div class="hero__content">
-            <h1 class="hero__title">Управляйте записями <br> и клиентами без хаоса</h1>
+            <h1 class="hero__title">{{ __('landing.hero.title') }}</h1>
 
             <p class="hero__description">
-                Esticly — это CRM для салонов красоты и частных мастеров, которая помогает автоматизировать запись клиентов, управлять клиентской базой, отправлять напоминания и контролировать доход в одном приложении.
+                {{ __('landing.hero.lead_1') }}
             </p>
 
             <div class="hero__features">
                 <div class="hero__feature">
-                    <img src="{{asset('assets/public/purplestar.svg')}}" alt="">
-                    <p>Система онлайн-записи клиентов позволяет принимать заявки 24/7 без звонков, сообщений и длительных переписок.</p>
+                    <img src="{{ asset('assets/public/purplestar.svg') }}" alt="">
+                    <p>{{ __('landing.hero.points.0') }}</p>
                 </div>
 
                 <div class="hero__feature">
-                    <img src="{{asset('assets/public/purplestar.svg')}}" alt="">
-                    <p>Это снижает нагрузку на мастера или администратора, уменьшает количество ошибок и помогает увеличить число записей.</p>
+                    <img src="{{ asset('assets/public/purplestar.svg') }}" alt="">
+                    <p>{{ __('landing.hero.points.1') }}</p>
                 </div>
 
                 <div class="hero__feature">
-                    <img src="{{asset('assets/public/purplestar.svg')}}" alt="">
-                    <p >Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более организованным и предсказуемым.</p>
+                    <img src="{{ asset('assets/public/purplestar.svg') }}" alt="">
+                    <p>{{ __('landing.hero.points.2') }}</p>
                 </div>
             </div>
 
             <div class="hero__buttons">
-                <button class="hero__btn hero__btn--primary">Скачать приложение</button>
-                <button class="hero__btn hero__btn--secondary">Попробовать бесплатно 7 дней</button>
+                <button class="hero__btn hero__btn--primary">{{ __('landing.hero.cta_download') }}</button>
+                <button class="hero__btn hero__btn--secondary">{{ __('landing.hero.cta_trial') }}</button>
             </div>
         </div>
 
         <div class="hero__image">
-            <img src="{{asset('assets/public/hero-phone.png')}}" alt="App mockup" class="hero__phones">
+            <img src="{{ $heroImage }}" alt="App mockup" class="hero__phones">
         </div>
     </div>
 
-    <!-- Bottom section -->
     <div class="hero__bottom">
         <div class="hero__bottom-container">
-            <p class="hero__bottom-text">Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более организованным и предсказуемым.</p>
+            <p class="hero__bottom-text">{{ __('landing.hero.bottom') }}</p>
             <div class="hero__apps">
-                <img src="{{asset('assets/public/appstore.svg')}}" alt="App Store" class="hero__app-badge">
-                <img src="{{asset('assets/public/playstore.svg')}}" alt="Google Play" class="hero__app-badge">
+                <img src="{{ asset('assets/public/appstore.svg') }}" alt="App Store" class="hero__app-badge">
+                <img src="{{ asset('assets/public/playstore.svg') }}" alt="Google Play" class="hero__app-badge">
             </div>
         </div>
     </div>
 </section>
 
-
-
-
-
-
-<!-- Problems and Solutions Section -->
-<section class="problems">
+<section class="problems" id="features">
     <div class="problems__container">
-        <h2 class="problems__title">Проблемы и решения</h2>
+        <h2 class="problems__title">{{ __('landing.problem.title') }}</h2>
 
         <div class="problems__content">
             <div class="problems__card problems__card--white">
                 <h3 class="problems__card-title">
-                    <span class="problems__icon"><img src="{{asset('assets/public/message-icon.svg')}}" alt=""></span>
-                    Записи вручную/мессенджеры/соц.сети
+                    <span class="problems__icon"><img src="{{ asset('assets/public/message-icon.svg') }}" alt=""></span>
+                    {{ __('landing.problem.card_title') }}
                 </h3>
 
                 <p class="problems__card-text">
-                    Большинство мастеров и салонов красоты до сих пор ведут запись клиентов через:
+                    {{ __('landing.problem.intro') }}
                 </p>
 
                 <ul class="problems__list">
-                    <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
-                        Мессенджеры
-                    </li>
-                    <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
-                        Социальные сети
-                    </li>
-                    <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
-                        Блокноты
-                    </li>
-                    <li class="problems__list-item">
-                        <span class="problems__list-icon"><img src="{{asset('assets/public/x.svg')}}" alt=""></span>
-                        Заметки в телефоне
-                    </li>
+                    @foreach(__('landing.problem.channels') as $channel)
+                        <li class="problems__list-item">
+                            <span class="problems__list-icon"><img src="{{ asset('assets/public/x.svg') }}" alt=""></span>
+                            {{ $channel }}
+                        </li>
+                    @endforeach
                 </ul>
 
                 <p class="problems__card-text problems__card-text--bottom">
-                    На первый взгляд это кажется удобным, но на практике такой подход создает хаос и мешает росту бизнеса.
+                    {{ __('landing.problem.outro') }}
                 </p>
 
                 <p class="problems__result">
-                    <strong class="strong">Результат:</strong>  Сообщения теряются, клиенты забывают о визитах, часть записей не фиксируется, а реальная загрузка и доход остаются неочевидными. В результате мастер или салон ежедневно теряет деньги, время и контроль над процессами. Если нет единой CRM-системы для салона красоты, бизнес начинает работать реактивно, а не системно.
+                    <strong class="strong">{{ __('landing.problem.result_label') }}</strong>
+                    {{ __('landing.problem.result_text') }}
                 </p>
             </div>
 
             <div class="problems__card problems__card--blue">
                 <div class="problems__card-header">
-                    <span class="problems__brand-icon"><img src="{{asset('assets/public/mini_logo.svg')}}" alt=""></span>
-                    <h3 class="problems__card-title problems__card-title--blue">Esticly</h3>
+                    <span class="problems__brand-icon"><img src="{{ asset('assets/public/mini_logo.svg') }}" alt=""></span>
+                    <h3 class="problems__card-title problems__card-title--blue">{{ __('landing.solution.title') }}</h3>
                 </div>
 
                 <p class="problems__card-text problems__card-text--blue">
-                    Esticly объединяет все ключевые процессы работы beauty-бизнеса в одном месте:
+                    {{ __('landing.solution.intro') }}
                 </p>
 
                 <ul class="problems__features-list">
-                    <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Запись клиентов
-                    </li>
-                    <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Клиентскую базу
-                    </li>
-                    <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Автоматические напоминания
-                    </li>
-                    <li class="problems__feature-item">
-                        <span class="problems__feature-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Аналитику и управление ежедневными задачами
-                    </li>
+                    @foreach(__('landing.solution.items') as $item)
+                        <li class="problems__feature-item">
+                            <span class="problems__feature-icon"><img src="{{ asset('assets/public/tick_green.svg') }}" alt=""></span>
+                            {{ $item }}
+                        </li>
+                    @endforeach
                 </ul>
 
                 <p class="problems__card-text problems__card-text--blue">
-                    Вместо нескольких разрозненных инструментов вы получаете <br> одну CRM для мастеров и салонов красоты, в которой все процессы связаны между собой.
+                    {{ __('landing.solution.outro') }}
                 </p>
 
                 <p class="problems__highlight">
-                    <strong class="second_strong"> Это значит,</strong> что вы видите полную картину бизнеса: кто записан, кто не пришел, сколько вы зарабатываете, какие услуги приносят больше дохода и как распределяется загрузка. Такое решение помогает работать спокойнее, быстрее и эффективнее, а также увеличивает прибыль за счет автоматизации и порядка.
+                    <strong class="second_strong">{{ __('landing.solution.highlight_label') }}</strong>
+                    {{ __('landing.solution.highlight_text') }}
                 </p>
             </div>
         </div>
     </div>
 </section>
 
-
-<!-- Features Section -->
 <section class="features">
     <div class="features__container">
-        <h2 class="features__title">Возможности</h2>
+        <h2 class="features__title">{{ __('landing.features.title') }}</h2>
 
         <div class="features__grid">
             <div class="features__card">
                 <div class="features__image">
-                    <img src="{{asset('assets/public/features1.png')}}" alt="Онлайн-запись" class="features__img">
+                    <img src="{{ asset('assets/public/features1.png') }}" alt="" class="features__img">
                 </div>
                 <h3 class="features__card-title">
-                    <span class="features__icon"><img class="features_icon__inner" src="{{asset('assets/public/phone_icon.png')}}" alt=""></span>
-                    Онлайн-запись клиентов.
+                    <span class="features__icon"><img class="features_icon__inner" src="{{ asset('assets/public/phone_icon.png') }}" alt=""></span>
+                    {{ $featureItems[0]['title'] }}
                 </h3>
-                <p class="features__card-text">
-                    Клиенты могут записываться самостоятельно в любое удобное время. Это упрощает коммуникацию, помогает не терять обращения и повышает количество записей. Для SEO этот блок усиливает релевантность по запросам «онлайн-запись клиентов», «программа для записи клиентов» и «онлайн-запись для салона красоты».
-                </p>
+                <p class="features__card-text">{{ $featureItems[0]['description'] }}</p>
             </div>
 
             <div class="features__card">
                 <div class="features__image">
-                    <img src="{{asset('assets/public/features2.png')}}" alt="Автоматические напоминания" class="features__img">
+                    <img src="{{ asset('assets/public/features2.png') }}" alt="" class="features__img">
                 </div>
                 <h3 class="features__card-title">
-                    <span class="features__icon"><img src="{{asset('assets/public/icon2.png')}}" alt=""></span>
-                    Автоматические напоминания.
+                    <span class="features__icon"><img src="{{ asset('assets/public/icon2.png') }}" alt=""></span>
+                    {{ $featureItems[1]['title'] }}
                 </h3>
-                <p class="features__card-text">
-                    Система отправляет напоминания о визите, что снижает количество пропущенных записей и помогает увеличить доход. Напоминания клиентам — одна из самых ценных функций для мастеров и салонов, потому что она напрямую влияет на загрузку и прибыль.
-
-                </p>
+                <p class="features__card-text">{{ $featureItems[1]['description'] }}</p>
             </div>
 
             <div class="features__card">
                 <div class="features__image">
-                    <img src="{{asset('assets/public/feature3.png')}}" alt="Клиентская база" class="features__img">
+                    <img src="{{ asset('assets/public/feature3.png') }}" alt="" class="features__img">
                 </div>
                 <h3 class="features__card-title">
-                    <span class="features__icon"><img src="{{asset('assets/public/icon3.png')}}" alt=""></span>
-                    Клиентская база.
+                    <span class="features__icon"><img src="{{ asset('assets/public/icon3.png') }}" alt=""></span>
+                    {{ $featureItems[2]['title'] }}
                 </h3>
-                <p class="features__card-text">
-                    Вся история клиентов хранится в одном месте: контакты, заметки, история визитов, предпочтения, комментарии. Это помогает улучшить сервис и выстраивать долгосрочные отношения с клиентами.
-                </p>
+                <p class="features__card-text">{{ $featureItems[2]['description'] }}</p>
             </div>
 
             <div class="features__card">
                 <div class="features__image">
-                    <img src="{{asset('assets/public/feature4.png')}}" alt="Аналитика дохода" class="features__img">
+                    <img src="{{ asset('assets/public/feature4.png') }}" alt="" class="features__img">
                 </div>
                 <h3 class="features__card-title">
                     <span class="features__icon">📊</span>
-                    Аналитика дохода.
+                    {{ $featureItems[3]['title'] }}
                 </h3>
-                <p class="features__card-text">
-                    Вы можете видеть, сколько зарабатываете, какие услуги востребованы, где есть недозагрузка и как меняется результат со временем. Аналитика помогает принимать решения не на ощущениях, а на цифрах.
-                </p>
+                <p class="features__card-text">{{ $featureItems[3]['description'] }}</p>
             </div>
         </div>
     </div>
 </section>
 
-
-
 <section class="hero-cta">
     <div class="hero-cta__card">
-
         <div class="hero-cta__phone-bg">
             <div class="hero-cta__badge">
-                <img src="{{asset('assets/public/esticly-mini.png')}}" alt="Esticly Logo">
+                <img src="{{ asset('assets/public/esticly-mini.png') }}" alt="Esticly Logo">
             </div>
-            <img src="{{asset('assets/public/secondphone.png')}}" alt="" class="hero-cta__phone" aria-hidden="true">
+            <img src="{{ asset('assets/public/secondphone.png') }}" alt="" class="hero-cta__phone" aria-hidden="true">
             <div class="hero-cta__ellipse">
-                <img src="{{asset('assets/public/ellipse_top_right.svg')}}" alt="" class="hero-cta__ellipse-img">
+                <img src="{{ asset('assets/public/ellipse_top_right.svg') }}" alt="" class="hero-cta__ellipse-img">
             </div>
             <div class="center-cta__ellipse">
-                <img src="{{asset('assets/public/center-ellipse.svg')}}" alt="" class="hero-cta__ellipse-img">
+                <img src="{{ asset('assets/public/center-ellipse.svg') }}" alt="" class="hero-cta__ellipse-img">
             </div>
         </div>
 
         <div class="hero-cta__body">
-            <h2 class="hero-cta__title">Esticly развивается вместе с пользователями.</h2>
-            <p class="hero-cta__description">Если вам не хватает какой-то функции, вы можете отправить <br> запрос прямо из приложения, и команда рассмотрит <br> возможность ее добавления. Это важное отличие от многих <br> CRM-систем, где пользователю приходится подстраиваться <br> под продукт.</p>
+            <h2 class="hero-cta__title">{{ __('landing.usp.title') }}</h2>
+            <p class="hero-cta__description">{{ __('landing.usp.text_1') }}</p>
         </div>
 
         <div class="hero-cta__bottom">
-            <p class="hero-cta__bottom-text">Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.</p>
+            <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>
             <div class="hero-cta__buttons">
-                <img src="{{asset('assets/public/appstore.png')}}" alt="App Store" class="hero-cta__btn-img">
-                <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play" class="hero-cta__btn-img">
+                <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta__btn-img">
+                <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta__btn-img">
             </div>
         </div>
-
     </div>
 </section>
 
 <div class="hero-cta__bottom">
-    <p class="hero-cta__bottom-text">
-        Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.
-    </p>
-
+    <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>
 </div>
-</div>
-</section>
 
-
-
-<!-- For Whom Section -->
 <section class="for-whom">
     <div class="for-whom__container">
-        <h2 class="for-whom__title">Для кого Esticly</h2>
+        <h2 class="for-whom__title">{{ __('landing.audience.title') }}</h2>
 
         <div class="for-whom__content">
-            <div class="for-whom__card for-whom__card--white">
+            <div class="for-whom__card for-whom__card--white" id="for-professionals">
                 <h3 class="for-whom__card-title">
-                    <span class="for-whom__icon"><img src="{{asset('assets/public/icon5.png')}}" alt=""></span>
-                    Для частных мастеров.
+                    <span class="for-whom__icon"><img src="{{ asset('assets/public/icon5.png') }}" alt=""></span>
+                    {{ __('landing.audience.pros_title') }}
                 </h3>
                 <hr class="hr">
 
-                <p class="for-whom__card-text">
-                    Esticly помогает упростить ежедневную работу:
-                </p>
+                <p class="for-whom__card-text">{{ __('landing.audience.pros_intro') }}</p>
 
                 <ul class="for-whom__list">
-                    <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Быстро вести запись клиентов
-                    </li>
-                    <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Не терять контакты
-                    </li>
-                    <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Отправлять напоминания
-                    </li>
-                    <li class="for-whom__list-item">
-                        <span class="for-whom__list-icon"><img src="{{asset('assets/public/tick_green.svg')}}" alt=""></span>
-                        Контролировать доход без сложных настроек
-                    </li>
+                    @foreach($proItems as $item)
+                        <li class="for-whom__list-item">
+                            <span class="for-whom__list-icon"><img src="{{ asset('assets/public/tick_green.svg') }}" alt=""></span>
+                            {{ $item }}
+                        </li>
+                    @endforeach
                 </ul>
                 <hr>
 
-                <p class="for-whom__card-text">
-                    Это удобная CRM для мастера маникюра, косметолога, бровиста, парикмахера и других специалистов.
-                </p>
+                <p class="for-whom__card-text">{{ __('landing.audience.pros_outro') }}</p>
             </div>
 
-            <div class="for-whom__card for-whom__card--blue">
+            <div class="for-whom__card for-whom__card--blue" id="for-salons">
                 <h3 class="for-whom__card-title for-whom__card-title--blue">
-                    <span class="for-whom__icon"><img src="{{asset('assets/public/icon6.png')}}" alt=""></span>
-                    Для салонов красоты.
+                    <span class="for-whom__icon"><img src="{{ asset('assets/public/icon6.png') }}" alt=""></span>
+                    {{ __('landing.audience.salons_title') }}
                 </h3>
 
                 <hr class="hr hr-blue">
 
-                <p class="for-whom__card-text for-whom__card-text--blue">
-                    Esticly поддержит салонам, которым важно:
-                </p>
+                <p class="for-whom__card-text for-whom__card-text--blue">{{ __('landing.audience.salons_intro') }}</p>
 
                 <ul class="for-whom__list">
-                    <li class="for-whom__list-item for-whom__list-item--blue">
-                        <span class="for-whom__list-icon for-whom__list-icon--blue"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
-                        Управлять командой
-                    </li>
-                    <li class="for-whom__list-item for-whom__list-item--blue">
-                        <span class="for-whom__list-icon for-whom__list-icon--blue"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
-                        Видеть общую загрузку
-                    </li>
-                    <li class="for-whom__list-item for-whom__list-item--blue">
-                        <span class="for-whom__list-icon for-whom__list-icon--blue"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
-                        Контролировать процессы
-                    </li>
-                    <li class="for-whom__list-item for-whom__list-item--blue">
-                        <span class="for-whom__list-icon for-whom__list-icon--blue"><img src="{{asset('assets/public/tick2.png')}}" alt=""></span>
-                        Системно работать с клиентами
-                    </li>
+                    @foreach($salonItems as $item)
+                        <li class="for-whom__list-item for-whom__list-item--blue">
+                            <span class="for-whom__list-icon for-whom__list-icon--blue"><img src="{{ asset('assets/public/tick2.png') }}" alt=""></span>
+                            {{ $item }}
+                        </li>
+                    @endforeach
                 </ul>
 
                 <hr class="hr-blue hr">
 
-                <p class="for-whom__card-text for-whom__card-text--blue">
-                    В будущем это станется основой для масштабирования бизнеса, роста повторных визитов и повышения качества сервиса.
-                </p>
+                <p class="for-whom__card-text for-whom__card-text--blue">{{ __('landing.audience.salons_outro') }}</p>
             </div>
         </div>
     </div>
 </section>
 
-
-
-
-
-<!-- Pricing Section -->
-<section class="pricing">
+<section class="pricing" id="pricing">
     <div class="pricing__container">
-        <h2 class="pricing__title">Тарифы</h2>
+        <h2 class="pricing__title">{{ __('landing.pricing.title') }}</h2>
 
-        <p class="pricing__description">
-            Вы можете начать с бесплатного тестового периода на 7 дней, чтобы оценить возможности CRM и понять, как она помогает в ежедневной работе.
-        </p>
+        <p class="pricing__description">{{ __('landing.pricing.description') }}</p>
 
         <div class="pricing__grid">
             <div class="pricing__card">
-                <h3 class="pricing__card-title">Обычный тариф</h3>
+                <h3 class="pricing__card-title">{{ __('landing.pricing.basic_title') }}</h3>
                 <hr>
                 <div class="pricing__price">
-                    <span class="pricing__amount">59 zł</span>
+                    <span class="pricing__amount">{{ __('landing.pricing.basic_price') }}</span>
                     <span class="pricing__currency"></span>
-                    <span class="pricing__period">/месяц</span>
+                    <span class="pricing__period">{{ __('landing.pricing.period') }}</span>
                 </div>
 
-                <p class="pricing__card-description">
-                    Он подходит частным мастерам, которым нужен надежный инструмент для:
-                </p>
+                <p class="pricing__card-description">{{ __('landing.pricing.basic_intro') }}</p>
 
                 <ul class="pricing__features">
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Управления клиентами
-                    </li>
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Управления записями
-                    </li>
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Управления напоминаниями
-                    </li>
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Управления аналитикой
-                    </li>
+                    @foreach($basicItems as $item)
+                        <li class="pricing__feature">
+                            <span class="pricing__check"><img src="{{ asset('assets/public/tick3.png') }}" alt=""></span>
+                            {{ $item }}
+                        </li>
+                    @endforeach
                 </ul>
 
                 <hr>
 
-                <button class="pricing__btn">Выбрать</button>
+                <button class="pricing__btn">{{ __('landing.pricing.basic_cta') }}</button>
             </div>
 
             <div class="pricing__card pricing__card--featured pricing__card--blue">
-                <div class="pricing__badge">MOST POPULAR</div>
+                <div class="pricing__badge">{{ __('landing.pricing.pro_badge') }}</div>
 
-                <h3 class="pricing__card-title">PRO тариф</h3>
+                <h3 class="pricing__card-title">{{ __('landing.pricing.pro_title') }}</h3>
                 <hr>
 
                 <div class="pricing__price">
-                    <span class="pricing__amount">89 zł</span>
+                    <span class="pricing__amount">{{ __('landing.pricing.pro_price') }}</span>
                     <span class="pricing__currency"></span>
-                    <span class="pricing__period">/месяц</span>
-                    <span class="pricing__free-trial">7 дней бесплатно</span>
+                    <span class="pricing__period">{{ __('landing.pricing.period') }}</span>
+                    <span class="pricing__free-trial">{{ __('landing.pricing.pro_trial') }}</span>
                 </div>
 
-                <p class="pricing__card-description">
-                    Он подходит салонам красоты и командам. Этот тариф ориентирован на бизнес, которому нужны:
-                </p>
+                <p class="pricing__card-description">{{ __('landing.pricing.pro_intro') }}</p>
 
                 <ul class="pricing__features">
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Более широкие возможности управления
-                    </li>
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Возможности дальнейшего роста
-                    </li>
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Простая цена
-                    </li>
-                    <li class="pricing__feature">
-                        <span class="pricing__check"><img src="{{asset('assets/public/tick3.png')}}" alt=""></span>
-                        Прозрачная модель
-                    </li>
+                    @foreach($proPlanItems as $item)
+                        <li class="pricing__feature">
+                            <span class="pricing__check"><img src="{{ asset('assets/public/tick3.png') }}" alt=""></span>
+                            {{ $item }}
+                        </li>
+                    @endforeach
                 </ul>
                 <hr>
 
-                <button class="pricing__btn pricing__btn--primary">Выбрать</button>
+                <button class="pricing__btn pricing__btn--primary">{{ __('landing.pricing.pro_cta') }}</button>
             </div>
         </div>
     </div>
 </section>
 
-
-
-
-
-<!-- Download Section -->
 <section class="hero-cta-download">
     <div class="hero-cta-download__container">
         <div class="hero-cta-download__image">
-            <img  src="{{asset('assets/public/phone-upscayl.png')}}" alt="Esticly App" class="hero-cta-download__phone">
-            <img class="hero-cta-download__logo" src="{{asset('assets/public/logotbn.png')}}" alt="">
+            <img src="{{ asset('assets/public/phone-upscayl.png') }}" alt="Esticly App" class="hero-cta-download__phone">
+            <img class="hero-cta-download__logo" src="{{ asset('assets/public/logotbn.png') }}" alt="">
         </div>
 
         <div class="hero-cta-download__content">
-            <h2 class="hero-cta-download__title">
-                Приложение Esticly доступно на iOS и Android.
-            </h2>
-
-            <p class="hero-cta-download__text">
-                Это значит, что управлять записями, клиентами и доходом можно из любого места и в любое время. Мобильная CRM особенно важна для beauty-сферы, где мастера и владельцы салонов часто работают в динамичном режиме и не всегда находятся за компьютером.
-            </p>
-
+            <h2 class="hero-cta-download__title">{{ __('landing.app.title') }}</h2>
+            <p class="hero-cta-download__text">{{ __('landing.app.text') }}</p>
         </div>
     </div>
 
     <div class="hero-cta-download__bottom">
         <div class="hero-cta-download__bottom-container">
-            <p class="hero-cta-download__bottom-text  change_to_black">Такой подход делает Esticly более гибкой CRM для салона красоты и мастеров. Вы получаете не просто программу для записи клиентов, а живой инструмент, который адаптируется под реальные задачи beauty-индустрии.</p>
+            <p class="hero-cta-download__bottom-text change_to_black">{{ __('landing.app.bottom') }}</p>
             <div class="hero-cta-download__apps">
-                <img src="{{asset('assets/public/appstore.png')}}" alt="App Store" class="hero-cta-download__app-badge">
-                <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play" class="hero-cta-download__app-badge">
+                <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta-download__app-badge">
+                <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta-download__app-badge">
             </div>
         </div>
     </div>
-
 </section>
 
-
-<!-- Reviews Section -->
 <section class="reviews">
     <div class="reviews__container">
-        <h2 class="reviews__title">Отзывы</h2>
+        <h2 class="reviews__title">{{ __('landing.reviews.title') }}</h2>
 
         <div class="reviews__grid">
-            <div class="reviews__card">
-                <div class="reviews__quote"><img class="vector" src="{{asset('assets/public/vector.png')}}" alt=""></div>
-                <p class="reviews__text">
-                    Действительно полезный инструмент для роста и <br> удобства 💅✨
-                </p>
-                <p class="reviews__description">
-                    Очень удобно, что клиенты сами выбирают свободное время, а я вижу весь свой график в одном месте. Есть напоминания, благодаря которым стало намного меньше “пропусков” записей. Интерфейс понятный, разобралась буквально за один день.
+            @foreach($reviews as $review)
+                <div class="reviews__card">
+                    <div class="reviews__quote"><img class="vector" src="{{ asset('assets/public/vector.png') }}" alt=""></div>
+                    <p class="reviews__text">{{ $review['headline'] }}</p>
+                    <p class="reviews__description">{{ $review['body_1'] }}</p>
+                    <p class="reviews__description">{{ $review['body_2'] }}</p>
+                    <a href="#" class="reviews__link">{{ __('landing.reviews.read_more') }}</a>
 
-                </p>
-                <p class="reviews__description">
-                    Отдельный плюс — это экономия времени и более <br> организованный работ...
-                </p>
-                <a href="#" class="reviews__link">Читать полностью</a>
-
-                <div class="reviews__author">
-                    <img src="{{asset('assets/public/anastasia.png')}}" alt="Анастасия" class="reviews__avatar">
-                    <div class="reviews__author-info">
-                        <p class="reviews__author-name">Анастасия</p>
-                        <p class="reviews__author-role">Мастер маникюра</p>
+                    <div class="reviews__author">
+                        <img src="{{ asset('assets/public/' . ($loop->index === 0 ? 'anastasia.png' : ($loop->index === 1 ? 'svetlana.png' : 'anastasia2.png'))) }}" alt="{{ $review['name'] }}" class="reviews__avatar">
+                        <div class="reviews__author-info">
+                            <p class="reviews__author-name">{{ $review['name'] }}</p>
+                            <p class="reviews__author-role">{{ $review['role'] }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="reviews__card">
-                <div class="reviews__quote"><img class="vector" src="{{asset('assets/public/vector.png')}}" alt=""></div>
-                <p class="reviews__text">
-                    Однозначно рекомендуем для салонов, работать более системно и удобно!
-                </p>
-                <p class="reviews__description">
-                    Как салон красоты, мы искали удобное решение для записи клиентов и управления расписанием мастеров — и это приложение полностью справдало ожидания.
-                </p>
-                <p class="reviews__description">
-                    Теперь вся запись ведётся в одном месте: администратору стало намного проще работать, а клиенты могут самостоятельно выбрать удобное врем...
-                </p>
-                <a href="#" class="reviews__link">Читать полностью</a>
-
-                <div class="reviews__author">
-                    <img src="{{asset('assets/public/svetlana.png')}}" alt="Светлана" class="reviews__avatar">
-                    <div class="reviews__author-info">
-                        <p class="reviews__author-name">Светлана</p>
-                        <p class="reviews__author-role">Владелица салона красоты</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="reviews__card">
-                <div class="reviews__quote"><img class="vector" src="{{asset('assets/public/vector.png')}}" alt=""></div>
-                <p class="reviews__text">
-                    Действительно полезный инструмент для роста и <br> удобства 🚀✨
-                </p>
-                <p class="reviews__description">
-                    Очень удобно, что клиенты сами выбирают свободное время, а я вижу весь свой график в одном месте. Есть напоминания, благодаря которым стало намного меньше "пропусков" записей. Интерфейс понятный, разобралась буквально за один день.
-                </p>
-                <p class="reviews__description">
-                    Отдельный плюс — это экономия времени и более организованный работ...
-                </p>
-                <a href="#" class="reviews__link">Читать полностью</a>
-
-                <div class="reviews__author">
-                    <img src="{{asset('assets/public/anastasia2.png')}}" alt="Анастасия" class="reviews__avatar">
-                    <div class="reviews__author-info">
-                        <p class="reviews__author-name">Анастасия</p>
-                        <p class="reviews__author-role">Мастер маникюра</p>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
 
-        <!-- Pagination -->
         <div class="reviews__pagination">
             <button class="reviews__pagination-btn reviews__pagination-btn--prev" aria-label="Previous">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -611,233 +493,153 @@
     </div>
 </section>
 
-<!-- Information Text Section -->
 <section class="info-section">
     <div class="info-section__container">
-        <h2 class="info-section__title">
-            CRM для салона красоты — это не просто программа для записи <br> клиентов, а полноценный инструмент для автоматизации бизнеса.
-        </h2>
-
+        <h2 class="info-section__title">{{ __('landing.seo_block.title') }}</h2>
         <p class="info-section__text">
-            Такая система помогает мастерам и салонам управлять клиентской базой, фиксировать визиты, отправлять напоминания, анализировать доход и <br> систематично выстраивать процессы. <br> <br>
-            Использование CRM для beauty-бизнеса помогает уменьшить количество ошибок, улучшить клиентский опыт и увеличить прибыль. Когда все данные собраны в одном месте, владельцу проще контролировать работу, видеть слабые зоны и принимать решения на основе аналитики. Esticly создан именно для таких задач и помогает перевести хаотичное управление в понятную систему.
+            {{ __('landing.seo_block.paragraph_1') }} <br><br>
+            {{ __('landing.seo_block.paragraph_2') }}
         </p>
-
-
-
-{{--        <a href="#" class="info-section__btn">Читать полностью</a>--}}
     </div>
 </section>
 
-
-
-
-<!-- FAQ Section -->
-<section class="faq">
+<section class="faq" id="faq">
     <div class="faq__container">
-        <h2 class="faq__title">FAQ</h2>
+        <h2 class="faq__title">{{ __('landing.faq.title') }}</h2>
 
         <div class="faq__list">
-            <div class="faq__item">
-                <button class="faq__question">
-                    <span>Что такое CRM для салона красоты?</span>
-                    <hr class="hr-blue hr">
-
-                    <span class="faq__icon">
-             <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="contain">
-          </span>
-                </button>
-
-                <div class="faq__answer">
-                    <p>Это система управления клиентами, записями, напоминаниями и доходом, которая помогает автоматизировать ежедневную работу и улучшать сервис.</p>
+            @foreach($faqItems as $item)
+                <div class="faq__item">
+                    <button class="faq__question">
+                        <span>{{ $item['q'] }}</span>
+                        @if(!$loop->index || $loop->index !== 2)
+                            <hr class="hr-blue hr">
+                        @endif
+                        <span class="faq__icon">
+                            <img src="{{ asset('assets/public/vector_button.svg') }}" alt="" width="30px" object-fit="contain">
+                        </span>
+                    </button>
+                    @if($loop->index === 2)
+                        <hr class="hr-blue hr">
+                    @endif
+                    <div class="faq__answer">
+                        <p>{{ $item['a'] }}</p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="faq__item">
-                <button class="faq__question">
-                    <span>Зачем CRM нужна частному мастеру?</span>
-                    <hr class="hr-blue hr">
-                    <span class="faq__icon">
-             <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="contain">
-          </span>
-                </button>
-                <div class="faq__answer">
-                    <p>CRM помогает мастеру организовать работу, не забывать о клиентах, получать напоминания о записях и видеть свой доход в одном месте. Это особенно полезно для тех, кто работает одной и управляет своим временем самостоятельно.</p>
-                </div>
-            </div>
-
-            <div class="faq__item">
-                <button class="faq__question">
-                    <span>Сложно ли пользоваться Esticly?</span>
-
-                    <span class="faq__icon">
-            <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="contain">
-          </span>
-                </button>
-                <hr class="hr-blue hr">
-                <div class="faq__answer">
-                    <p>Нет, Esticly имеет интуитивный интерфейс. Большинство пользователей разбираются в приложении за 1-2 дня. Есть также поддержка и документация, которые помогут вам начать.</p>
-                </div>
-            </div>
-
-            <div class="faq__item">
-                <button class="faq__question">
-                    <span>Можно ли начать бесплатно?</span>
-                    <hr class="hr-blue hr">
-                    <span class="faq__icon">
-             <img src="{{asset('assets/public/vector_button.svg')}}" alt="" width="30px" object-fit="cover">
-          </span>
-                </button>
-                <div class="faq__answer">
-                    <p>Да, вы можете начать с бесплатного пробного периода на 7 дней. Это даст вам возможность протестировать все функции и решить, подходит ли вам Esticly, прежде чем оформлять платную подписку.</p>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
 
-<!-- Final CTA Section -->
 <section class="final-cta">
     <div class="final-cta__container">
         <div class="final-cta__content">
-            <h2 class="final-cta__title">
-                Начните наводить порядок  в бизнесе уже сегодня.
-            </h2>
-
-            <p class="final-cta__text">
-                Скачайте Esticly и попробуйте современную CRM для салонов красоты и частных мастеров, которая помогает автоматизировать запись клиентов, улучшить сервис и увеличить доход. Бесплатный старт позволяет быстро протестировать возможности приложения и перейти от хаоса к системе.
-            </p>
-
+            <h2 class="final-cta__title">{{ __('landing.final_cta.title') }}</h2>
+            <p class="final-cta__text">{{ __('landing.final_cta.text') }}</p>
             <div class="final-cta__buttons">
                 <a href="#" class="final-cta__btn">
-                    <img src="{{asset('assets/public/appstore.svg')}}" alt="">
+                    <img src="{{ asset('assets/public/appstore.svg') }}" alt="">
                 </a>
                 <a href="#" class="final-cta__btn">
-                    <img src="{{asset('assets/public/playstore.svg')}}" alt="">
-
+                    <img src="{{ asset('assets/public/playstore.svg') }}" alt="">
                 </a>
             </div>
         </div>
 
         <div class="final-cta__image">
-            <img src="{{asset('assets/public/hero-phone.png')}}" alt="Esticly App" class="final-cta__phone">
-            <img class="top-right" src="{{asset('assets/public/final-cta-top-right.svg')}}" alt="">
-            <img class="bottom-left" src="{{asset('assets/public/final-cta-bottom.svg')}}" alt="">
+            <img src="{{ $heroImage }}" alt="Esticly App" class="final-cta__phone">
+            <img class="top-right" src="{{ asset('assets/public/final-cta-top-right.svg') }}" alt="">
+            <img class="bottom-left" src="{{ asset('assets/public/final-cta-bottom.svg') }}" alt="">
         </div>
     </div>
 </section>
 
-
-
-
-
-
-
-<!-- Footer CTA Section -->
 <section class="footer-cta">
     <div class="footer-cta__container">
         <div class="footer-cta__content">
-            <p class="footer-cta__text">Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более организованным и предсказуемым.</p>
+            <p class="footer-cta__text">{{ __('landing.hero.bottom') }}</p>
             <div class="footer-cta__buttons">
                 <a href="#" class="footer-cta__app-link">
-                    <img src="{{asset('assets/public/appstore.png')}}" alt="App Store">
+                    <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store">
                 </a>
                 <a href="#" class="footer-cta__app-link">
-                    <img src="{{asset('assets/public/playstore.png')}}" alt="Google Play">
+                    <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play">
                 </a>
             </div>
         </div>
     </div>
 </section>
 
-
-
-<!-- Footer -->
 <footer>
     <div class="footer-top">
-
         <div class="footer-brand">
             <div class="footer-logo">
-                <img src="{{asset('assets/public/footer-logo.svg')}}" alt="">
+                <img src="{{ asset('assets/public/footer-logo.svg') }}" alt="">
             </div>
-            <p class="footer-desc">
-                Попробуйте современную CRM для салонов
-                красоты и частных мастеров, которая помогает
-                автоматизировать запись клиентов, улучшить
-                сервис и увеличить доход.
-            </p>
-            <div class="lang-buttons lang-desktop">
-                <button class="lang-btn">RU</button>
-                <button class="lang-btn">EN</button>
-                <button class="lang-btn">PL</button>
-                <button class="lang-btn">IT</button>
-                <button class="lang-btn">FR</button>
-            </div>
+            <p class="footer-desc">{{ __('landing.footer.description') }}</p>
+{{--            <div class="lang-buttons lang-desktop">--}}
+{{--                @foreach($languages as $code => $meta)--}}
+{{--                    <a href="{{ $localizedLandingUrls[$code] ?? route('marketing.localized', ['locale' => $code]) }}" class="lang-btn{{ $code === $currentLocale ? ' active' : '' }}">{{ strtoupper($code) }}</a>--}}
+{{--                @endforeach--}}
+{{--            </div>--}}
         </div>
 
         <div class="footer-nav">
-            <p class="footer-nav-title">Клиентам</p>
+            <p class="footer-nav-title">{{ __('landing.footer.menu_title') }}</p>
             <ul>
-                <li><a href="#">Возможности</a></li>
-                <li><a href="#">Для мастеров</a></li>
-                <li><a href="#">Для салонов</a></li>
-                <li><a href="#">Цены</a></li>
-                <li><a href="#">FAQ</a></li>
+                <li><a href="#features">{{ __('landing.nav.features') }}</a></li>
+                <li><a href="#for-professionals">{{ __('landing.nav.professionals') }}</a></li>
+                <li><a href="#for-salons">{{ __('landing.nav.salons') }}</a></li>
+                <li><a href="#pricing">{{ __('landing.nav.pricing') }}</a></li>
+                <li><a href="#faq">{{ __('landing.nav.faq') }}</a></li>
             </ul>
         </div>
 
         <div class="footer-contacts">
-            <p class="footer-contacts-title">Контакти</p>
+            <p class="footer-contacts-title">{{ __('landing.footer.contacts_title') }}</p>
+
+{{--            <div class="contact-item">--}}
+{{--                <img src="{{ asset('assets/public/footer-phone.svg') }}" alt="" class="contact-icon">--}}
+{{--                <div class="contact-details">--}}
+{{--                    <span class="contact-main">{{ __('landing.footer.phone_value') }}</span>--}}
+{{--                    <p class="contact-sub">{{ __('landing.footer.hours') }}</p>--}}
+{{--                </div>--}}
+{{--            </div>--}}
 
             <div class="contact-item">
-                <img src="{{asset('assets/public/footer-phone.svg')}}" alt="" class="contact-icon">
+                <img src="{{ asset('assets/public/footer-email.svg') }}" alt="" class="contact-icon">
                 <div class="contact-details">
-                    <span class="contact-main">+48 577 000 000</span>
-                    <p class="contact-sub">ПН-СБ: 09:00 – 20:00, ВС: выходной</p>
+                    <a href="mailto:{{ __('landing.footer.email_value') }}" class="contact-email-link">{{ __('landing.footer.email_value') }}</a>
+                    <a href="mailto:{{ __('landing.footer.email_value') }}" class="contact-write">{{ __('landing.footer.email_cta') }}</a>
                 </div>
             </div>
 
-            <div class="contact-item">
-                <img src="{{asset('assets/public/footer-email.svg')}}" alt="" class="contact-icon">
-                <div class="contact-details">
-                    <a href="mailto:esticly@gmail.com" class="contact-email-link">esticly@gmail.com</a>
-                    <a href="mailto:esticly@gmail.com" class="contact-write">Написать</a>
-                </div>
-            </div>
-
-            <div class="contact-item">
-                <img src="{{asset('assets/public/footer-location.svg')}}" alt="" class="contact-icon">
-                <div class="contact-details">
-                    <span class="contact-city">м.Киев</span>
-                    <p class="contact-address">ул. Соборная 29, кабинет 32</p>
-                </div>
-            </div>
+{{--            <div class="contact-item">--}}
+{{--                <img src="{{ asset('assets/public/footer-location.svg') }}" alt="" class="contact-icon">--}}
+{{--                <div class="contact-details">--}}
+{{--                    <span class="contact-city">{{ __('landing.footer.location_value') }}</span>--}}
+{{--                    <p class="contact-address">{{ __('landing.footer.location_address') }}</p>--}}
+{{--                </div>--}}
+{{--            </div>--}}
         </div>
-
     </div>
 
-    <div class="lang-buttons lang-mobile">
-        <button class="lang-btn">RU</button>
-        <button class="lang-btn">EN</button>
-        <button class="lang-btn">PL</button>
-        <button class="lang-btn">IT</button>
-        <button class="lang-btn">FR</button>
-    </div>
+{{--    <div class="lang-buttons lang-mobile">--}}
+{{--        @foreach($languages as $code => $meta)--}}
+{{--            <a href="{{ $localizedLandingUrls[$code] ?? route('marketing.localized', ['locale' => $code]) }}" class="lang-btn{{ $code === $currentLocale ? ' active' : '' }}">{{ strtoupper($code) }}</a>--}}
+{{--        @endforeach--}}
+{{--    </div>--}}
 
     <div class="footer-bottom">
-        <span class="footer-copyright">2026 EVA. Все права защищены</span>
+        <span class="footer-copyright">{{ __('landing.footer.copyright') }}</span>
         <div class="footer-links">
-            <a href="#">Политика конфиденційності</a>
-            <a href="#">Условия использования</a>
+            <a href="{{ route('legal.privacy.localized', ['locale' => $currentLocale]) }}">{{ __('landing.footer.privacy') }}</a>
+            <a href="{{ route('legal.terms.localized', ['locale' => $currentLocale]) }}">{{ __('landing.footer.terms') }}</a>
         </div>
     </div>
-
 </footer>
 
-
-
-
 <div id="app"></div>
-<script type="module" src="{{asset('assets/src/main.js')}}"></script>
+<script type="module" src="{{ asset('assets/src/main.js') }}"></script>
 </body>
 </html>

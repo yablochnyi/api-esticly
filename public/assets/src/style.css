@@ -513,8 +513,13 @@ body {
 .hero__app-badge {
     height: 50px;
     width: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
 
+.hero__app-badge:hover {
+    transform: translateY(-3px);
+}
 
 @media (max-width: 1024px) {
     .header__container {
@@ -2371,6 +2376,12 @@ hr {
 .hero-cta-download__app-badge {
     height: 50px;
     width: auto;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.hero-cta-download__app-badge:hover {
+    transform: translateY(-3px);
 }
 
 @media (max-width: 1024px) {
