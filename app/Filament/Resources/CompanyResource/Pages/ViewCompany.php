@@ -3,12 +3,17 @@
 namespace App\Filament\Resources\CompanyResource\Pages;
 
 use App\Filament\Resources\CompanyResource;
+use App\Jobs\SendOrganizationPush;
 use App\Models\MarketingDelivery;
 use App\Models\User;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -22,6 +27,46 @@ class ViewCompany extends ViewRecord
     public static function canAccess(array $parameters = []): bool
     {
         return Gate::allows('access-filament-admin');
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('sendPush')
+                ->label('Send push')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('warning')
+                ->modalHeading('Send push to this company')
+                ->modalDescription('This notification will be queued and sent only to the selected company: owner account and its staff accounts.')
+                ->form([
+                    TextInput::make('title')
+                        ->label('Title')
+                        ->required()
+                        ->maxLength(120),
+                    Textarea::make('body')
+                        ->label('Message')
+                        ->required()
+                        ->rows(5)
+                        ->maxLength(240),
+                ])
+                ->action(function (array $data): void {
+                    /** @var User $record */
+                    $record = $this->getRecord();
+
+                    SendOrganizationPush::dispatch(
+                        orgId: (int) $record->id,
+                        title: (string) $data['title'],
+                        body: (string) $data['body'],
+                        createdByUserId: auth()->id(),
+                    );
+
+                    Notification::make()
+                        ->title('Push queued')
+                        ->body('The notification was queued for this company.')
+                        ->success()
+                        ->send();
+                }),
+        ];
     }
 
     public function infolist(Schema $schema): Schema

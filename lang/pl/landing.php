@@ -133,7 +133,7 @@ return [
     'app' => [
         'title' => 'Esticly jest dostępny na iOS i Android.',
         'text' => 'Oznacza to, że możesz zarządzać wizytami, klientami, przypomnieniami i dochodem z dowolnego miejsca. Dostęp mobilny jest szczególnie ważny w branży beauty, gdzie właściciele i specjaliści często pracują w ruchu.',
-        'bottom' => 'Ten blok wspiera również SEO pod frazy takie jak aplikacja CRM dla salonu beauty, mobilny CRM dla specjalistów beauty i aplikacja do zapisów klientów.',
+        'bottom' => 'Pomaga to oszczędzać czas, zmniejszać liczbę nieodbytych wizyt i zwiększać przychody. Wszystkie dane synchronizują się w czasie rzeczywistym i są bezpiecznie chronione.',
     ],
     'reviews' => [
         'title' => 'Opinie',

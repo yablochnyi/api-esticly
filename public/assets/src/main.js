@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
+  const grid = document.querySelector('.reviews__grid');
   const dots = document.querySelectorAll('.reviews__dot');
   const prevBtn = document.querySelector('.reviews__pagination-btn--prev');
   const nextBtn = document.querySelector('.reviews__pagination-btn--next');
+  const cards = document.querySelectorAll('.reviews__card');
   
-  if (!dots.length) return;
+  if (!dots.length || !grid || !cards.length) return;
   
   let currentIndex = 0;
   
@@ -17,10 +19,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     currentIndex = index;
   }
+
+  function scrollToCard(index) {
+    const card = cards[index];
+    if (!card) return;
+
+    grid.scrollTo({
+      left: card.offsetLeft,
+      behavior: 'smooth',
+    });
+  }
   
   dots.forEach((dot, index) => {
     dot.addEventListener('click', () => {
       setActive(index);
+      scrollToCard(index);
     });
   });
   
@@ -28,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     prevBtn.addEventListener('click', () => {
       const newIndex = (currentIndex - 1 + dots.length) % dots.length;
       setActive(newIndex);
+      scrollToCard(newIndex);
     });
   }
   
@@ -35,8 +49,34 @@ document.addEventListener('DOMContentLoaded', function() {
     nextBtn.addEventListener('click', () => {
       const newIndex = (currentIndex + 1) % dots.length;
       setActive(newIndex);
+      scrollToCard(newIndex);
     });
   }
+
+  let scrollTicking = false;
+
+  grid.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+
+    scrollTicking = true;
+
+    window.requestAnimationFrame(() => {
+      const gridLeft = grid.scrollLeft;
+      let nearestIndex = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      cards.forEach((card, index) => {
+        const distance = Math.abs(card.offsetLeft - gridLeft);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestIndex = index;
+        }
+      });
+
+      setActive(nearestIndex);
+      scrollTicking = false;
+    });
+  }, { passive: true });
 });
 
 
@@ -88,4 +128,3 @@ links.forEach(link => {
     mobileMenu?.classList.remove('active');
   });
 });
-

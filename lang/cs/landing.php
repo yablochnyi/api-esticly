@@ -89,7 +89,7 @@ return [
     'app' => [
         'title' => 'Aplikace Esticly je dostupná pro iOS a Android.',
         'text' => 'To znamená, že můžete spravovat rezervace, klienty, připomínky i příjmy odkudkoliv. Mobilní CRM je v beauty oboru obzvlášť důležité, protože se často pracuje v pohybu.',
-        'bottom' => 'Tento blok také posiluje SEO relevanci pro hledání jako CRM aplikace pro beauty salon, mobilní CRM pro beauty profesionály a aplikace na rezervace.',
+        'bottom' => 'Pomáhá to šetřit čas, snižovat počet zmeškaných návštěv a zvyšovat příjmy. Všechna data se synchronizují v reálném čase a jsou spolehlivě chráněna.',
     ],
     'reviews' => [
         'title' => 'Recenze',

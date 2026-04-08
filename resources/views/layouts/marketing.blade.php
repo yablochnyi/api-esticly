@@ -71,7 +71,7 @@
                 </select>
                 <img src="{{ asset('assets/public/vector-down.svg') }}" alt="" class="header__lang-icon" width="8px">
             </div>
-            <button class="header__btn header__btn--desktop">{{ $headerCtaLabel }}</button>
+{{--            <button class="header__btn header__btn--desktop">{{ $headerCtaLabel }}</button>--}}
         </div>
     </div>
 </header>

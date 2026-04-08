@@ -133,7 +133,7 @@ return [
     'app' => [
         'title' => 'The Esticly app is available on iOS and Android.',
         'text' => 'This means you can manage appointments, clients, reminders, and revenue from anywhere. Mobile access is especially important for the beauty industry, where professionals and owners often work on the move.',
-        'bottom' => 'This section also supports SEO around keywords such as beauty salon CRM app, mobile CRM for beauty professionals, and appointment booking app. The app-first format matches user expectations and makes adoption easier.',
+        'bottom' => 'It helps save time, reduce missed appointments, and increase revenue. All data stays synced in real time and is securely protected.',
     ],
     'reviews' => [
         'title' => 'Reviews',

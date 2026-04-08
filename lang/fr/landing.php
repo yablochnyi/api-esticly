@@ -89,7 +89,7 @@ return [
     'app' => [
         'title' => 'L’application Esticly est disponible sur iOS et Android.',
         'text' => 'Vous pouvez ainsi gérer rendez-vous, clients, rappels et revenus depuis n’importe où. Un CRM mobile est particulièrement important dans la beauté, où le travail se fait souvent en mouvement.',
-        'bottom' => 'Ce bloc renforce aussi la pertinence SEO pour des requêtes comme application CRM salon de beauté, CRM mobile pour professionnels beauty et application de réservation.',
+        'bottom' => 'Cela aide à gagner du temps, à réduire le nombre de rendez-vous manqués et à augmenter le chiffre d’affaires. Toutes les données sont synchronisées en temps réel et protégées de manière fiable.',
     ],
     'reviews' => [
         'title' => 'Avis',

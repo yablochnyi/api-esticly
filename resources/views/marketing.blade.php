@@ -27,10 +27,10 @@
                 </div>
             </div>
 
-            <div class="hero__buttons">
-                <button class="hero__btn hero__btn--primary">{{ __('landing.hero.cta_download') }}</button>
-                <button class="hero__btn hero__btn--secondary">{{ __('landing.hero.cta_trial') }}</button>
-            </div>
+{{--            <div class="hero__buttons">--}}
+{{--                <button class="hero__btn hero__btn--primary">{{ __('landing.hero.cta_download') }}</button>--}}
+{{--                <button class="hero__btn hero__btn--secondary">{{ __('landing.hero.cta_trial') }}</button>--}}
+{{--            </div>--}}
         </div>
 
         <div class="hero__image">
@@ -284,7 +284,7 @@
 
                 <hr>
 
-                <button class="pricing__btn">{{ __('landing.pricing.basic_cta') }}</button>
+{{--                <button class="pricing__btn">{{ __('landing.pricing.basic_cta') }}</button>--}}
             </div>
 
             <div class="pricing__card pricing__card--featured pricing__card--blue">
@@ -312,7 +312,7 @@
                 </ul>
                 <hr>
 
-                <button class="pricing__btn pricing__btn--primary">{{ __('landing.pricing.pro_cta') }}</button>
+{{--                <button class="pricing__btn pricing__btn--primary">{{ __('landing.pricing.pro_cta') }}</button>--}}
             </div>
         </div>
     </div>
@@ -377,8 +377,8 @@
                 <button class="reviews__dot reviews__dot--active" data-index="0"></button>
                 <button class="reviews__dot" data-index="1"></button>
                 <button class="reviews__dot" data-index="2"></button>
-                <button class="reviews__dot" data-index="3"></button>
-                <button class="reviews__dot" data-index="4"></button>
+{{--                <button class="reviews__dot" data-index="3"></button>--}}
+{{--                <button class="reviews__dot" data-index="4"></button>--}}
             </div>
 
             <button class="reviews__pagination-btn reviews__pagination-btn--next" aria-label="Next">
