@@ -107,7 +107,7 @@ return [
         'title' => 'Pricing',
         'description' => 'Esticly uses a simple and transparent pricing model. New users can start with a free 7-day trial to experience how the CRM fits their workflow and daily operations.',
         'basic_title' => 'Basic plan',
-        'basic_price' => '59 zł',
+        'basic_price' => '$16',
         'period' => '/ month',
         'basic_intro' => 'This plan is suitable for independent professionals who need a reliable client booking and management system for:',
         'basic_items' => [
@@ -119,7 +119,7 @@ return [
         'basic_cta' => 'Choose plan',
         'pro_badge' => 'MOST POPULAR',
         'pro_title' => 'PRO plan',
-        'pro_price' => '89 zł',
+        'pro_price' => '$24',
         'pro_trial' => '7-day free trial',
         'pro_intro' => 'This plan is designed for salons and teams that need:',
         'pro_items' => [

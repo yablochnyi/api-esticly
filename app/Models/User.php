@@ -123,6 +123,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Subscription::class);
     }
 
+    public function portfolioPhotos()
+    {
+        return $this->hasMany(PortfolioPhoto::class);
+    }
+
     public function subscriptionTransactions()
     {
         return $this->hasMany(SubscriptionTransaction::class);
