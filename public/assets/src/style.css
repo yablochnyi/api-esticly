@@ -619,6 +619,7 @@ body {
     @media (max-width: 768px) {
         .hero__phones {
             max-width: 100%;
+            margin-right: 50px;
         }
     }
 
@@ -1442,7 +1443,6 @@ body {
         letter-spacing: 0%;
         text-align: center;
         color: rgba(17, 24, 39, 1);
-        margin-top: 40px;
 
     }
 
@@ -2199,7 +2199,7 @@ hr {
         letter-spacing: 0%;
         text-align: center;
         color: rgba(17, 24, 39, 1);
-        margin-top: -40px;
+        margin-top: -80px;
     }
 
     .pricing__description {
@@ -2775,8 +2775,8 @@ hr {
 
 .reviews {
     background: white;
-    margin-top: 120px;
-    margin-bottom: 120px;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
 
 .reviews__container {
@@ -3297,7 +3297,7 @@ hr {
 .faq {
     padding: 4rem 2rem;
     border-radius: 12px !important;
-    margin-top: 100px;
+    margin-top: 50px;
 }
 
 .faq__container {
@@ -3727,7 +3727,7 @@ hr {
 
 .center-cta__ellipse {
     position: absolute;
-    top: 110px;
+    top: 50px;
     left: 2%;
 
     transform: translateX(-50%);
@@ -4153,6 +4153,7 @@ hr {
 
     .final-cta__phone {
         max-width: 75%;
+        margin-right: 80px;
     }
 }
 

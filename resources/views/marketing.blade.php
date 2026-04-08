@@ -197,9 +197,9 @@
     </div>
 </section>
 
-<div class="hero-cta__bottom">
-    <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>
-</div>
+{{--<div class="hero-cta__bottom">--}}
+{{--    <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>--}}
+{{--</div>--}}
 
 <section class="for-whom">
     <div class="for-whom__container">
