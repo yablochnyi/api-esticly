@@ -62,6 +62,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/me/staff', [ProfileController::class, 'staffMe']);
         Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
         Route::post('/profile', [ProfileController::class, 'update']);
+        Route::delete('/profile/account', [ProfileController::class, 'deleteAccount']);
         Route::post('/devices', [DeviceController::class, 'store']);
 
         Route::get('/services', [ServiceController::class, 'index']);

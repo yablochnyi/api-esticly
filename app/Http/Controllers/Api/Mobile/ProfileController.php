@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
+use App\Models\User;
 use App\Support\MediaUrl;
 use App\Support\OrgSubscription;
 use App\Support\StaffGuard;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -219,5 +221,56 @@ class ProfileController extends Controller
         $u->save();
 
         return $this->reminders($request);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $this->forbidStaffUser($request);
+
+        $user = $request->user();
+        $org = $user->organization_id ? User::query()->findOrFail($user->organization_id) : $user;
+        $orgId = (int) $org->id;
+
+        DB::transaction(function () use ($orgId): void {
+            $staffIds = DB::table('staff')
+                ->where('user_id', $orgId)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            $staffUserIds = User::query()
+                ->where('organization_id', $orgId)
+                ->orWhereIn('staff_id', $staffIds)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn ($id) => $id !== $orgId)
+                ->values()
+                ->all();
+
+            $allUserIds = array_values(array_unique(array_merge([$orgId], $staffUserIds)));
+
+            DB::table('device_tokens')->whereIn('user_id', $allUserIds)->delete();
+            DB::table('personal_access_tokens')
+                ->where('tokenable_type', User::class)
+                ->whereIn('tokenable_id', $allUserIds)
+                ->delete();
+            DB::table('model_has_roles')
+                ->where('model_type', User::class)
+                ->whereIn('model_id', $allUserIds)
+                ->delete();
+            DB::table('sessions')->whereIn('user_id', $allUserIds)->delete();
+
+            DB::table('support_messages')->where('org_id', $orgId)->delete();
+            DB::table('support_messages')->whereIn('sender_user_id', $allUserIds)->delete();
+            DB::table('support_threads')->where('org_id', $orgId)->delete();
+
+            if ($staffUserIds !== []) {
+                User::query()->whereIn('id', $staffUserIds)->delete();
+            }
+
+            User::query()->whereKey($orgId)->delete();
+        });
+
+        return response()->json(['ok' => true]);
     }
 }
