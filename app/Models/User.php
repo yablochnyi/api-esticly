@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use App\Models\MarketingDelivery;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -131,6 +132,11 @@ class User extends Authenticatable implements FilamentUser
     public function subscriptionTransactions()
     {
         return $this->hasMany(SubscriptionTransaction::class);
+    }
+
+    public function marketingDeliveries()
+    {
+        return $this->hasMany(MarketingDelivery::class);
     }
 
     public function canAccessPanel(Panel $panel): bool

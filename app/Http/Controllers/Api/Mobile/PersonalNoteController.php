@@ -63,6 +63,12 @@ class PersonalNoteController extends Controller
         return response()->json($this->payload($note), 201);
     }
 
+    public function show(Request $request, PersonalNote $note)
+    {
+        $note = $this->findForCurrentUserOrAbort($request, $note);
+        return response()->json($this->payload($note));
+    }
+
     public function update(Request $request, PersonalNote $note)
     {
         $note = $this->findForCurrentUserOrAbort($request, $note);

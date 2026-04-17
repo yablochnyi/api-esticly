@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Mobile\AnalyticsController;
+use App\Http\Controllers\Api\Mobile\AppNotificationController;
 use App\Http\Controllers\Api\Mobile\AppleAppStoreNotificationsController;
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\BillingController;
@@ -54,9 +55,15 @@ Route::prefix('mobile')->group(function () {
         Route::patch('/client-notes/{note}', [ClientNoteController::class, 'update']);
 
         Route::get('/notes', [PersonalNoteController::class, 'index']);
+        Route::get('/notes/{note}', [PersonalNoteController::class, 'show']);
         Route::post('/notes', [PersonalNoteController::class, 'store']);
         Route::patch('/notes/{note}', [PersonalNoteController::class, 'update']);
         Route::delete('/notes/{note}', [PersonalNoteController::class, 'destroy']);
+
+        Route::get('/notifications', [AppNotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [AppNotificationController::class, 'unreadCount']);
+        Route::get('/notifications/{notification}', [AppNotificationController::class, 'show']);
+        Route::post('/notifications/{notification}/read', [AppNotificationController::class, 'markRead']);
 
         Route::get('/me', [ProfileController::class, 'me']);
         Route::get('/me/staff', [ProfileController::class, 'staffMe']);

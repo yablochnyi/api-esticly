@@ -6,11 +6,11 @@ use App\Filament\Resources\CompanyResource;
 use App\Jobs\SendOrganizationPush;
 use App\Models\MarketingDelivery;
 use App\Models\User;
+use App\Support\MediaUrl;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Notifications\Notification;
@@ -83,8 +83,8 @@ class ViewCompany extends ViewRecord
                     ->schema([
                         ImageEntry::make('logo_url')
                             ->label('Avatar')
-                            ->state(fn (User $record): ?string => $record->logo_url)
-                            ->defaultImageUrl('https://placehold.co/160x160?text=No+Logo')
+                            ->state(fn (User $record): ?string => MediaUrl::publicFile($record->logo_path))
+                            ->defaultImageUrl(asset('icon.png'))
                             ->circular()
                             ->imageSize(96)
                             ->columnSpan(2),
@@ -172,131 +172,6 @@ class ViewCompany extends ViewRecord
                                 'monthOptions' => $this->getSmsMonthOptions($record),
                             ]),
                     ]),
-
-                Section::make('Created services')
-                    ->description('Latest services created by the company.')
-                    ->columnSpan(6)
-                    ->schema([
-                        RepeatableEntry::make('services_preview')
-                            ->hiddenLabel()
-                            ->contained(false)
-                            ->state(fn (User $record) => $record->services()
-                                ->latest('id')
-                                ->limit(5)
-                                ->get()
-                                ->map(fn ($service) => [
-                                    'name' => (string) $service->name,
-                                    'price' => $this->formatServicePrice($service),
-                                    'duration' => $this->formatServiceDuration($service),
-                                ])
-                                ->all())
-                            ->schema([
-                                TextEntry::make('name')
-                                    ->label('Service')
-                                    ->weight('bold'),
-                                TextEntry::make('price')
-                                    ->label('Price'),
-                                TextEntry::make('duration')
-                                    ->label('Duration'),
-                            ])
-                            ->placeholder('No services yet.'),
-                    ]),
-
-                Section::make('Latest visits')
-                    ->description('Latest visits for this company.')
-                    ->columnSpan(6)
-                    ->schema([
-                        RepeatableEntry::make('visits_preview')
-                            ->hiddenLabel()
-                            ->contained(false)
-                            ->state(fn (User $record) => $record->visits()
-                                ->with(['service:id,name'])
-                                ->latest('starts_at')
-                                ->limit(5)
-                                ->get()
-                                ->map(fn ($visit) => [
-                                    'service' => (string) ($visit->service?->name ?: '—'),
-                                    'client' => (string) ($visit->client_name ?: '—'),
-                                    'starts_at' => $visit->starts_at?->format('Y-m-d H:i') ?: '—',
-                                    'status' => (string) ($visit->status ?: '—'),
-                                ])
-                                ->all())
-                            ->schema([
-                                TextEntry::make('service')
-                                    ->label('Service')
-                                    ->weight('bold'),
-                                TextEntry::make('client')
-                                    ->label('Client'),
-                                TextEntry::make('starts_at')
-                                    ->label('Starts at'),
-                                TextEntry::make('status')
-                                    ->label('Status')
-                                    ->badge(),
-                            ])
-                            ->placeholder('No visits yet.'),
-                    ]),
-
-                Section::make('Latest clients')
-                    ->description('Latest clients added to this company.')
-                    ->columnSpan(6)
-                    ->schema([
-                        RepeatableEntry::make('clients_preview')
-                            ->hiddenLabel()
-                            ->contained(false)
-                            ->state(fn (User $record) => $record->clients()
-                                ->latest('id')
-                                ->limit(5)
-                                ->get()
-                                ->map(fn ($client) => [
-                                    'name' => (string) ($client->name ?: '—'),
-                                    'phone' => (string) ($client->phone ?: '—'),
-                                    'created_at' => $client->created_at?->format('Y-m-d H:i') ?: '—',
-                                ])
-                                ->all())
-                            ->schema([
-                                TextEntry::make('name')
-                                    ->label('Client')
-                                    ->weight('bold'),
-                                TextEntry::make('phone')
-                                    ->label('Phone'),
-                                TextEntry::make('created_at')
-                                    ->label('Created'),
-                            ])
-                            ->placeholder('No clients yet.'),
-                    ]),
-
-                Section::make('Portfolio')
-                    ->description('Latest portfolio photos.')
-                    ->columnSpan(6)
-                    ->schema([
-                        RepeatableEntry::make('portfolio_preview')
-                            ->hiddenLabel()
-                            ->contained(false)
-                            ->grid(2)
-                            ->state(fn (User $record) => $record->portfolioPhotos()
-                                ->latest('id')
-                                ->limit(6)
-                                ->get()
-                                ->map(fn ($photo) => [
-                                    'url' => $photo->url,
-                                    'caption' => (string) ($photo->caption ?: 'No caption'),
-                                    'created_at' => $photo->created_at?->format('Y-m-d') ?: '—',
-                                ])
-                                ->all())
-                            ->schema([
-                                ImageEntry::make('url')
-                                    ->hiddenLabel()
-                                    ->defaultImageUrl('https://placehold.co/600x400?text=No+Image')
-                                    ->imageHeight(120)
-                                    ->imageWidth('100%'),
-                                TextEntry::make('caption')
-                                    ->label('Caption')
-                                    ->limit(80),
-                                TextEntry::make('created_at')
-                                    ->label('Created'),
-                            ])
-                            ->placeholder('No portfolio photos yet.'),
-                    ]),
             ]);
     }
 
@@ -362,35 +237,5 @@ class ViewCompany extends ViewRecord
             'month_other' => (clone $baseQuery)->whereNotIn('automation_key', ['visit_reminder_sms', 'thanks_after_visit'])->count(),
             'all_time_total' => (clone $allTimeQuery)->count(),
         ];
-    }
-
-    protected function formatServicePrice(object $service): string
-    {
-        $currency = strtoupper((string) ($this->getRecord()->currency_code ?: ''));
-
-        if (($service->price_type ?? 'fixed') === 'range') {
-            $from = $service->price_from !== null ? rtrim(rtrim((string) $service->price_from, '0'), '.') : '0';
-            $to = $service->price_to !== null ? rtrim(rtrim((string) $service->price_to, '0'), '.') : '0';
-
-            return trim("{$from} - {$to} {$currency}");
-        }
-
-        $fixed = $service->price_fixed !== null ? rtrim(rtrim((string) $service->price_fixed, '0'), '.') : '0';
-
-        return trim("{$fixed} {$currency}");
-    }
-
-    protected function formatServiceDuration(object $service): string
-    {
-        $from = (int) ($service->duration_from_min ?? 0);
-        $to = (int) ($service->duration_to_min ?? 0);
-
-        if ($from > 0 && $to > 0 && $from !== $to) {
-            return "{$from}-{$to} min";
-        }
-
-        $value = max($from, $to);
-
-        return $value > 0 ? "{$value} min" : '—';
     }
 }

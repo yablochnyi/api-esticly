@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AppNotification;
 use App\Models\DeviceToken;
 use App\Models\User;
 use App\Support\FcmV1;
@@ -33,10 +34,12 @@ class SendOrganizationPush implements ShouldQueue
             return;
         }
 
-        $title = Str::limit(trim($this->title), 120, '…');
-        $body = Str::limit(trim($this->body), 240, '…');
+        $rawTitle = trim($this->title);
+        $rawBody = trim($this->body);
+        $title = Str::limit($rawTitle, 120, '…');
+        $body = Str::limit($rawBody, 240, '…');
 
-        if ($title === '' || $body === '') {
+        if ($rawTitle === '' || $rawBody === '') {
             Log::channel('push')->warning('organization_push_skipped_empty_payload', [
                 'org_id' => $this->orgId,
             ]);
@@ -73,6 +76,16 @@ class SendOrganizationPush implements ShouldQueue
                 continue;
             }
 
+            $notification = AppNotification::query()->create([
+                'user_id' => (int) $recipient->id,
+                'type' => 'organization_manual_push',
+                'title' => Str::limit($rawTitle, 160, '…'),
+                'body' => $rawBody,
+                'data' => [
+                    'org_id' => (string) $this->orgId,
+                ],
+            ]);
+
             try {
                 $result = FcmV1::sendToTokens(
                     tokens: $tokens,
@@ -80,6 +93,7 @@ class SendOrganizationPush implements ShouldQueue
                     body: $body,
                     data: [
                         'type' => 'organization_manual_push',
+                        'notification_id' => (string) $notification->id,
                         'org_id' => (string) $this->orgId,
                     ],
                 );

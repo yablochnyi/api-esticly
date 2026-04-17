@@ -3,9 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CompanyResource\Pages;
-use App\Filament\Resources\CompanyResource\RelationManagers\StaffRelationManager;
 use App\Models\User;
 use App\Support\OrgSubscription;
+use Filament\Resources\Pages\Page;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
@@ -181,9 +181,20 @@ class CompanyResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            StaffRelationManager::class,
-        ];
+        return [];
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\ViewCompany::class,
+            Pages\ManageCompanyStaff::class,
+            Pages\ManageCompanyClients::class,
+            Pages\ManageCompanyServices::class,
+            Pages\ManageCompanyVisits::class,
+            Pages\ManageCompanyPortfolio::class,
+            Pages\ManageCompanySms::class,
+        ]);
     }
 
     public static function getPages(): array
@@ -191,6 +202,12 @@ class CompanyResource extends Resource
         return [
             'index' => Pages\ListCompanies::route('/'),
             'view' => Pages\ViewCompany::route('/{record}'),
+            'staff' => Pages\ManageCompanyStaff::route('/{record}/staff'),
+            'clients' => Pages\ManageCompanyClients::route('/{record}/clients'),
+            'services' => Pages\ManageCompanyServices::route('/{record}/services'),
+            'visits' => Pages\ManageCompanyVisits::route('/{record}/visits'),
+            'portfolio' => Pages\ManageCompanyPortfolio::route('/{record}/portfolio'),
+            'sms' => Pages\ManageCompanySms::route('/{record}/sms'),
         ];
     }
 }

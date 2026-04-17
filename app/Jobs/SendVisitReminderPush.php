@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AppNotification;
 use App\Models\DeviceToken;
 use App\Models\VisitReminderDelivery;
 use App\Support\FcmV1;
@@ -85,6 +86,17 @@ class SendVisitReminderPush implements ShouldQueue
             clientName: $clientName,
             locale: $locale,
         );
+        $notification = AppNotification::query()->create([
+            'user_id' => (int) $delivery->user_id,
+            'type' => 'visit_reminder',
+            'title' => $title,
+            'body' => $body,
+            'data' => [
+                'visit_id' => (string) $visit->id,
+                'delivery_id' => (string) $delivery->id,
+                'offset_min' => (string) $m,
+            ],
+        ]);
 
         try {
             $result = FcmV1::sendToTokens(
@@ -93,6 +105,7 @@ class SendVisitReminderPush implements ShouldQueue
                 body: $body,
                 data: [
                     'type' => 'visit_reminder',
+                    'notification_id' => (string) $notification->id,
                     'visit_id' => (string) $visit->id,
                     'offset_min' => (string) $m,
                 ],
@@ -165,4 +178,3 @@ class SendVisitReminderPush implements ShouldQueue
         ], $locale);
     }
 }
-

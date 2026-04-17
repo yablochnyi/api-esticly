@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AppNotification;
 use App\Models\DeviceToken;
 use App\Models\PersonalNote;
 use App\Support\FcmV1;
@@ -57,6 +58,15 @@ class SendPersonalNoteReminderPush implements ShouldQueue
         $body = (string) Lang::get('personal_note_reminder.body', [
             'text' => mb_strimwidth(trim((string) $note->text), 0, 120, '…'),
         ], $locale);
+        $notification = AppNotification::query()->create([
+            'user_id' => (int) $note->user_id,
+            'type' => 'personal_note_reminder',
+            'title' => $title,
+            'body' => $body,
+            'data' => [
+                'note_id' => (string) $note->id,
+            ],
+        ]);
 
         try {
             $result = FcmV1::sendToTokens(
@@ -65,6 +75,7 @@ class SendPersonalNoteReminderPush implements ShouldQueue
                 body: $body,
                 data: [
                     'type' => 'personal_note_reminder',
+                    'notification_id' => (string) $notification->id,
                     'note_id' => (string) $note->id,
                 ],
             );
