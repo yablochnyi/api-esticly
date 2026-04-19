@@ -13,6 +13,7 @@ use App\Models\Visit;
 use App\Support\PhoneIndex;
 use App\Support\PublicLocale;
 use App\Support\PromoCodes;
+use App\Support\MediaUrl;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -283,11 +284,22 @@ class PublicBookingController extends Controller
         $serviceId = (int)($request->query('service_id') ?? 0);
         $selected = $serviceId > 0 ? $services->firstWhere('id', $serviceId) : null;
 
+        $portfolioPhotos = PortfolioPhoto::query()
+            ->where('user_id', $org->id)
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get()
+            ->map(fn (PortfolioPhoto $photo) => $photo->url)
+            ->filter()
+            ->values();
+
         return view('booking.book', [
             'org' => $org,
             'tz' => $this->tz($org),
             'services' => $services,
             'selectedServiceId' => $selected?->id,
+            'logoUrl' => MediaUrl::publicFile($org->logo_path),
+            'portfolioPhotos' => $portfolioPhotos,
             'lang' => $lang,
         ]);
     }

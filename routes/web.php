@@ -206,6 +206,18 @@ Route::get('/{locale}/delete-account', function (string $locale) use ($siteLocal
 })->where('locale', $siteLocalePattern)->name('legal.account-deletion.localized');
 
 // Public booking (path-based)
+Route::get('/booking/mockup-preview', function (\Illuminate\Http\Request $request) use ($siteLocaleCodes) {
+    $locale = (string) $request->query('lang', config('app.locale', 'en'));
+
+    if (! in_array($locale, $siteLocaleCodes, true)) {
+        $locale = config('app.locale', 'en');
+    }
+
+    App::setLocale($locale);
+
+    return view('booking.mockup');
+})->name('booking.mockup.preview');
+
 Route::get('/b/{slug}', [PublicBookingController::class, 'landing'])->middleware('throttle:public-booking-view')->name('booking.landing');
 Route::get('/b/{slug}/book', [PublicBookingController::class, 'book'])->middleware('throttle:public-booking-view')->name('booking.book');
 Route::get('/b/{slug}/staff', [PublicBookingController::class, 'staff'])->middleware('throttle:public-booking-view')->name('booking.staff');

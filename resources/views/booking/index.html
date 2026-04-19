@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beauty</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet">
+</head>
+
+<body class="body">
+
+  <header class="header">
+    <div class="header_wrapper container">
+
+      <div class="header__lang-wrapper">
+        <img src="./public/logo_1.svg" alt="">
+        <select class="header__lang-select">
+          <option value="ru">RU</option>
+          <option value="en">EN</option>
+          <option value="ua">UA</option>
+        </select>
+        <img src="./public/vector-down.svg" alt="" class="header__lang-icon" width="8px">
+      </div>
+    </div>
+  </header>
+
+
+  <section class="specialist-section">
+    <div class="specialist-card container">
+
+      <div class="specialist-row-top">
+
+        <div class="specialist-photo">
+          <img src="./public/anastasia.svg" alt="Anastasia" />
+        </div>
+
+        <div class="specialist-center">
+          <div class="specialist-name-row">
+            <span class="specialist-name">Anastasia</span>
+            <span class="specialist-rating ">
+              <div class="rating-wrapper">
+                <img src="./public/rating.svg" alt="">
+                4.5
+              </div>
+            </span>
+          </div>
+
+          <hr class="specialist-hr">
+
+          <div class="specialist-specialty-row">
+            <span class="specialty-label">Специальность:</span>
+            <div class="specialty-tags">
+              <div class="specialty-tag"><img src="./public/brovi.svg" alt=""> Брови</div>
+              <div class="specialty-tag"><img src="./public/second_tag.svg" alt=""> Ресницы</div>
+              <div class="specialty-tag"><img src="./public/third_tag.svg" alt=""> Волосы</div>
+              <div class="specialty-tag"><img src="./public/fourth_tag.svg" alt=""> Маникюр</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="social-icons">
+          <button class="social-btn"><img src="./public/phone.svg" alt="Phone"></button>
+          <button class="social-btn"><img src="./public/instagram.svg" alt="Instagram"></button>
+          <button class="social-btn"><img src="./public/tiktok.svg" alt="TikTok"></button>
+          <button class="social-btn"><img src="./public/telegram.svg" alt="Telegram"></button>
+          <button class="social-btn"><img src="./public/whatsapp.svg" alt="WhatsApp"></button>
+          <button class="social-btn"><img src="./public/viberr.svg" alt="Viber"></button>
+        </div>
+
+      </div>
+
+
+
+    </div>
+  </section>
+
+
+
+  <section class="about container">
+    <div class="about_inner">
+      <div class="about_text">
+        <span class="about_span"> Про себя:</span>
+        <br>
+        <p>Я — мастер по ресницам, бровям и волосам. Помогаю подчеркнуть естественную красоту и <br> создать ухоженный,
+          стильный образ. Работаю аккуратно, учитываю ваши пожелания и <br> постоянно развиваюсь в своей сфере. Моя цель
+          — чтобы вы чувствовали себя уверенно и <br> красиво ✨</p>
+      </div>
+      <div class="about_location">
+        <span>
+          <div class="about_flex_location">
+            <img src="./public/location.svg" alt=""> Локация
+          </div>
+        </span>
+        <br>
+        <div class="about_location_wrapper">
+          <p class="location_p">м.Киев, ул. Соборная 29, кабинет 32</p>
+          <br>
+          <a href="#">На карте</a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="hr">
+
+    <div class="master-works">
+      <img src="./public/solar_gallery-linear.svg" alt="">
+      <p>Роботы мастера:</p>
+    </div>
+
+    <div class="gallery">
+      <img src="./public/first_result.svg" alt="">
+      <img src="./public/second_result.svg" alt="">
+      <img src="./public/third_result.svg" alt="">
+      <img src="./public/fourth_result.svg" alt="">
+      <img src="./public/first_result.svg" alt="">
+      <img src="./public/second_result.svg" alt="">
+    </div>
+  </section>
+
+
+
+  <section class="services-section">
+    <div class="services-layout container">
+
+      <div class="services-list">
+        <div class="services-title">
+          <img src="./public/solar_checklist-linear_.svg" alt="">
+          <span>Услуги:</span>
+        </div>
+
+        <div class="service-category">
+          <div class="category-header">
+            <img src="./public/brovi.svg" alt="">
+            <span>Брови</span>
+          </div>
+          <div class="service-item" data-name="Корекція + фарбування брів" data-duration="1 год" data-price="350">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Корекція + фарбування брів</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">350 UAH</span>
+          </div>
+          <div class="service-item" data-name="Корекція брів" data-duration="30 хв" data-price="250">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Корекція брів</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 30 хв</span>
+              </div>
+            </div>
+            <span class="service-price">250 UAH</span>
+          </div>
+          <div class="service-item" data-name="Ламінування + корекція брів" data-duration="1 год" data-price="450">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Ламінування + корекція брів</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">450 UAH</span>
+          </div>
+          <div class="service-item" data-name="Ламінування + корекція + фарбування брів" data-duration="1 год"
+            data-price="550">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Ламінування + корекція + фарбування брів</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">550 UAH</span>
+          </div>
+          <div class="service-item" data-name="Ваксинг (верхня губа, підборіддя ніс, вуха)" data-duration="25 хв"
+            data-price="100">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Ваксинг (верхня губа, підборіддя ніс, вуха)</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 25 хв</span>
+              </div>
+            </div>
+            <span class="service-price">100 UAH</span>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="category-header">
+            <img src="./public/second_tag.png" alt="">
+            <span>Ресници</span>
+          </div>
+          <div class="service-item" data-name="Ламінування вій" data-duration="1 год" data-price="550">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Ламінування вій</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">550 UAH</span>
+          </div>
+          <div class="service-item" data-name="Фарбування вій" data-duration="20 хв" data-price="200">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Фарбування вій</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 20 хв</span>
+              </div>
+            </div>
+            <span class="service-price">200 UAH</span>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="category-header">
+            <img src="/public/third_tag.svg" alt="">
+            <span>Волосы</span>
+          </div>
+          <div class="service-item" data-name="Накрутка волосся (1,2,3) довжини" data-duration="1 год" data-price="550">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Накрутка волосся (1,2,3) довжини</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">550 UAH</span>
+          </div>
+          <div class="service-item" data-name="Накрутка волосся (4,5) довжини" data-duration="1 год" data-price="650">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Накрутка волосся (4,5) довжини</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">650 UAH</span>
+          </div>
+          <div class="service-item" data-name="Накрутка волосся (6,7,8) довжини" data-duration="1 год" data-price="700">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Накрутка волосся (6,7,8) довжини</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">700 UAH</span>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="category-header">
+            <img src="/public/fourth_tag.svg" alt="">
+            <span>Маникюр</span>
+          </div>
+          <div class="service-item" data-name="Манікюр - Накрутка волосся (1,2,3) довжини" data-duration="1 год"
+            data-price="550">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Накрутка волосся (1,2,3) довжини</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">550 UAH</span>
+          </div>
+          <div class="service-item" data-name="Манікюр - Накрутка волосся (4,5) довжини" data-duration="1 год"
+            data-price="650">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Накрутка волосся (4,5) довжини</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">650 UAH</span>
+          </div>
+          <div class="service-item" data-name="Манікюр - Накрутка волосся (6,7,8) довжини" data-duration="1 год"
+            data-price="700">
+            <div class="service-checkbox-wrap">
+              <div class="service-checkbox"></div>
+              <div class="service-info">
+                <span class="service-name">Накрутка волосся (6,7,8) довжини</span>
+                <span class="service-meta"><img src="./public/service_meta.svg" alt=""> 1 год</span>
+              </div>
+            </div>
+            <span class="service-price">700 UAH</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="services-summary">
+
+        <div class="summary-title">Вы выбрали:</div>
+        <div class="summary-items" id="summaryItems"></div>
+        <div class="summary-divider"></div>
+        <div class="summary-row">
+          <span class="summary-label">Продолжительность:</span>
+          <span class="summary-value" id="summaryDuration">0 год</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Стоимость:</span>
+          <span class="summary-value summary-cost" id="summaryCost">0 UAH</span>
+        </div>
+        <a href="./booking_date.html"> <button class="summary-btn">Продолжить</button></a>
+      </div>
+
+    </div>
+  </section>
+
+
+
+
+
+  <section class="footer-cta">
+    <div class="footer-cta__container ">
+      <div class="footer-cta__content">
+        <p class="footer-cta__text">Esticly делает процесс взаимодействия с клиентами более удобным, а бизнес — более
+          организованным и предсказуемым.</p>
+        <div class="footer-cta__buttons">
+          <a href="#" class="footer-cta__app-link">
+            <img src="./public/appstore.svg" alt="App Store">
+          </a>
+          <a href="#" class="footer-cta__app-link">
+            <img src="./public/playstore.svg" alt="Google Play">
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <footer>
+    <div class="footer-top ">
+
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="./public/esticly_logo.svg" alt="">
+        </div>
+        <p class="footer-desc">
+          Попробуйте современную CRM для салонов
+          красоты и частных мастеров, которая помогает
+          автоматизировать запись клиентов, улучшить
+          сервис и увеличить доход.
+        </p>
+        <div class="lang-buttons lang-desktop">
+          <button class="lang-btn">RU</button>
+          <button class="lang-btn">EN</button>
+          <button class="lang-btn">PL</button>
+          <button class="lang-btn">IT</button>
+          <button class="lang-btn">FR</button>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <p class="footer-nav-title">Клиентам</p>
+        <ul>
+          <li><a href="#">Возможности</a></li>
+          <li><a href="#">Для мастеров</a></li>
+          <li><a href="#">Для салонов</a></li>
+          <li><a href="#">Цены</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-contacts">
+        <p class="footer-contacts-title">Контакти</p>
+
+        <div class="contact-item">
+          <img src="./public/footer-phone.svg" alt="" class="contact-icon">
+          <div class="contact-details">
+            <span class="contact-main">+48 577 000 000</span>
+            <p class="contact-sub">ПН-СБ: 09:00 – 20:00, ВС: выходной</p>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <img src="./public/footer-email.svg" alt="" class="contact-icon">
+          <div class="contact-details">
+            <a href="mailto:esticly@gmail.com" class="contact-email-link">esticly@gmail.com</a>
+            <a href="mailto:esticly@gmail.com" class="contact-write">Написать</a>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <img src="./public/footer-location.svg" alt="" class="contact-icon">
+          <div class="contact-details">
+            <span class="contact-city">м.Киев</span>
+            <p class="contact-address">ул. Соборная 29, кабинет 32</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="lang-buttons lang-mobile">
+      <button class="lang-btn">RU</button>
+      <button class="lang-btn">EN</button>
+      <button class="lang-btn">PL</button>
+      <button class="lang-btn">IT</button>
+      <button class="lang-btn">FR</button>
+    </div>
+
+    <div class="footer-bottom">
+      <span class="footer-copyright">2026 EVA. Все права защищены</span>
+      <div class="footer-links">
+        <a href="#">Политика конфиденційності</a>
+        <a href="#">Условия использования</a>
+      </div>
+    </div>
+
+  </footer>
+
+
+
+
+
+
+
+
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
