@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <title>{{ $title ?? ($org->company_name ?? 'Booking') }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.0/build/css/intlTelInput.css">
+    <link rel="stylesheet" href="{{ asset('assets/booking/src/style.css') }}">
     <style>
         :root{
             --bg:#F6F7FB;
@@ -129,4 +130,3 @@
 <script defer src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.0/build/js/utils.js"></script>
 </body>
 </html>
-

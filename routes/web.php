@@ -206,25 +206,33 @@ Route::get('/{locale}/delete-account', function (string $locale) use ($siteLocal
 })->where('locale', $siteLocalePattern)->name('legal.account-deletion.localized');
 
 // Public booking (path-based)
-Route::get('/booking/mockup-preview', function (\Illuminate\Http\Request $request) use ($siteLocaleCodes) {
-    $locale = (string) $request->query('lang', config('app.locale', 'en'));
+Route::get('/@{slug}', [PublicBookingController::class, 'book'])->middleware('throttle:public-booking-view')->name('booking.landing');
+Route::get('/@{slug}/book', function (string $slug, \Illuminate\Http\Request $request) {
+    $params = ['slug' => $slug];
 
-    if (! in_array($locale, $siteLocaleCodes, true)) {
-        $locale = config('app.locale', 'en');
+    if ($request->has('lang')) {
+        $params['lang'] = $request->query('lang');
     }
 
-    App::setLocale($locale);
+    if ($request->has('service_id')) {
+        $params['service_id'] = $request->query('service_id');
+    }
 
-    return view('booking.mockup');
-})->name('booking.mockup.preview');
+    return redirect()->route('booking.landing', $params, 301);
+})->middleware('throttle:public-booking-view')->name('booking.book');
+Route::get('/@{slug}/staff', [PublicBookingController::class, 'staff'])->middleware('throttle:public-booking-view')->name('booking.staff');
+Route::get('/@{slug}/availability', [PublicBookingController::class, 'availability'])->middleware('throttle:public-booking-view')->name('booking.availability');
+Route::get('/@{slug}/slots', [PublicBookingController::class, 'slots'])->middleware('throttle:public-booking-view')->name('booking.slots');
+Route::get('/@{slug}/promo/validate', [PublicBookingController::class, 'promoValidate'])->middleware('throttle:public-booking-view')->name('booking.promo.validate');
+Route::post('/@{slug}/book', [PublicBookingController::class, 'submit'])->middleware('throttle:public-booking-submit')->name('booking.submit');
 
-Route::get('/b/{slug}', [PublicBookingController::class, 'landing'])->middleware('throttle:public-booking-view')->name('booking.landing');
-Route::get('/b/{slug}/book', [PublicBookingController::class, 'book'])->middleware('throttle:public-booking-view')->name('booking.book');
-Route::get('/b/{slug}/staff', [PublicBookingController::class, 'staff'])->middleware('throttle:public-booking-view')->name('booking.staff');
-Route::get('/b/{slug}/availability', [PublicBookingController::class, 'availability'])->middleware('throttle:public-booking-view')->name('booking.availability');
-Route::get('/b/{slug}/slots', [PublicBookingController::class, 'slots'])->middleware('throttle:public-booking-view')->name('booking.slots');
-Route::get('/b/{slug}/promo/validate', [PublicBookingController::class, 'promoValidate'])->middleware('throttle:public-booking-view')->name('booking.promo.validate');
-Route::post('/b/{slug}/book', [PublicBookingController::class, 'submit'])->middleware('throttle:public-booking-submit')->name('booking.submit');
+Route::get('/b/{slug}', [PublicBookingController::class, 'landing'])->middleware('throttle:public-booking-view');
+Route::get('/b/{slug}/book', [PublicBookingController::class, 'book'])->middleware('throttle:public-booking-view');
+Route::get('/b/{slug}/staff', [PublicBookingController::class, 'staff'])->middleware('throttle:public-booking-view');
+Route::get('/b/{slug}/availability', [PublicBookingController::class, 'availability'])->middleware('throttle:public-booking-view');
+Route::get('/b/{slug}/slots', [PublicBookingController::class, 'slots'])->middleware('throttle:public-booking-view');
+Route::get('/b/{slug}/promo/validate', [PublicBookingController::class, 'promoValidate'])->middleware('throttle:public-booking-view');
+Route::post('/b/{slug}/book', [PublicBookingController::class, 'submit'])->middleware('throttle:public-booking-submit');
 
 // Short links
 Route::get('/s/{code}', [PublicShortLinkController::class, 'go'])->name('short.go');

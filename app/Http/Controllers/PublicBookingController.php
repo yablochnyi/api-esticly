@@ -23,6 +23,145 @@ use Illuminate\Support\Facades\Schema;
 
 class PublicBookingController extends Controller
 {
+    private function publicPhone(User $org): ?string
+    {
+        $value = trim((string) $org->booking_phone);
+
+        return $value !== '' ? $value : null;
+    }
+
+    private function publicBio(User $org): ?string
+    {
+        $value = trim((string) $org->booking_bio);
+
+        return $value !== '' ? $value : null;
+    }
+
+    private function socialUrl(string $platform, ?string $value): ?string
+    {
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            return null;
+        }
+
+        if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+            return $raw;
+        }
+
+        $handle = ltrim($raw, '@');
+        $digits = preg_replace('/\D+/', '', $raw) ?: '';
+
+        return match ($platform) {
+            'instagram' => 'https://instagram.com/' . $handle,
+            'tiktok' => 'https://www.tiktok.com/@' . ltrim($handle, '@'),
+            'telegram' => 'https://t.me/' . $handle,
+            'whatsapp' => $digits !== '' ? 'https://wa.me/' . $digits : null,
+            'viber' => $digits !== '' ? 'viber://chat?number=%2B' . $digits : null,
+            default => null,
+        };
+    }
+
+    private function socialLinks(User $org): array
+    {
+        return array_values(array_filter([
+            [
+                'key' => 'phone',
+                'icon' => 'phone.svg',
+                'value' => $this->publicPhone($org),
+                'href' => $this->publicPhone($org) ? 'tel:' . preg_replace('/\s+/', '', $this->publicPhone($org)) : null,
+            ],
+            [
+                'key' => 'instagram',
+                'icon' => 'instagram.svg',
+                'value' => $org->booking_instagram,
+                'href' => $this->socialUrl('instagram', $org->booking_instagram),
+            ],
+            [
+                'key' => 'tiktok',
+                'icon' => 'tiktok.svg',
+                'value' => $org->booking_tiktok,
+                'href' => $this->socialUrl('tiktok', $org->booking_tiktok),
+            ],
+            [
+                'key' => 'telegram',
+                'icon' => 'telegram.svg',
+                'value' => $org->booking_telegram,
+                'href' => $this->socialUrl('telegram', $org->booking_telegram),
+            ],
+            [
+                'key' => 'whatsapp',
+                'icon' => 'whatsapp.svg',
+                'value' => $org->booking_whatsapp,
+                'href' => $this->socialUrl('whatsapp', $org->booking_whatsapp),
+            ],
+            [
+                'key' => 'viber',
+                'icon' => 'viberr.svg',
+                'value' => $org->booking_viber,
+                'href' => $this->socialUrl('viber', $org->booking_viber),
+            ],
+        ], fn ($item) => !empty($item['href'])));
+    }
+
+    private function specialtyGroups(User $org, $services): array
+    {
+        $allServices = collect($services)->values();
+        $specialties = collect(is_array($org->booking_specialties) ? $org->booking_specialties : []);
+
+        $groups = [];
+        $usedIds = [];
+
+        foreach ($specialties as $specialty) {
+            if (!is_array($specialty)) {
+                continue;
+            }
+
+            $name = trim((string) ($specialty['name'] ?? ''));
+            $serviceIds = collect($specialty['service_ids'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn (int $id) => $id > 0)
+                ->values()
+                ->all();
+
+            if ($name === '' || $serviceIds === []) {
+                continue;
+            }
+
+            $groupServices = $allServices
+                ->filter(fn ($service) => in_array((int) $service->id, $serviceIds, true))
+                ->values();
+
+            if ($groupServices->isEmpty()) {
+                continue;
+            }
+
+            $groups[] = [
+                'name' => $name,
+                'services' => $groupServices,
+            ];
+
+            foreach ($groupServices as $service) {
+                $usedIds[(int) $service->id] = true;
+            }
+        }
+
+        $remaining = $allServices
+            ->filter(fn ($service) => !isset($usedIds[(int) $service->id]))
+            ->groupBy(function ($service) {
+                $category = trim((string) ($service->category ?? ''));
+                return $category !== '' ? $category : __('booking.services_title');
+            });
+
+        foreach ($remaining as $name => $groupServices) {
+            $groups[] = [
+                'name' => $name,
+                'services' => $groupServices->values(),
+            ];
+        }
+
+        return $groups;
+    }
+
     private function orgBySlugOr404(string $slug): User
     {
         return User::query()->where('booking_slug', $slug)->firstOrFail();
@@ -197,79 +336,6 @@ class PublicBookingController extends Controller
         return false;
     }
 
-    public function landing(string $slug, Request $request)
-    {
-        $org = $this->orgBySlugOr404($slug);
-        $lang = PublicLocale::resolve($request, (string)$org->language_code);
-        App::setLocale($lang);
-
-        $services = Service::query()
-            ->where('user_id', $org->id)
-            ->orderBy('name')
-            ->get();
-
-        $tz = $this->tz($org);
-        $schedule = is_array($org->schedule) ? $org->schedule : [];
-        $scheduleRows = [];
-        $dayLabels = [
-            'mon' => __('booking.days.mon'),
-            'tue' => __('booking.days.tue'),
-            'wed' => __('booking.days.wed'),
-            'thu' => __('booking.days.thu'),
-            'fri' => __('booking.days.fri'),
-            'sat' => __('booking.days.sat'),
-            'sun' => __('booking.days.sun'),
-        ];
-        foreach ($dayLabels as $k => $label) {
-            $d = is_array($schedule) ? ($schedule[$k] ?? null) : null;
-            $enabled = is_array($d) ? (($d['enabled'] ?? false) === true) : false;
-            $start = is_array($d) ? ($d['start'] ?? '—') : '—';
-            $end = is_array($d) ? ($d['end'] ?? '—') : '—';
-            $scheduleRows[] = [
-                'label' => $label,
-                'enabled' => $enabled,
-                'start' => $start,
-                'end' => $end,
-            ];
-        }
-
-        $code = $org->currency_code ?: '';
-        $serviceCards = [];
-        foreach ($services as $s) {
-            $dur = (int)($s->duration_from_min ?? $s->duration_to_min ?? 0);
-            $priceType = $s->price_type ?? 'fixed';
-            if ($priceType === 'range') {
-                $p = ($s->price_from ?? '—') . '–' . ($s->price_to ?? '—');
-            } else {
-                $p = $s->price_fixed ?? '—';
-            }
-            $serviceCards[] = [
-                'name' => $s->name,
-                'duration' => $dur,
-                'price' => $p,
-                'currency' => $code,
-            ];
-        }
-
-        $portfolioPhotos = PortfolioPhoto::query()
-            ->where('user_id', $org->id)
-            // for public page show all org photos (including staff-specific)
-            ->orderByDesc('id')
-            ->limit(30)
-            ->get();
-
-        return view('booking.landing', [
-            'org' => $org,
-            'tz' => $tz,
-            'services' => $services,
-            'schedule' => $schedule,
-            'scheduleRows' => $scheduleRows,
-            'serviceCards' => $serviceCards,
-            'portfolioPhotos' => $portfolioPhotos,
-            'lang' => $lang,
-        ]);
-    }
-
     public function book(string $slug, Request $request)
     {
         $org = $this->orgBySlugOr404($slug);
@@ -280,6 +346,7 @@ class PublicBookingController extends Controller
             ->where('user_id', $org->id)
             ->orderBy('name')
             ->get();
+        $specialtyGroups = $this->specialtyGroups($org, $services);
 
         $serviceId = (int)($request->query('service_id') ?? 0);
         $selected = $serviceId > 0 ? $services->firstWhere('id', $serviceId) : null;
@@ -293,6 +360,10 @@ class PublicBookingController extends Controller
             ->filter()
             ->values();
 
+        $ratingAvg = (float) (DB::table('reviews')
+            ->where('user_id', $org->id)
+            ->avg('rating') ?? 0);
+
         return view('booking.book', [
             'org' => $org,
             'tz' => $this->tz($org),
@@ -300,6 +371,11 @@ class PublicBookingController extends Controller
             'selectedServiceId' => $selected?->id,
             'logoUrl' => MediaUrl::publicFile($org->logo_path),
             'portfolioPhotos' => $portfolioPhotos,
+            'specialtyGroups' => $specialtyGroups,
+            'socialLinks' => $this->socialLinks($org),
+            'publicPhone' => $this->publicPhone($org),
+            'publicBio' => $this->publicBio($org),
+            'ratingAvg' => round($ratingAvg, 1),
             'lang' => $lang,
         ]);
     }

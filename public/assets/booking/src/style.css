@@ -117,7 +117,7 @@ body::before {
 }
 
 .specialist-section {
-  padding: 0 20px 32px;
+  padding: 0 0 32px;
 }
 
 .specialist-card {
@@ -163,7 +163,7 @@ body::before {
 .specialist-hr,
 .specialist-specialty-row {
   flex-basis: 100%;
-  width: 155% !important;
+  width: 100%;
 }
 
 .specialist-name-row {
@@ -215,6 +215,8 @@ body::before {
   background-color: rgba(249, 249, 255, 1);
   border-radius: 12px;
   padding: 16px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .specialty-label {
@@ -232,12 +234,14 @@ body::before {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
 }
 
 .specialty-tag {
   display: flex;
   align-items: center;
-  gap: 6px;
   font-family: Inter;
   font-weight: 400;
   font-style: Regular;
@@ -249,12 +253,8 @@ body::before {
   padding-inline: 14px;
   padding-block: 9px;
   border-radius: 8px;
-}
-
-.specialty-tag img {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .social-icons {
@@ -486,6 +486,16 @@ body::before {
   scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
 
+.gallery img {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  display: block;
+}
+
 @media (max-width: 768px) {
   .about {
     padding: 18px;
@@ -542,7 +552,7 @@ body::before {
 
   .gallery img {
     height: 140px;
-    width: auto;
+    width: 140px;
     border-radius: 10px;
     flex-shrink: 0;
     scroll-snap-align: start;
@@ -550,7 +560,7 @@ body::before {
 }
 
 .services-section {
-  padding: 10px 20px;
+  padding: 10px 0;
 }
 
 .services-layout {
@@ -583,26 +593,6 @@ body::before {
   line-height: 140%;
   letter-spacing: 0%;
   color: rgba(17, 24, 39, 1);
-}
-
-.service-category {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.category-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background-color: rgba(233, 231, 254, 1);
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-family: Inter;
-  font-weight: 400;
-  font-size: 16px;
-  color: rgba(17, 24, 39, 1);
-  margin-bottom: 2px;
 }
 
 .service-item {
@@ -959,7 +949,7 @@ footer {
   display: grid;
   grid-template-columns: 320px 1fr 280px;
   gap: 40px;
-  padding-bottom: 48px;
+  /*padding-bottom: 48px;*/
 }
 
 .footer-logo {
@@ -1117,7 +1107,7 @@ footer {
 }
 
 .footer-bottom {
-  background-color: rgba(242, 240, 255, 1);
+  /*background-color: rgba(242, 240, 255, 1);*/
   padding: 16px 60px;
   margin: 0 -60px;
   display: flex;

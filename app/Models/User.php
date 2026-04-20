@@ -56,6 +56,7 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'schedule' => 'array',
+            'booking_specialties' => 'array',
             'online_booking_enabled' => 'boolean',
             'online_booking_whitelist_only' => 'boolean',
             'online_booking_auto_confirm' => 'boolean',

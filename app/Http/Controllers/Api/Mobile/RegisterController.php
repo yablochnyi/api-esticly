@@ -26,6 +26,7 @@ class RegisterController extends Controller
             'address' => ['nullable', 'string', 'max:5000'],
             'description' => ['nullable', 'string', 'max:2000'],
             'currency_code' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
+            'timezone' => ['nullable', 'string', 'max:64'],
             'schedule' => ['required', 'array'],
 
             // ВАЖНО: файл логотипа
@@ -43,6 +44,9 @@ class RegisterController extends Controller
         $user->address = $data['address'] ?? null;
         $user->description = $data['description'] ?? null;
         $user->currency_code = strtoupper($data['currency_code']);
+        if (!empty($data['timezone'])) {
+            $user->timezone = $data['timezone'];
+        }
         $user->schedule = $data['schedule'];
         if (empty($user->registered_at)) {
             $user->registered_at = Carbon::now();
