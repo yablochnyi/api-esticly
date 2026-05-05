@@ -128,43 +128,53 @@ Route::post('/waitlist', [PublicLaunchWaitlistController::class, 'store'])
     ->name('marketing.waitlist');
 
 Route::get('/sitemap.xml', function () use ($siteLocaleCodes, $siteLocales, $siteXDefaultLocale) {
-    $pages = [
+    $pageRoutes = [
         'landing' => [
-            'lastmod' => now()->toAtomString(),
-            'alternates' => [],
+            'route' => 'marketing.localized',
+            'lastmod' => '2026-05-05',
         ],
         'privacy' => [
-            'lastmod' => now()->toAtomString(),
-            'alternates' => [],
+            'route' => 'legal.privacy.localized',
+            'lastmod' => '2026-02-19',
         ],
         'terms' => [
-            'lastmod' => now()->toAtomString(),
-            'alternates' => [],
+            'route' => 'legal.terms.localized',
+            'lastmod' => '2026-02-19',
         ],
         'account_deletion' => [
-            'lastmod' => now()->toAtomString(),
-            'alternates' => [],
+            'route' => 'legal.account-deletion.localized',
+            'lastmod' => '2026-02-19',
         ],
     ];
 
-    foreach ($siteLocaleCodes as $code) {
-        $hrefLang = $siteLocales[$code]['hreflang'] ?? $code;
-        $pages['landing']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('marketing.localized', ['locale' => $code])];
-        $pages['privacy']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('legal.privacy.localized', ['locale' => $code])];
-        $pages['terms']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('legal.terms.localized', ['locale' => $code])];
-        $pages['account_deletion']['alternates'][] = ['hreflang' => $hrefLang, 'href' => route('legal.account-deletion.localized', ['locale' => $code])];
-    }
+    $pages = [];
 
-    foreach (['landing' => 'marketing.localized', 'privacy' => 'legal.privacy.localized', 'terms' => 'legal.terms.localized', 'account_deletion' => 'legal.account-deletion.localized'] as $key => $routeName) {
-        $pages[$key]['alternates'][] = [
+    foreach ($pageRoutes as $page) {
+        $alternates = [];
+
+        foreach ($siteLocaleCodes as $code) {
+            $alternates[] = [
+                'hreflang' => $siteLocales[$code]['hreflang'] ?? $code,
+                'href' => route($page['route'], ['locale' => $code]),
+            ];
+        }
+
+        $alternates[] = [
             'hreflang' => 'x-default',
-            'href' => route($routeName, ['locale' => $siteXDefaultLocale]),
+            'href' => route($page['route'], ['locale' => $siteXDefaultLocale]),
         ];
-        $pages[$key]['loc'] = route($routeName, ['locale' => $siteXDefaultLocale]);
+
+        foreach ($siteLocaleCodes as $code) {
+            $pages[] = [
+                'loc' => route($page['route'], ['locale' => $code]),
+                'alternates' => $alternates,
+                'lastmod' => $page['lastmod'],
+            ];
+        }
     }
 
     return response()
-        ->view('sitemap.index', ['pages' => array_values($pages)])
+        ->view('sitemap.index', ['pages' => $pages])
         ->header('Content-Type', 'application/xml; charset=UTF-8');
 })->name('sitemap.xml');
 
