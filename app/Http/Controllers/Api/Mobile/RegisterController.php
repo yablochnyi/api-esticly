@@ -26,6 +26,7 @@ class RegisterController extends Controller
             'address' => ['nullable', 'string', 'max:5000'],
             'description' => ['nullable', 'string', 'max:2000'],
             'currency_code' => ['required', 'string', 'size:3', Rule::exists('currencies', 'code')],
+            'language_code' => ['nullable', 'string', 'max:8', Rule::in($this->supportedLanguageCodes())],
             'timezone' => ['nullable', 'string', 'max:64'],
             'schedule' => ['required', 'array'],
 
@@ -44,6 +45,9 @@ class RegisterController extends Controller
         $user->address = $data['address'] ?? null;
         $user->description = $data['description'] ?? null;
         $user->currency_code = strtoupper($data['currency_code']);
+        if (!empty($data['language_code'])) {
+            $user->language_code = strtolower(trim($data['language_code']));
+        }
         if (!empty($data['timezone'])) {
             $user->timezone = $data['timezone'];
         }
@@ -56,8 +60,15 @@ class RegisterController extends Controller
 
         return response()->json([
             'ok' => true,
-            'user' => $user->only(['id','phone','company_name','currency_code','logo_path']),
+            'user' => $user->only(['id','phone','company_name','currency_code','language_code','logo_path']),
             'logo_url' => MediaUrl::publicFile($user->logo_path),
         ]);
+    }
+
+    private function supportedLanguageCodes(): array
+    {
+        $codes = array_keys((array) config('site_locales.supported', []));
+
+        return $codes ?: ['en', 'uk', 'pl', 'cs', 'de', 'fr', 'it', 'es', 'pt'];
     }
 }

@@ -194,6 +194,7 @@ class CompanyResource extends Resource
             Pages\ManageCompanyVisits::class,
             Pages\ManageCompanyPortfolio::class,
             Pages\ManageCompanySms::class,
+            Pages\ManageCompanySettings::class,
         ]);
     }
 
@@ -208,6 +209,7 @@ class CompanyResource extends Resource
             'visits' => Pages\ManageCompanyVisits::route('/{record}/visits'),
             'portfolio' => Pages\ManageCompanyPortfolio::route('/{record}/portfolio'),
             'sms' => Pages\ManageCompanySms::route('/{record}/sms'),
+            'settings' => Pages\ManageCompanySettings::route('/{record}/settings'),
         ];
     }
 }
