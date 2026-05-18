@@ -2190,6 +2190,57 @@ body {
   background: #d96a10;
 }
 
+.bm-promo-group {
+  margin-top: 16px;
+}
+
+.bm-promo-row {
+  display: flex;
+  gap: 10px;
+}
+
+.bm-promo-row .bm-input {
+  flex: 1;
+}
+
+.bm-promo-btn {
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 12px;
+  padding: 0 18px;
+  background: rgba(248, 108, 0, 0.12);
+  color: #f86c00;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.bm-promo-btn:hover {
+  background: rgba(248, 108, 0, 0.18);
+}
+
+.bm-promo-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.bm-promo-status {
+  min-height: 18px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(17, 24, 39, 0.55);
+}
+
+.bm-promo-status--success {
+  color: #16a34a;
+}
+
+.bm-promo-status--error {
+  color: #dc2626;
+}
+
 .booking-modal__right {
   flex: 0 0 290px;
   padding: 24px;
@@ -2328,6 +2379,14 @@ body {
     padding: 14px;
     font-size: 15px;
     margin-top: 12px;
+  }
+
+  .bm-promo-row {
+    gap: 8px;
+  }
+
+  .bm-promo-btn {
+    padding: 0 12px;
   }
 
   .booking-modal__right {

@@ -1,6 +1,7 @@
 @extends('layouts.marketing')
 
 @section('content')
+@php($appStoreUrl = 'https://apps.apple.com/app/id6761251722')
 <section class="hero">
     <div class="hero__container">
         <div class="hero__content">
@@ -42,7 +43,9 @@
         <div class="hero__bottom-container">
             <p class="hero__bottom-text">{{ __('landing.hero.bottom') }}</p>
             <div class="hero__apps">
-                <img src="{{ asset('assets/public/appstore.svg') }}" alt="App Store" class="hero__app-badge">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                    <img src="{{ asset('assets/public/appstore.svg') }}" alt="App Store" class="hero__app-badge">
+                </a>
                 <img src="{{ asset('assets/public/playstore.svg') }}" alt="Google Play" class="hero__app-badge">
             </div>
         </div>
@@ -190,7 +193,9 @@
         <div class="hero-cta__bottom">
             <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>
             <div class="hero-cta__buttons">
-                <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta__btn-img">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                    <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta__btn-img">
+                </a>
                 <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta__btn-img">
             </div>
         </div>
@@ -335,7 +340,9 @@
         <div class="hero-cta-download__bottom-container">
             <p class="hero-cta-download__bottom-text change_to_black">{{ __('landing.app.bottom') }}</p>
             <div class="hero-cta-download__apps">
-                <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta-download__app-badge">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                    <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta-download__app-badge">
+                </a>
                 <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta-download__app-badge">
             </div>
         </div>
@@ -434,7 +441,7 @@
             <h2 class="final-cta__title">{{ __('landing.final_cta.title') }}</h2>
             <p class="final-cta__text">{{ __('landing.final_cta.text') }}</p>
             <div class="final-cta__buttons">
-                <a href="#" class="final-cta__btn">
+                <a href="{{ $appStoreUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="">
                 </a>
                 <a href="#" class="final-cta__btn">
@@ -456,7 +463,7 @@
         <div class="footer-cta__content">
             <p class="footer-cta__text">{{ __('landing.hero.bottom') }}</p>
             <div class="footer-cta__buttons">
-                <a href="#" class="footer-cta__app-link">
+                <a href="{{ $appStoreUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store">
                 </a>
                 <a href="#" class="footer-cta__app-link">

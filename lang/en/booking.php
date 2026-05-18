@@ -102,7 +102,7 @@ return [
             'first_name' => 'Your name*',
             'last_name' => 'Your last name*',
             'phone' => 'Phone*',
-            'instagram' => 'Instagram*',
+            'instagram' => 'Instagram',
             'first_name_placeholder' => 'Name',
             'last_name_placeholder' => 'Last name',
             'instagram_placeholder' => '@ nickname',

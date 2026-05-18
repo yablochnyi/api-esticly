@@ -102,7 +102,7 @@ return [
             'first_name' => 'Ваше ім\'я*',
             'last_name' => 'Ваше прізвище*',
             'phone' => 'Телефон*',
-            'instagram' => 'Instagram*',
+            'instagram' => 'Instagram',
             'first_name_placeholder' => 'Ім\'я',
             'last_name_placeholder' => 'Прізвище',
             'instagram_placeholder' => '@ nickname',

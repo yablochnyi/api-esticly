@@ -260,7 +260,7 @@
         <div class="footer-cta__content">
             <p class="footer-cta__text">{{ __('booking.mockup.service_page.footer_cta') }}</p>
             <div class="footer-cta__buttons">
-                <a href="#" class="footer-cta__app-link">
+                <a href="https://apps.apple.com/app/id6761251722" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/booking/public/appstore.svg') }}" alt="App Store">
                 </a>
                 <a href="#" class="footer-cta__app-link">
@@ -345,6 +345,7 @@
                 <input type="hidden" name="date" id="formDate">
                 <input type="hidden" name="time" id="formTime">
                 <input type="hidden" name="name" id="formName">
+                <input type="hidden" name="promo_code" id="formPromoCode">
 
                 <div class="bm-row">
                     <div class="bm-group">
@@ -369,6 +370,14 @@
                 <div class="bm-group" style="margin-bottom:0">
                     <label class="bm-label">{{ __('booking.comment') }}</label>
                     <textarea class="bm-input bm-textarea" placeholder="{{ __('booking.mockup.form.comment_placeholder') }}" name="comment"></textarea>
+                </div>
+                <div class="bm-group bm-promo-group">
+                    <label class="bm-label">{{ __('booking.promo_code') }}</label>
+                    <div class="bm-promo-row">
+                        <input class="bm-input" type="text" placeholder="{{ __('booking.promo_code') }}" id="bookingPromoCode" maxlength="40">
+                        <button class="bm-promo-btn" id="promoApplyBtn" type="button">{{ __('booking.apply') }}</button>
+                    </div>
+                    <div class="bm-promo-status" id="promoStatus" aria-live="polite"></div>
                 </div>
                 <button class="bm-submit" id="bookingSubmitBtn" type="submit">{{ __('booking.submit_booking') }}</button>
             </form>
@@ -421,9 +430,10 @@
             staff: @json(route('booking.staff', ['slug' => $org->booking_slug])),
             availability: @json(route('booking.availability', ['slug' => $org->booking_slug])),
             slots: @json(route('booking.slots', ['slug' => $org->booking_slug])),
+            promoValidate: @json(route('booking.promo.validate', ['slug' => $org->booking_slug])),
         },
         i18n: {
-        staffLabel: @json(__('booking.steps.staff')),
+            staffLabel: @json(__('booking.steps.staff')),
             orgLabel: @json($title),
             noFreeTime: @json(__('booking.no_free_time')),
             staffEmpty: @json(__('booking.staff_empty')),
@@ -432,6 +442,9 @@
             continueLabel: @json(__('booking.continue')),
             emptyDurationLabel: @json('0 ' . __('booking.minutes_short')),
             weekdays: @json($weekdaysShort),
+            promoApplied: @json(__('booking.promo_applied')),
+            promoInactive: @json(__('booking.promo_inactive')),
+            promoCheckError: @json(__('booking.promo_check_error')),
         },
         services: @json($servicesForJs),
     };
@@ -446,6 +459,7 @@
         time: null,
         selectedMonth: null,
         availableDates: [],
+        promo: null,
     };
 
     const serviceStep = document.getElementById('bookingServiceStep');
@@ -481,12 +495,16 @@
     const formDate = document.getElementById('formDate');
     const formTime = document.getElementById('formTime');
     const formName = document.getElementById('formName');
+    const formPromoCode = document.getElementById('formPromoCode');
     const modalDate = document.getElementById('modalDate');
     const modalTime = document.getElementById('modalTime');
     const modalServices = document.getElementById('modalServices');
     const modalTotalCost = document.getElementById('modalTotalCost');
     const bookingFirstName = document.getElementById('bookingFirstName');
     const bookingLastName = document.getElementById('bookingLastName');
+    const bookingPromoCode = document.getElementById('bookingPromoCode');
+    const promoApplyBtn = document.getElementById('promoApplyBtn');
+    const promoStatus = document.getElementById('promoStatus');
     const bookingLangSelect = document.getElementById('bookingLangSelect');
 
     function getSelectedService() {
@@ -498,8 +516,39 @@
         return `${normalized.toFixed(normalized % 1 === 0 ? 0 : 2)} ${bookingConfig.currency}`.trim();
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function resetPromo() {
+        state.promo = null;
+        if (formPromoCode) {
+            formPromoCode.value = '';
+        }
+        if (promoStatus) {
+            promoStatus.textContent = '';
+            promoStatus.className = 'bm-promo-status';
+        }
+    }
+
+    function currentPriceLabel(service) {
+        if (!service) {
+            return `0 ${bookingConfig.currency}`.trim();
+        }
+        if (state.promo && Number(state.promo.serviceId) === Number(service.id)) {
+            return formatCurrencyValue(state.promo.finalPrice);
+        }
+        return service.price_label;
+    }
+
     function setSelectedService(serviceId) {
         state.serviceId = Number(serviceId);
+        resetPromo();
         serviceItems.forEach((item) => {
             const checked = Number(item.dataset.serviceId) === state.serviceId;
             item.classList.toggle('selected', checked);
@@ -525,8 +574,8 @@
         const serviceMarkup = `
             <div class="summary-item">
                 <div class="summary-item-info">
-                    <span class="summary-item-name">${service.name}</span>
-                    <span class="summary-item-meta">${service.duration_label} · ${service.price_label}</span>
+                    <span class="summary-item-name">${escapeHtml(service.name)}</span>
+                    <span class="summary-item-meta">${escapeHtml(service.duration_label)} · ${escapeHtml(currentPriceLabel(service))}</span>
                 </div>
             </div>`;
         summaryItems.innerHTML = serviceMarkup;
@@ -534,15 +583,15 @@
         summaryServices.innerHTML = `
             <div class="summary-service-item">
                 <div class="summary-service-info">
-                    <div class="summary-service-name">${service.name}</div>
-                    <div class="summary-service-meta">${service.duration_label} · ${service.price_label}</div>
+                    <div class="summary-service-name">${escapeHtml(service.name)}</div>
+                    <div class="summary-service-meta">${escapeHtml(service.duration_label)} · ${escapeHtml(currentPriceLabel(service))}</div>
                 </div>
             </div>`;
 
         summaryDuration.textContent = service.duration_label;
-        summaryCost.textContent = service.price_label;
+        summaryCost.textContent = currentPriceLabel(service);
         totalDuration.textContent = service.duration_label;
-        totalCost.textContent = service.price_label;
+        totalCost.textContent = currentPriceLabel(service);
     }
 
     function toMonthKey(date) {
@@ -619,6 +668,7 @@
             orgButton.classList.add('time-slot--selected');
             state.date = null;
             state.time = null;
+            resetPromo();
             summaryDate.textContent = '—';
             summaryTime.textContent = '—';
             clearTimes();
@@ -641,6 +691,7 @@
                 button.classList.add('time-slot--selected');
                 state.date = null;
                 state.time = null;
+                resetPromo();
                 summaryDate.textContent = '—';
                 summaryTime.textContent = '—';
                 clearTimes();
@@ -693,6 +744,7 @@
             button.addEventListener('click', async () => {
                 state.date = dateValue;
                 state.time = null;
+                resetPromo();
                 summaryDate.textContent = formatDayForSummary(dateValue);
                 summaryTime.textContent = '—';
                 dateContinueBtn.disabled = true;
@@ -787,14 +839,15 @@
         modalTime.textContent = state.time;
         modalServices.innerHTML = service ? `
             <div class="bm-service-item">
-                <div class="bm-service-name">${service.name}</div>
-                <div class="bm-service-meta">${service.duration_label} · ${service.price_label}</div>
+                <div class="bm-service-name">${escapeHtml(service.name)}</div>
+                <div class="bm-service-meta">${escapeHtml(service.duration_label)} · ${escapeHtml(currentPriceLabel(service))}</div>
             </div>` : '';
-        modalTotalCost.textContent = service ? service.price_label : `0 ${bookingConfig.currency}`;
+        modalTotalCost.textContent = currentPriceLabel(service);
         formServiceId.value = String(state.serviceId);
         formStaffId.value = state.staffId ? String(state.staffId) : '';
         formDate.value = state.date;
         formTime.value = state.time;
+        formPromoCode.value = state.promo?.code || '';
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
@@ -811,6 +864,55 @@
         if (!formName.value) {
             event.preventDefault();
             bookingFirstName.focus();
+        }
+    });
+
+    promoApplyBtn?.addEventListener('click', async () => {
+        const service = getSelectedService();
+        const code = bookingPromoCode.value.trim();
+        resetPromo();
+        bookingPromoCode.value = code;
+
+        if (!service || code === '') {
+            return;
+        }
+
+        promoApplyBtn.disabled = true;
+        promoStatus.textContent = '';
+        promoStatus.className = 'bm-promo-status';
+
+        try {
+            const params = new URLSearchParams({
+                service_id: String(service.id),
+                code,
+            });
+            if (state.date) {
+                params.set('date', state.date);
+            }
+
+            const response = await fetchJson(`${bookingConfig.routes.promoValidate}?${params.toString()}`);
+            if (response.ok) {
+                state.promo = {
+                    serviceId: service.id,
+                    code: response.code || code,
+                    discount: Number(response.discount || 0),
+                    finalPrice: Number(response.final_price ?? service.price),
+                };
+                formPromoCode.value = state.promo.code;
+                promoStatus.textContent = bookingConfig.i18n.promoApplied;
+                promoStatus.className = 'bm-promo-status bm-promo-status--success';
+            } else {
+                promoStatus.textContent = bookingConfig.i18n.promoInactive;
+                promoStatus.className = 'bm-promo-status bm-promo-status--error';
+            }
+
+            renderSelectedService();
+            openModal();
+        } catch (error) {
+            promoStatus.textContent = bookingConfig.i18n.promoCheckError;
+            promoStatus.className = 'bm-promo-status bm-promo-status--error';
+        } finally {
+            promoApplyBtn.disabled = false;
         }
     });
 
@@ -844,6 +946,7 @@
         state.selectedMonth = new Date(state.selectedMonth.getFullYear(), state.selectedMonth.getMonth() - 1, 1);
         state.date = null;
         state.time = null;
+        resetPromo();
         summaryDate.textContent = '—';
         summaryTime.textContent = '—';
         dateContinueBtn.disabled = true;
@@ -853,6 +956,7 @@
         state.selectedMonth = new Date(state.selectedMonth.getFullYear(), state.selectedMonth.getMonth() + 1, 1);
         state.date = null;
         state.time = null;
+        resetPromo();
         summaryDate.textContent = '—';
         summaryTime.textContent = '—';
         dateContinueBtn.disabled = true;

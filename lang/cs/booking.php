@@ -77,7 +77,7 @@ return [
             'first_name' => 'Vase jmeno*',
             'last_name' => 'Vase prijmeni*',
             'phone' => 'Telefon*',
-            'instagram' => 'Instagram*',
+            'instagram' => 'Instagram',
             'first_name_placeholder' => 'Jmeno',
             'last_name_placeholder' => 'Prijmeni',
             'instagram_placeholder' => '@ nickname',
