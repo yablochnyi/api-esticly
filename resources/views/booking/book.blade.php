@@ -263,7 +263,7 @@
                 <a href="https://apps.apple.com/app/id6761251722" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/booking/public/appstore.svg') }}" alt="App Store">
                 </a>
-                <a href="#" class="footer-cta__app-link">
+                <a href="https://play.google.com/store/apps/details?id=com.esticly.app" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer">
                     <img src="{{ asset('assets/booking/public/playstore.svg') }}" alt="Google Play">
                 </a>
             </div>

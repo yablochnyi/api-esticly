@@ -2,6 +2,7 @@
 
 @section('content')
 @php($appStoreUrl = 'https://apps.apple.com/app/id6761251722')
+@php($googlePlayUrl = 'https://play.google.com/store/apps/details?id=com.esticly.app')
 <section class="hero">
     <div class="hero__container">
         <div class="hero__content">
@@ -46,7 +47,9 @@
                 <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="App Store" class="hero__app-badge">
                 </a>
-                <img src="{{ asset('assets/public/playstore.svg') }}" alt="Google Play" class="hero__app-badge">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ asset('assets/public/playstore.svg') }}" alt="Google Play" class="hero__app-badge">
+                </a>
             </div>
         </div>
     </div>
@@ -196,7 +199,9 @@
                 <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta__btn-img">
                 </a>
-                <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta__btn-img">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta__btn-img">
+                </a>
             </div>
         </div>
     </div>
@@ -343,7 +348,9 @@
                 <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta-download__app-badge">
                 </a>
-                <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta-download__app-badge">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta-download__app-badge">
+                </a>
             </div>
         </div>
     </div>
@@ -444,7 +451,7 @@
                 <a href="{{ $appStoreUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="">
                 </a>
-                <a href="#" class="final-cta__btn">
+                <a href="{{ $googlePlayUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer">
                     <img src="{{ asset('assets/public/playstore.svg') }}" alt="">
                 </a>
             </div>
@@ -466,7 +473,7 @@
                 <a href="{{ $appStoreUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store">
                 </a>
-                <a href="#" class="footer-cta__app-link">
+                <a href="{{ $googlePlayUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play">
                 </a>
             </div>
