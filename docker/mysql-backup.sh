@@ -18,6 +18,7 @@ BACKUP_S3_ENDPOINT="${BACKUP_S3_ENDPOINT:-${AWS_ENDPOINT:-}}"
 BACKUP_S3_REGION="${BACKUP_S3_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
 BACKUP_S3_SSE="${BACKUP_S3_SSE:-}"
 BACKUP_S3_RETENTION_DAYS="${BACKUP_S3_RETENTION_DAYS:-14}"
+MYSQL_BACKUP_DELETE_LOCAL_AFTER_S3_UPLOAD="${MYSQL_BACKUP_DELETE_LOCAL_AFTER_S3_UPLOAD:-true}"
 
 mkdir -p "$BACKUP_DIR"
 
@@ -34,12 +35,12 @@ upload_to_s3() {
   local key="$2"
 
   if [ "$BACKUP_S3_ENABLED" != "true" ]; then
-    return
+    return 2
   fi
 
   if [ -z "$BACKUP_S3_BUCKET" ]; then
     echo "[mysql-backup] BACKUP_S3_ENABLED=true, but BACKUP_S3_BUCKET is empty. Skip S3 upload."
-    return
+    return 2
   fi
 
   echo "[mysql-backup] uploading to s3://$BACKUP_S3_BUCKET/$key"
@@ -48,9 +49,12 @@ upload_to_s3() {
     sse_args=(--sse "$BACKUP_S3_SSE")
   fi
 
-  if ! aws_s3 s3 cp "$file" "s3://$BACKUP_S3_BUCKET/$key" --only-show-errors "${sse_args[@]}"; then
+  if ! aws_s3 s3 cp "$file" "s3://$BACKUP_S3_BUCKET/$key" "${sse_args[@]}"; then
     echo "[mysql-backup] S3 upload failed for $file. Backup kept locally."
+    return 1
   fi
+
+  return 0
 }
 
 prune_s3() {
@@ -99,7 +103,7 @@ prune_s3() {
     old_count=$((old_count + 1))
     echo "[mysql-backup] deleting old S3 object: $key"
     local delete_output
-    if ! delete_output="$(aws_s3 s3api delete-object --bucket "$BACKUP_S3_BUCKET" --key "$key" --only-show-errors 2>&1)"; then
+    if ! delete_output="$(aws_s3 s3api delete-object --bucket "$BACKUP_S3_BUCKET" --key "$key" 2>&1)"; then
       echo "[mysql-backup] failed to delete S3 object: $key"
       echo "[mysql-backup] delete error: $delete_output"
       continue
@@ -134,7 +138,12 @@ while true; do
     --single-transaction --quick --routines --triggers --events --no-tablespaces \
     "$MYSQL_DATABASE" | gzip -9 > "$FILE"
 
-  upload_to_s3 "$FILE" "$S3_KEY"
+  if upload_to_s3 "$FILE" "$S3_KEY"; then
+    if [ "$MYSQL_BACKUP_DELETE_LOCAL_AFTER_S3_UPLOAD" = "true" ]; then
+      echo "[mysql-backup] S3 upload successful. Deleting local backup: $FILE"
+      rm -f "$FILE"
+    fi
+  fi
 
   # Local retention
   find "$BACKUP_DIR" -type f -name "*.sql.gz" -mtime +"$RETENTION_DAYS" -delete 2>/dev/null || true

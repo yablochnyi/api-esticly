@@ -36,13 +36,10 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/mysql-backup-supervisor.conf /etc/supervisor/conf.d/mysql-backup.conf
-COPY docker/project-backup-supervisor.conf /etc/supervisor/conf.d/project-backup.conf
 COPY docker/entrypoint.sh /entrypoint.sh
 COPY docker/mysql-backup.sh /usr/local/bin/mysql-backup.sh
-COPY docker/project-backup.sh /usr/local/bin/project-backup.sh
 RUN chmod +x /entrypoint.sh \
   && chmod +x /usr/local/bin/mysql-backup.sh \
-  && chmod +x /usr/local/bin/project-backup.sh \
   && mkdir -p /tmp/nginx/client_body /tmp/nginx/proxy /tmp/nginx/fastcgi /tmp/nginx/uwsgi /tmp/nginx/scgi \
   && chown -R www-data:www-data storage bootstrap/cache
 

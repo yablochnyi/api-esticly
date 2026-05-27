@@ -47,7 +47,7 @@ return [
     'features' => [
         'title' => 'Funkce',
         'items' => [
-            ['title' => 'Online rezervace.', 'description' => 'Klienti se mohou objednávat sami kdykoliv. To usnadňuje komunikaci, snižuje ruční práci a zvyšuje počet rezervací. Zároveň tento blok posiluje SEO relevanci pro dotazy spojené s online rezervacemi.'],
+            ['title' => 'Online rezervace.', 'description' => 'Klienti se mohou objednávat sami kdykoliv. To usnadňuje komunikaci, snižuje ruční práci, pomáhá neztrácet poptávky a podporuje stabilní růst počtu rezervací.'],
             ['title' => 'Automatické připomínky.', 'description' => 'Esticly posílá připomínky před návštěvou, snižuje no-show a zlepšuje docházku.'],
             ['title' => 'Klientská databáze.', 'description' => 'Všechny informace o klientech zůstávají na jednom místě: historie, poznámky, preference i kontakty.'],
             ['title' => 'Analytika příjmů.', 'description' => 'Salony i profesionálové sledují příjmy, poptávku, vytížení i trendy a rozhodují se podle čísel.'],
@@ -71,16 +71,16 @@ return [
     ],
     'pricing' => [
         'title' => 'Ceník',
-        'description' => 'Esticly používá jednoduchý a transparentní cenový model. Noví uživatelé mohou začít bezplatnou 7denní zkušební verzí.',
+        'description' => 'Esticly používá jednoduchý model předplatného. Noví uživatelé mohou začít bezplatnou 7denní zkušební dobou a aktuální místní cena se zobrazí přímo v App Storu nebo Google Play před nákupem.',
         'basic_title' => 'Basic plán',
-        'basic_price' => '340 Kč',
-        'period' => '/ měsíc',
+        'basic_price' => 'Aktuální cena v obchodě',
+        'period' => '',
         'basic_intro' => 'Vhodné pro nezávislé profesionály, kteří potřebují spolehlivý systém pro:',
         'basic_items' => ['Správu klientů', 'Správu rezervací', 'Správu připomínek', 'Základní analytiku'],
         'basic_cta' => 'Vybrat plán',
         'pro_badge' => 'NEJOBLÍBENĚJŠÍ',
         'pro_title' => 'PRO plán',
-        'pro_price' => '510 Kč',
+        'pro_price' => 'Aktuální cena v obchodě',
         'pro_trial' => '7 dní zdarma',
         'pro_intro' => 'Vhodné pro salony a týmy, které potřebují:',
         'pro_items' => ['Širší možnosti řízení', 'Podporu dalšího růstu', 'Jednoduchou cenu', 'Transparentní model pro týmovou práci'],
@@ -118,6 +118,15 @@ return [
     'final_cta' => [
         'title' => 'Přineste do svého podnikání více pořádku už dnes.',
         'text' => 'Stáhněte si Esticly a vyzkoušejte moderní CRM pro beauty salony a nezávislé profesionály, které automatizuje rezervace, zlepšuje servis a zvyšuje příjmy.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Stáhnout v App Storu',
+        'google_play' => 'Stáhnout na Google Play',
+        'previous_review' => 'Předchozí recenze',
+        'next_review' => 'Další recenze',
+        'app_mockup' => 'Náhled aplikace Esticly',
+        'app_logo' => 'Logo Esticly',
+        'app_screenshot' => 'Obrazovka aplikace Esticly',
     ],
     'footer' => [
         'description' => 'Vyzkoušejte moderní CRM pro beauty salony a nezávislé profesionály, které automatizuje rezervace, zlepšuje servis a zvyšuje příjmy.',

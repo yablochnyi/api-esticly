@@ -23,8 +23,8 @@ done
 echo "[entrypoint] preparing app..."
 
 mkdir -p /tmp/nginx/client_body /tmp/nginx/proxy /tmp/nginx/fastcgi /tmp/nginx/uwsgi /tmp/nginx/scgi
-mkdir -p /backups/mysql /backups/project
-chown -R www-data:www-data /tmp/nginx /backups/mysql /backups/project storage bootstrap/cache
+mkdir -p /backups/mysql
+chown -R www-data:www-data /tmp/nginx /backups/mysql storage bootstrap/cache
 
 if [ ! -f ".env" ]; then
   echo "[entrypoint] .env missing, copying from .env.example"

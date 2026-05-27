@@ -47,7 +47,7 @@ return [
     'features' => [
         'title' => 'Fonctionnalités',
         'items' => [
-            ['title' => 'Réservation en ligne.', 'description' => 'Les clients prennent rendez-vous eux-mêmes à tout moment. Cela simplifie la communication, évite la perte de demandes et augmente le nombre de réservations. Ce bloc renforce aussi la pertinence SEO autour des recherches liées à la prise de rendez-vous en ligne.'],
+            ['title' => 'Réservation en ligne.', 'description' => 'Les clients prennent rendez-vous eux-mêmes à tout moment. Cela simplifie la communication, évite la perte de demandes, réduit le travail manuel et augmente le nombre de réservations.'],
             ['title' => 'Rappels automatiques.', 'description' => 'Esticly envoie des rappels avant les rendez-vous, réduit les absences et améliore la fréquentation.'],
             ['title' => 'Base clients.', 'description' => 'Toutes les informations clients sont stockées au même endroit : historique, notes, préférences et coordonnées.'],
             ['title' => 'Analytique des revenus.', 'description' => 'Les propriétaires et spécialistes suivent revenus, demande, charge du planning et tendances pour prendre des décisions fondées sur les chiffres.'],
@@ -71,16 +71,16 @@ return [
     ],
     'pricing' => [
         'title' => 'Tarifs',
-        'description' => 'Esticly propose une tarification simple et transparente. Les nouveaux utilisateurs peuvent commencer avec un essai gratuit de 7 jours.',
+        'description' => 'Esticly utilise un modèle d’abonnement simple. Les nouveaux utilisateurs peuvent commencer avec un essai gratuit de 7 jours, et le prix local actuel est affiché directement dans l’App Store ou Google Play avant l’achat.',
         'basic_title' => 'Offre Basic',
-        'basic_price' => '14 €',
-        'period' => '/ mois',
+        'basic_price' => 'Prix actuel dans le store',
+        'period' => '',
         'basic_intro' => 'Pour les professionnels indépendants qui ont besoin d’un système fiable pour :',
         'basic_items' => ['Gérer les clients', 'Gérer les rendez-vous', 'Gérer les rappels', 'Analyser les indicateurs essentiels'],
         'basic_cta' => 'Choisir l’offre',
         'pro_badge' => 'LE PLUS POPULAIRE',
         'pro_title' => 'Offre PRO',
-        'pro_price' => '21 €',
+        'pro_price' => 'Prix actuel dans le store',
         'pro_trial' => '7 jours gratuits',
         'pro_intro' => 'Pour les salons et équipes qui ont besoin de :',
         'pro_items' => ['Fonctions de gestion plus larges', 'Support pour la croissance future', 'Prix simple', 'Modèle transparent pour le travail en équipe'],
@@ -118,6 +118,15 @@ return [
     'final_cta' => [
         'title' => 'Apportez plus d’ordre à votre business dès aujourd’hui.',
         'text' => 'Téléchargez Esticly et essayez un CRM moderne pour salons de beauté et professionnels indépendants qui automatise les réservations, améliore le service et augmente les revenus.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Télécharger sur l’App Store',
+        'google_play' => 'Télécharger sur Google Play',
+        'previous_review' => 'Avis précédent',
+        'next_review' => 'Avis suivant',
+        'app_mockup' => 'Aperçu de l’application Esticly',
+        'app_logo' => 'Logo Esticly',
+        'app_screenshot' => 'Écran de l’application Esticly',
     ],
     'footer' => [
         'description' => 'Essayez un CRM moderne pour salons de beauté et professionnels indépendants qui automatise les réservations, améliore le service et augmente les revenus.',

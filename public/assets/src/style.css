@@ -2047,6 +2047,12 @@ hr {
     color: rgba(17, 24, 39, 1);
 }
 
+.pricing__amount--store {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
 .pricing__currency {
     font-size: 1.5rem;
     color: #6B7280;

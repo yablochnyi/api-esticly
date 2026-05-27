@@ -61,7 +61,7 @@ return [
         'items' => [
             [
                 'title' => 'Rezerwacje online.',
-                'description' => 'Klienci mogą samodzielnie rezerwować wizyty o dowolnej porze. To zwiększa wygodę, ogranicza ręczną komunikację i wspiera rozwój biznesu. Ten blok wspiera SEO pod frazy takie jak system rezerwacji online, aplikacja do zapisów klientów i CRM dla salonu beauty.',
+                'description' => 'Klienci mogą samodzielnie rezerwować wizyty o dowolnej porze. To zwiększa wygodę, ogranicza ręczną komunikację, pomaga nie gubić zapytań i wspiera regularny wzrost liczby zapisów.',
             ],
             [
                 'title' => 'Automatyczne przypomnienia.',
@@ -105,10 +105,10 @@ return [
     ],
     'pricing' => [
         'title' => 'Cennik',
-        'description' => 'Esticly korzysta z prostego i przejrzystego modelu cenowego. Nowi użytkownicy mogą rozpocząć od bezpłatnego 7-dniowego okresu próbnego, aby sprawdzić, jak CRM działa w codziennej pracy.',
+        'description' => 'Esticly korzysta z prostego modelu subskrypcji. Nowi użytkownicy mogą rozpocząć od bezpłatnego 7-dniowego okresu próbnego, a aktualna lokalna cena jest widoczna bezpośrednio w App Store lub Google Play przed zakupem.',
         'basic_title' => 'Plan podstawowy',
-        'basic_price' => '59 zł',
-        'period' => '/ miesiąc',
+        'basic_price' => 'Aktualna cena w sklepie',
+        'period' => '',
         'basic_intro' => 'Odpowiedni dla indywidualnych specjalistów, którzy potrzebują niezawodnego systemu do:',
         'basic_items' => [
             'Zarządzania klientami',
@@ -119,7 +119,7 @@ return [
         'basic_cta' => 'Wybierz plan',
         'pro_badge' => 'NAJPOPULARNIEJSZY',
         'pro_title' => 'Plan PRO',
-        'pro_price' => '89 zł',
+        'pro_price' => 'Aktualna cena w sklepie',
         'pro_trial' => '7 dni za darmo',
         'pro_intro' => 'Odpowiedni dla salonów i zespołów, które potrzebują:',
         'pro_items' => [
@@ -192,6 +192,15 @@ return [
     'final_cta' => [
         'title' => 'Wprowadź więcej porządku do swojego biznesu już dziś.',
         'text' => 'Pobierz Esticly i wypróbuj nowoczesny CRM dla salonów beauty i indywidualnych specjalistów, który pomaga automatyzować zapisy, poprawiać obsługę i zwiększać przychody. Bezpłatny okres próbny ułatwia przejście od chaosu do systemowego zarządzania.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Pobierz z App Store',
+        'google_play' => 'Pobierz z Google Play',
+        'previous_review' => 'Poprzednia opinia',
+        'next_review' => 'Następna opinia',
+        'app_mockup' => 'Podgląd aplikacji Esticly',
+        'app_logo' => 'Logo Esticly',
+        'app_screenshot' => 'Ekran aplikacji Esticly',
     ],
     'footer' => [
         'description' => 'Wypróbuj nowoczesny CRM dla salonów beauty i indywidualnych specjalistów, który pomaga automatyzować zapisy, poprawiać obsługę i zwiększać przychody.',

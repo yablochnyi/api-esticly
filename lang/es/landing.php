@@ -47,7 +47,7 @@ return [
     'features' => [
         'title' => 'Funciones',
         'items' => [
-            ['title' => 'Reservas online.', 'description' => 'Los clientes pueden reservar por su cuenta en cualquier momento. Esto facilita la comunicación, evita perder solicitudes y aumenta el número de reservas. También mejora la relevancia SEO para búsquedas relacionadas con sistemas de reservas online.'],
+            ['title' => 'Reservas online.', 'description' => 'Los clientes pueden reservar por su cuenta en cualquier momento. Esto facilita la comunicación, evita perder solicitudes, reduce el trabajo manual y aumenta el número de reservas.'],
             ['title' => 'Recordatorios automáticos.', 'description' => 'Esticly envía recordatorios antes de la visita, reduce los no-shows y mejora la asistencia.'],
             ['title' => 'Base de clientes.', 'description' => 'Toda la información de clientes permanece en un solo lugar: historial, notas, preferencias y contactos.'],
             ['title' => 'Analítica de ingresos.', 'description' => 'Salones y profesionales ven ingresos, demanda, ocupación y tendencias para tomar decisiones basadas en datos.'],
@@ -71,16 +71,16 @@ return [
     ],
     'pricing' => [
         'title' => 'Precios',
-        'description' => 'Esticly utiliza un modelo simple y transparente. Los nuevos usuarios pueden empezar con una prueba gratuita de 7 días.',
+        'description' => 'Esticly utiliza un modelo de suscripción simple. Los nuevos usuarios pueden empezar con una prueba gratuita de 7 días, y el precio local actual se muestra directamente en App Store o Google Play antes de comprar.',
         'basic_title' => 'Plan Basic',
-        'basic_price' => '14 €',
-        'period' => '/ mes',
+        'basic_price' => 'Precio actual en la tienda',
+        'period' => '',
         'basic_intro' => 'Adecuado para profesionales independientes que necesitan un sistema fiable para:',
         'basic_items' => ['Gestión de clientes', 'Gestión de citas', 'Gestión de recordatorios', 'Analítica básica'],
         'basic_cta' => 'Elegir plan',
         'pro_badge' => 'MÁS POPULAR',
         'pro_title' => 'Plan PRO',
-        'pro_price' => '21 €',
+        'pro_price' => 'Precio actual en la tienda',
         'pro_trial' => '7 días gratis',
         'pro_intro' => 'Adecuado para salones y equipos que necesitan:',
         'pro_items' => ['Funciones de gestión más amplias', 'Soporte para crecimiento futuro', 'Precio simple', 'Modelo transparente para equipos'],
@@ -118,6 +118,15 @@ return [
     'final_cta' => [
         'title' => 'Pon más orden en tu negocio desde hoy.',
         'text' => 'Descarga Esticly y prueba un CRM moderno para salones de belleza y profesionales independientes que automatiza reservas, mejora el servicio y aumenta los ingresos.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Descargar en App Store',
+        'google_play' => 'Descargar en Google Play',
+        'previous_review' => 'Opinión anterior',
+        'next_review' => 'Opinión siguiente',
+        'app_mockup' => 'Vista previa de la app Esticly',
+        'app_logo' => 'Logo de Esticly',
+        'app_screenshot' => 'Pantalla de la app Esticly',
     ],
     'footer' => [
         'description' => 'Prueba un CRM moderno para salones de belleza y profesionales independientes que automatiza reservas, mejora el servicio y aumenta los ingresos.',

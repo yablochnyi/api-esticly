@@ -61,7 +61,7 @@ return [
         'items' => [
             [
                 'title' => 'Online booking.',
-                'description' => 'Clients can book appointments on their own at any time, which increases convenience, reduces manual communication, and supports growth. This section is important for SEO around keywords such as online booking system for beauty salons, appointment booking app, and client booking software.',
+                'description' => 'Clients can book appointments on their own at any time, which increases convenience, reduces manual communication, helps prevent missed requests, and supports steady growth in bookings.',
             ],
             [
                 'title' => 'Automated reminders.',
@@ -105,10 +105,10 @@ return [
     ],
     'pricing' => [
         'title' => 'Pricing',
-        'description' => 'Esticly uses a simple and transparent pricing model. New users can start with a free 7-day trial to experience how the CRM fits their workflow and daily operations.',
+        'description' => 'Esticly uses a simple subscription model. New users can start with a free 7-day trial, and the current local price is shown directly in the App Store or Google Play before purchase.',
         'basic_title' => 'Basic plan',
-        'basic_price' => '$16',
-        'period' => '/ month',
+        'basic_price' => 'Current price in store',
+        'period' => '',
         'basic_intro' => 'This plan is suitable for independent professionals who need a reliable client booking and management system for:',
         'basic_items' => [
             'Client management',
@@ -119,7 +119,7 @@ return [
         'basic_cta' => 'Choose plan',
         'pro_badge' => 'MOST POPULAR',
         'pro_title' => 'PRO plan',
-        'pro_price' => '$24',
+        'pro_price' => 'Current price in store',
         'pro_trial' => '7-day free trial',
         'pro_intro' => 'This plan is designed for salons and teams that need:',
         'pro_items' => [
@@ -192,6 +192,15 @@ return [
     'final_cta' => [
         'title' => 'Start bringing more structure to your business today.',
         'text' => 'Download Esticly and try a modern CRM for beauty salons and independent professionals that helps automate bookings, improve service, and increase revenue. The free trial makes it easy to move from chaotic manual work to a clear and scalable system.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Download on the App Store',
+        'google_play' => 'Get it on Google Play',
+        'previous_review' => 'Previous review',
+        'next_review' => 'Next review',
+        'app_mockup' => 'Esticly app preview',
+        'app_logo' => 'Esticly logo',
+        'app_screenshot' => 'Esticly app screen',
     ],
     'footer' => [
         'description' => 'Try a modern CRM for beauty salons and independent professionals that helps automate bookings, improve service quality, and increase revenue.',

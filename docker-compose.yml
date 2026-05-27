@@ -17,9 +17,8 @@ services:
       - ./google-play-service-account.json:/var/www/html/google-play-service-account.json:ro
       # App Store Connect API key (.p8) for App Store subscriptions / notifications sync
       - ./apple_subscription_key.p8:/var/www/html/apple_subscription_key.p8:ro
-      # backups will be written to host folder (inside api/)
+      # database backups are uploaded to S3 by the api container
       - ./backups/mysql:/backups/mysql
-      - ./backups/project:/backups/project
     depends_on:
       - mysql
       - redis

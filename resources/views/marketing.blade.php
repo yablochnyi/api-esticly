@@ -36,7 +36,7 @@
         </div>
 
         <div class="hero__image">
-            <img src="{{ $heroImage }}" alt="App mockup" class="hero__phones">
+            <img src="{{ $heroImage }}" alt="{{ __('landing.accessibility.app_mockup') }}" class="hero__phones">
         </div>
     </div>
 
@@ -44,10 +44,10 @@
         <div class="hero__bottom-container">
             <p class="hero__bottom-text">{{ __('landing.hero.bottom') }}</p>
             <div class="hero__apps">
-                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="App Store" class="hero__app-badge">
                 </a>
-                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
                     <img src="{{ asset('assets/public/playstore.svg') }}" alt="Google Play" class="hero__app-badge">
                 </a>
             </div>
@@ -177,7 +177,7 @@
     <div class="hero-cta__card">
         <div class="hero-cta__phone-bg">
             <div class="hero-cta__badge">
-                <img src="{{ asset('assets/public/esticly-mini.png') }}" alt="Esticly Logo">
+                <img src="{{ asset('assets/public/esticly-mini.png') }}" alt="{{ __('landing.accessibility.app_logo') }}">
             </div>
             <img src="{{ asset('assets/public/secondphone.png') }}" alt="" class="hero-cta__phone" aria-hidden="true">
             <div class="hero-cta__ellipse">
@@ -196,10 +196,10 @@
         <div class="hero-cta__bottom">
             <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>
             <div class="hero-cta__buttons">
-                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta__btn-img">
                 </a>
-                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta__btn-img">
                 </a>
             </div>
@@ -276,7 +276,7 @@
                 <h3 class="pricing__card-title">{{ __('landing.pricing.basic_title') }}</h3>
                 <hr>
                 <div class="pricing__price">
-                    <span class="pricing__amount">{{ __('landing.pricing.basic_price') }}</span>
+                    <span class="pricing__amount pricing__amount--store">{{ __('landing.pricing.basic_price') }}</span>
                     <span class="pricing__currency"></span>
                     <span class="pricing__period">{{ __('landing.pricing.period') }}</span>
                 </div>
@@ -304,7 +304,7 @@
                 <hr>
 
                 <div class="pricing__price">
-                    <span class="pricing__amount">{{ __('landing.pricing.pro_price') }}</span>
+                    <span class="pricing__amount pricing__amount--store">{{ __('landing.pricing.pro_price') }}</span>
                     <span class="pricing__currency"></span>
                     <span class="pricing__period">{{ __('landing.pricing.period') }}</span>
                     <span class="pricing__free-trial">{{ __('landing.pricing.pro_trial') }}</span>
@@ -331,7 +331,7 @@
 <section class="hero-cta-download">
     <div class="hero-cta-download__container">
         <div class="hero-cta-download__image">
-            <img src="{{ asset('assets/public/phone-upscayl.png') }}" alt="Esticly App" class="hero-cta-download__phone">
+            <img src="{{ asset('assets/public/phone-upscayl.png') }}" alt="{{ __('landing.accessibility.app_screenshot') }}" class="hero-cta-download__phone">
             <img class="hero-cta-download__logo" src="{{ asset('assets/public/logotbn.png') }}" alt="">
         </div>
 
@@ -345,10 +345,10 @@
         <div class="hero-cta-download__bottom-container">
             <p class="hero-cta-download__bottom-text change_to_black">{{ __('landing.app.bottom') }}</p>
             <div class="hero-cta-download__apps">
-                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta-download__app-badge">
                 </a>
-                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta-download__app-badge">
                 </a>
             </div>
@@ -367,8 +367,6 @@
                     <p class="reviews__text">{{ $review['headline'] }}</p>
                     <p class="reviews__description">{{ $review['body_1'] }}</p>
                     <p class="reviews__description">{{ $review['body_2'] }}</p>
-                    <a href="#" class="reviews__link">{{ __('landing.reviews.read_more') }}</a>
-
                     <div class="reviews__author">
                         <img src="{{ asset('assets/public/' . ($loop->index === 0 ? 'anastasia.png' : ($loop->index === 1 ? 'svetlana.png' : 'anastasia2.png'))) }}" alt="{{ $review['name'] }}" class="reviews__avatar">
                         <div class="reviews__author-info">
@@ -381,7 +379,7 @@
         </div>
 
         <div class="reviews__pagination">
-            <button class="reviews__pagination-btn reviews__pagination-btn--prev" aria-label="Previous">
+            <button class="reviews__pagination-btn reviews__pagination-btn--prev" aria-label="{{ __('landing.accessibility.previous_review') }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
@@ -395,7 +393,7 @@
 {{--                <button class="reviews__dot" data-index="4"></button>--}}
             </div>
 
-            <button class="reviews__pagination-btn reviews__pagination-btn--next" aria-label="Next">
+            <button class="reviews__pagination-btn reviews__pagination-btn--next" aria-label="{{ __('landing.accessibility.next_review') }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
@@ -448,17 +446,17 @@
             <h2 class="final-cta__title">{{ __('landing.final_cta.title') }}</h2>
             <p class="final-cta__text">{{ __('landing.final_cta.text') }}</p>
             <div class="final-cta__buttons">
-                <a href="{{ $appStoreUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                <a href="{{ $appStoreUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="">
                 </a>
-                <a href="{{ $googlePlayUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer">
+                <a href="{{ $googlePlayUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
                     <img src="{{ asset('assets/public/playstore.svg') }}" alt="">
                 </a>
             </div>
         </div>
 
         <div class="final-cta__image">
-            <img src="{{ $heroImage }}" alt="Esticly App" class="final-cta__phone">
+            <img src="{{ $heroImage }}" alt="{{ __('landing.accessibility.app_screenshot') }}" class="final-cta__phone">
             <img class="top-right" src="{{ asset('assets/public/final-cta-top-right.svg') }}" alt="">
             <img class="bottom-left" src="{{ asset('assets/public/final-cta-bottom.svg') }}" alt="">
         </div>
@@ -470,10 +468,10 @@
         <div class="footer-cta__content">
             <p class="footer-cta__text">{{ __('landing.hero.bottom') }}</p>
             <div class="footer-cta__buttons">
-                <a href="{{ $appStoreUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="Download on the App Store">
+                <a href="{{ $appStoreUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store">
                 </a>
-                <a href="{{ $googlePlayUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer">
+                <a href="{{ $googlePlayUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play">
                 </a>
             </div>

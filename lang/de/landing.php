@@ -47,7 +47,7 @@ return [
     'features' => [
         'title' => 'Funktionen',
         'items' => [
-            ['title' => 'Online-Buchung.', 'description' => 'Kunden buchen selbstständig zu jeder Zeit. Das vereinfacht die Kommunikation, verhindert verlorene Anfragen und steigert die Zahl der Buchungen. Gleichzeitig stärkt dieser Bereich die SEO-Relevanz für Suchanfragen rund um Online-Terminbuchung und Booking-Software.'],
+            ['title' => 'Online-Buchung.', 'description' => 'Kunden können jederzeit selbstständig Termine buchen. Das vereinfacht die Kommunikation, reduziert manuelle Arbeit, verhindert verlorene Anfragen und unterstützt mehr Buchungen.'],
             ['title' => 'Automatische Erinnerungen.', 'description' => 'Esticly sendet Erinnerungen vor Terminen, reduziert No-Shows und verbessert die Auslastung.'],
             ['title' => 'Kundendatenbank.', 'description' => 'Alle Kundendaten, Notizen, Historien und Präferenzen bleiben an einem Ort und helfen, den Service zu verbessern.'],
             ['title' => 'Umsatz-Analytics.', 'description' => 'Salons und Profis sehen Umsatz, Nachfrage, Auslastung und Trends und treffen Entscheidungen auf Basis echter Zahlen.'],
@@ -71,16 +71,16 @@ return [
     ],
     'pricing' => [
         'title' => 'Preise',
-        'description' => 'Esticly arbeitet mit einem einfachen und transparenten Preismodell. Neue Nutzer können mit einer kostenlosen 7-Tage-Testphase starten.',
+        'description' => 'Esticly nutzt ein einfaches Abo-Modell. Neue Nutzer können mit einer kostenlosen 7-tägigen Testphase starten; der aktuelle lokale Preis wird vor dem Kauf direkt im App Store oder bei Google Play angezeigt.',
         'basic_title' => 'Basis-Tarif',
-        'basic_price' => '14 €',
-        'period' => '/ Monat',
+        'basic_price' => 'Aktueller Preis im Store',
+        'period' => '',
         'basic_intro' => 'Geeignet für selbstständige Profis, die ein verlässliches System benötigen für:',
         'basic_items' => ['Kundenverwaltung', 'Terminverwaltung', 'Erinnerungen', 'Basis-Analytics'],
         'basic_cta' => 'Tarif wählen',
         'pro_badge' => 'AM BELIEBTESTEN',
         'pro_title' => 'PRO-Tarif',
-        'pro_price' => '21 €',
+        'pro_price' => 'Aktueller Preis im Store',
         'pro_trial' => '7 Tage kostenlos',
         'pro_intro' => 'Geeignet für Salons und Teams, die Folgendes brauchen:',
         'pro_items' => ['Breitere Management-Funktionen', 'Unterstützung für weiteres Wachstum', 'Einfache Preislogik', 'Transparentes Modell für Teams'],
@@ -118,6 +118,15 @@ return [
     'final_cta' => [
         'title' => 'Bring noch heute mehr Ordnung in dein Business.',
         'text' => 'Lade Esticly herunter und probiere ein modernes CRM für Beauty-Salons und selbstständige Profis aus, das Buchungen automatisiert, den Service verbessert und den Umsatz steigert.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Im App Store laden',
+        'google_play' => 'Bei Google Play laden',
+        'previous_review' => 'Vorherige Bewertung',
+        'next_review' => 'Nächste Bewertung',
+        'app_mockup' => 'Vorschau der Esticly-App',
+        'app_logo' => 'Esticly-Logo',
+        'app_screenshot' => 'Bildschirm der Esticly-App',
     ],
     'footer' => [
         'description' => 'Probiere ein modernes CRM für Beauty-Salons und selbstständige Beauty-Profis, das Buchungen automatisiert, Service verbessert und Umsätze steigert.',

@@ -50,7 +50,7 @@
 
         <div class="header__logo">
             <a href="{{ $landingHomeUrl }}">
-                <img class="header__logo__inner" src="{{ asset('assets/public/logo.svg') }}" alt="Esticly logo">
+                <img class="header__logo__inner" src="{{ asset('assets/public/logo.svg') }}" alt="{{ __('landing.accessibility.app_logo') }}">
             </a>
         </div>
 

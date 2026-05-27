@@ -47,7 +47,7 @@ return [
     'features' => [
         'title' => 'Funcionalidades',
         'items' => [
-            ['title' => 'Marcação online.', 'description' => 'Os clientes podem reservar sozinhos a qualquer hora. Isto melhora a conveniência, reduz a comunicação manual e aumenta o número de marcações, reforçando também a relevância SEO para pesquisas ligadas a marcação online.'],
+            ['title' => 'Marcação online.', 'description' => 'Os clientes podem marcar sozinhos a qualquer hora. Isto melhora a conveniência, reduz a comunicação manual, evita pedidos perdidos e ajuda a aumentar o número de marcações.'],
             ['title' => 'Lembretes automáticos.', 'description' => 'Esticly envia lembretes antes das visitas, reduz faltas e melhora a assiduidade.'],
             ['title' => 'Base de clientes.', 'description' => 'Toda a informação dos clientes fica num só lugar: histórico, notas, preferências e contactos.'],
             ['title' => 'Análise de receitas.', 'description' => 'Salões e profissionais acompanham receitas, procura, ocupação e tendências para tomar decisões com base em números.'],
@@ -71,16 +71,16 @@ return [
     ],
     'pricing' => [
         'title' => 'Preços',
-        'description' => 'Esticly usa um modelo simples e transparente. Novos utilizadores podem começar com um teste gratuito de 7 dias.',
+        'description' => 'O Esticly usa um modelo de subscrição simples. Novos utilizadores podem começar com um teste gratuito de 7 dias, e o preço local atual é apresentado diretamente na App Store ou no Google Play antes da compra.',
         'basic_title' => 'Plano Basic',
-        'basic_price' => '14 €',
-        'period' => '/ mês',
+        'basic_price' => 'Preço atual na loja',
+        'period' => '',
         'basic_intro' => 'Adequado para profissionais independentes que precisam de um sistema fiável para:',
         'basic_items' => ['Gestão de clientes', 'Gestão de marcações', 'Gestão de lembretes', 'Análise básica'],
         'basic_cta' => 'Escolher plano',
         'pro_badge' => 'MAIS POPULAR',
         'pro_title' => 'Plano PRO',
-        'pro_price' => '21 €',
+        'pro_price' => 'Preço atual na loja',
         'pro_trial' => '7 dias grátis',
         'pro_intro' => 'Adequado para salões e equipas que precisam de:',
         'pro_items' => ['Funções de gestão mais amplas', 'Suporte ao crescimento futuro', 'Preço simples', 'Modelo transparente para equipas'],
@@ -118,6 +118,15 @@ return [
     'final_cta' => [
         'title' => 'Traz mais ordem ao teu negócio já hoje.',
         'text' => 'Descarrega o Esticly e experimenta um CRM moderno para salões de beleza e profissionais independentes que automatiza marcações, melhora o serviço e aumenta as receitas.',
+    ],
+    'accessibility' => [
+        'app_store' => 'Descarregar na App Store',
+        'google_play' => 'Descarregar no Google Play',
+        'previous_review' => 'Opinião anterior',
+        'next_review' => 'Opinião seguinte',
+        'app_mockup' => 'Pré-visualização da app Esticly',
+        'app_logo' => 'Logótipo Esticly',
+        'app_screenshot' => 'Ecrã da app Esticly',
     ],
     'footer' => [
         'description' => 'Experimenta um CRM moderno para salões de beleza e profissionais independentes que automatiza marcações, melhora o serviço e aumenta as receitas.',
