@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 class SupportController extends Controller
 {
     private const MAX_MESSAGE_LENGTH = 50000;
+    private const MAX_PREVIEW_LENGTH = 255;
 
     private function orgId(Request $request): int
     {
@@ -41,6 +42,13 @@ class SupportController extends Controller
             'last_message_preview' => (string)($t->last_message_preview ?? ''),
             'last_message_at' => $t->last_message_at,
         ];
+    }
+
+    private function messagePreview(string $body): string
+    {
+        $preview = preg_replace('/\s+/', ' ', trim($body)) ?: '';
+
+        return Str::substr($preview, 0, self::MAX_PREVIEW_LENGTH);
     }
 
     // New: list tickets for current org.
@@ -171,7 +179,7 @@ class SupportController extends Controller
         $u = $request->user();
 
         $body = trim((string)$data['body']);
-        $preview = Str::limit(preg_replace('/\s+/', ' ', $body) ?: '', 255, '…');
+        $preview = $this->messagePreview($body);
 
         DB::transaction(function () use ($t, $orgId, $u, $body, $preview) {
             SupportMessage::query()->create([
@@ -287,7 +295,7 @@ class SupportController extends Controller
         }
 
         $body = trim((string)$data['body']);
-        $preview = Str::limit(preg_replace('/\s+/', ' ', $body) ?: '', 255, '…');
+        $preview = $this->messagePreview($body);
 
         DB::transaction(function () use ($t, $orgId, $u, $body, $preview) {
             SupportMessage::query()->create([

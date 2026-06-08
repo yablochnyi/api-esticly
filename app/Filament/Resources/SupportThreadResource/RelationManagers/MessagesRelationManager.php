@@ -19,8 +19,16 @@ use Illuminate\Support\Str;
 class MessagesRelationManager extends RelationManager
 {
     private const MAX_MESSAGE_LENGTH = 50000;
+    private const MAX_PREVIEW_LENGTH = 255;
 
     protected static string $relationship = 'messages';
+
+    private function messagePreview(string $body): string
+    {
+        $preview = preg_replace('/\s+/', ' ', trim($body)) ?: '';
+
+        return Str::substr($preview, 0, self::MAX_PREVIEW_LENGTH);
+    }
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
@@ -52,7 +60,7 @@ class MessagesRelationManager extends RelationManager
                         $body = trim((string)($data['body'] ?? ''));
                         if ($body === '') return;
 
-                        $preview = Str::limit(preg_replace('/\s+/', ' ', $body) ?: '', 255, '…');
+                        $preview = $this->messagePreview($body);
 
                         DB::transaction(function () use ($thread, $body, $preview) {
                             SupportMessage::query()->create([
