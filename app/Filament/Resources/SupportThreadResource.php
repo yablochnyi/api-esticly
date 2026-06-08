@@ -61,8 +61,7 @@ class SupportThreadResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('subject')
                     ->label('Subject')
-                    ->wrap()
-                    ->limit(40),
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -75,7 +74,6 @@ class SupportThreadResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('last_message_preview')
                     ->label('Last message')
-                    ->limit(80)
                     ->wrap(),
                 Tables\Columns\TextColumn::make('last_message_at')
                     ->label('Last at')

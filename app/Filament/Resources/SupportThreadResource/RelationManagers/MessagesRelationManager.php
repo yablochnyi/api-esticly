@@ -33,7 +33,7 @@ class MessagesRelationManager extends RelationManager
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('sender_type')->label('From')->badge(),
-                Tables\Columns\TextColumn::make('body')->label('Message')->wrap()->limit(200),
+                Tables\Columns\TextColumn::make('body')->label('Message')->wrap(),
                 Tables\Columns\TextColumn::make('created_at')->label('At')->dateTime(),
             ])
             ->headerActions([
