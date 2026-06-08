@@ -10,6 +10,7 @@ class SupportMessage extends Model
     use Auditable;
 
     protected $guarded = false;
+    protected array $auditExclude = ['body'];
 
     public function thread()
     {
@@ -21,4 +22,3 @@ class SupportMessage extends Model
         return $this->belongsTo(User::class, 'sender_user_id');
     }
 }
-

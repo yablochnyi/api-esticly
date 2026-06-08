@@ -104,6 +104,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/support/messages', [SupportController::class, 'messages']);
         Route::post('/support/messages', [SupportController::class, 'send']);
         Route::get('/support/threads', [SupportController::class, 'threads']);
+        Route::get('/support/unread-count', [SupportController::class, 'unreadCount']);
         Route::post('/support/threads', [SupportController::class, 'createThread']);
         Route::get('/support/threads/{threadId}/messages', [SupportController::class, 'threadMessages']);
         Route::post('/support/threads/{threadId}/messages', [SupportController::class, 'sendToThread']);

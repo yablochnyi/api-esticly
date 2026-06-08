@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
 
 class MessagesRelationManager extends RelationManager
 {
+    private const MAX_MESSAGE_LENGTH = 50000;
+
     protected static string $relationship = 'messages';
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
@@ -43,7 +45,7 @@ class MessagesRelationManager extends RelationManager
                             ->label('Message')
                             ->required()
                             ->minLength(1)
-                            ->maxLength(4000),
+                            ->maxLength(self::MAX_MESSAGE_LENGTH),
                     ])
                     ->action(function (array $data) {
                         $thread = $this->getOwnerRecord();

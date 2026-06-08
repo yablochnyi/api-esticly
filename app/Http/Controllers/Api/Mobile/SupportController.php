@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 
 class SupportController extends Controller
 {
+    private const MAX_MESSAGE_LENGTH = 50000;
+
     private function orgId(Request $request): int
     {
         $u = $request->user();
@@ -89,6 +91,19 @@ class SupportController extends Controller
         return response()->json($this->asThreadRow($t));
     }
 
+    public function unreadCount(Request $request)
+    {
+        $orgId = $this->orgId($request);
+
+        $count = SupportThread::query()
+            ->where('org_id', $orgId)
+            ->sum('unread_for_user');
+
+        return response()->json([
+            'unread_count' => (int) $count,
+        ]);
+    }
+
     private function findThreadOr404(int $orgId, int $threadId): SupportThread
     {
         return SupportThread::query()
@@ -148,7 +163,7 @@ class SupportController extends Controller
     public function sendToThread(Request $request, int $threadId)
     {
         $data = $request->validate([
-            'body' => ['required', 'string', 'min:1', 'max:4000'],
+            'body' => ['required', 'string', 'min:1', 'max:' . self::MAX_MESSAGE_LENGTH],
         ]);
 
         $orgId = $this->orgId($request);
@@ -251,7 +266,7 @@ class SupportController extends Controller
     public function send(Request $request)
     {
         $data = $request->validate([
-            'body' => ['required', 'string', 'min:1', 'max:4000'],
+            'body' => ['required', 'string', 'min:1', 'max:' . self::MAX_MESSAGE_LENGTH],
         ]);
 
         $orgId = $this->orgId($request);
@@ -297,4 +312,3 @@ class SupportController extends Controller
         return response()->json(['ok' => true]);
     }
 }
-
