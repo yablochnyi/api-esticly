@@ -95,13 +95,24 @@ class BillingController extends Controller
             'product_id' => ['required', 'string', 'max:128'],
             'transaction_id' => ['required', 'string', 'max:255'],
             'receipt_data' => ['nullable', 'string'],
+            'source' => ['nullable', 'string', 'max:64'],
         ]);
 
         $org = $u->organization_id ? User::query()->findOrFail($u->organization_id) : $u;
+        $source = trim((string) ($data['source'] ?? 'unknown'));
 
         if (!AppStoreSubscriptions::isConfigured()) {
             return response()->json(['message' => 'app_store_not_configured'], 503);
         }
+
+        Log::info('app_store_verify_started', [
+            'source' => $source,
+            'user_id' => $u->id,
+            'org_id' => $org->id,
+            'product_id' => (string) $data['product_id'],
+            'transaction_id' => (string) $data['transaction_id'],
+            'receipt_data_present' => !empty($data['receipt_data']),
+        ]);
 
         try {
             $subscription = AppStoreSubscriptions::syncTransaction(
@@ -111,6 +122,7 @@ class BillingController extends Controller
             );
         } catch (\Throwable $e) {
             Log::warning('app_store_verify_failed', [
+                'source' => $source,
                 'user_id' => $u->id,
                 'org_id' => $org->id,
                 'product_id' => (string) $data['product_id'],
@@ -123,6 +135,19 @@ class BillingController extends Controller
         }
 
         $org->refresh();
+
+        Log::info('app_store_verify_succeeded', [
+            'source' => $source,
+            'user_id' => $u->id,
+            'org_id' => $org->id,
+            'subscription_id' => $subscription->id,
+            'product_id' => $subscription->product_id,
+            'plan_code' => $subscription->plan_code,
+            'status' => $subscription->status,
+            'ends_at' => $subscription->ends_at?->toIso8601String(),
+            'org_subscription_plan' => $org->subscription_plan,
+            'org_subscription_ends_at' => $org->subscription_ends_at?->toIso8601String(),
+        ]);
 
         return response()->json([
             'ok' => true,
