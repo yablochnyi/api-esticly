@@ -7,6 +7,7 @@ use App\Models\SubscriptionPromoCode;
 use App\Models\SubscriptionPromoCodeRedemption;
 use App\Support\MediaUrl;
 use App\Support\OrgSubscription;
+use App\Support\TelegramAdminNotifier;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,7 @@ class RegisterController extends Controller
         ]);
 
         $user = $request->user();
+        $isFirstRegistration = empty($user->registered_at);
         $promoCode = $this->normalizePromoCode($data['promo_code'] ?? null);
 
         DB::transaction(function () use ($request, $user, $data, $promoCode) {
@@ -69,6 +71,18 @@ class RegisterController extends Controller
 
             $user->save();
         });
+
+        if ($isFirstRegistration) {
+            TelegramAdminNotifier::newRegistration([
+                'org_id' => $user->id,
+                'company_name' => $user->company_name,
+                'phone' => $user->phone,
+                'language_code' => $user->language_code,
+                'currency_code' => $user->currency_code,
+                'timezone' => $user->timezone,
+                'registered_at' => $user->registered_at?->toDateTimeString(),
+            ]);
+        }
 
         return response()->json([
             'ok' => true,

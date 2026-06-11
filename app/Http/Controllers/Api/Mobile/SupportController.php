@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportMessage;
 use App\Models\SupportThread;
 use App\Models\User;
+use App\Support\TelegramAdminNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -201,6 +202,8 @@ class SupportController extends Controller
                 ]);
         });
 
+        $this->notifySupportMessage($t, $orgId, $u, $body);
+
         return response()->json(['ok' => true]);
     }
 
@@ -317,6 +320,22 @@ class SupportController extends Controller
                 ]);
         });
 
+        $this->notifySupportMessage($t, $orgId, $u, $body);
+
         return response()->json(['ok' => true]);
+    }
+
+    private function notifySupportMessage(SupportThread $thread, int $orgId, User $user, string $body): void
+    {
+        $org = User::query()->find($orgId);
+
+        TelegramAdminNotifier::supportMessage([
+            'thread_id' => $thread->id,
+            'org_id' => $orgId,
+            'company_name' => $org?->company_name,
+            'phone' => $org?->phone ?? $user->phone,
+            'user_id' => $user->id,
+            'message' => Str::limit($body, 1000),
+        ]);
     }
 }
