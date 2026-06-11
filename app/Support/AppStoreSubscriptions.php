@@ -7,6 +7,7 @@ use App\Models\SubscriptionTransaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AppStoreSubscriptions
 {
@@ -143,6 +144,17 @@ class AppStoreSubscriptions
         return self::decodeSignedPayload($signedPayload);
     }
 
+    public static function orgIdForAppAccountToken(string $appAccountToken): ?int
+    {
+        $value = strtolower(trim($appAccountToken));
+        if (!preg_match('/^00000000-6573-4000-8000-([0-9a-f]{12})$/', $value, $matches)) {
+            return null;
+        }
+
+        $orgId = hexdec($matches[1]);
+        return is_int($orgId) && $orgId > 0 ? $orgId : null;
+    }
+
     private static function fetchHistory(string $transactionId): array
     {
         $response = self::requestHistory(self::PROD_BASE, $transactionId);
@@ -154,6 +166,14 @@ class AppStoreSubscriptions
         if ($sandbox->successful()) {
             return [self::jsonBody($sandbox), 'Sandbox'];
         }
+
+        Log::warning('app_store_fetch_history_failed', [
+            'transaction_id' => $transactionId,
+            'production_status' => $response->status(),
+            'production_body' => self::shortBody($response->body()),
+            'sandbox_status' => $sandbox->status(),
+            'sandbox_body' => self::shortBody($sandbox->body()),
+        ]);
 
         throw new \RuntimeException('app_store_fetch_failed');
     }
@@ -179,6 +199,16 @@ class AppStoreSubscriptions
         }
 
         return $body;
+    }
+
+    private static function shortBody(string $body): string
+    {
+        $body = trim($body);
+        if (strlen($body) <= 1000) {
+            return $body;
+        }
+
+        return substr($body, 0, 1000);
     }
 
     private static function apiToken(): string

@@ -8,6 +8,7 @@ use App\Support\AppStoreSubscriptions;
 use App\Support\GooglePlaySubscriptions;
 use App\Support\OrgSubscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BillingController extends Controller
 {
@@ -102,11 +103,24 @@ class BillingController extends Controller
             return response()->json(['message' => 'app_store_not_configured'], 503);
         }
 
-        $subscription = AppStoreSubscriptions::syncTransaction(
-            $org,
-            (string) $data['product_id'],
-            (string) $data['transaction_id'],
-        );
+        try {
+            $subscription = AppStoreSubscriptions::syncTransaction(
+                $org,
+                (string) $data['product_id'],
+                (string) $data['transaction_id'],
+            );
+        } catch (\Throwable $e) {
+            Log::warning('app_store_verify_failed', [
+                'user_id' => $u->id,
+                'org_id' => $org->id,
+                'product_id' => (string) $data['product_id'],
+                'transaction_id' => (string) $data['transaction_id'],
+                'receipt_data_present' => !empty($data['receipt_data']),
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
 
         $org->refresh();
 
