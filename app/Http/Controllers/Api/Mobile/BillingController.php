@@ -163,4 +163,34 @@ class BillingController extends Controller
             ...OrgSubscription::status($org),
         ]);
     }
+
+    public function logAppleRestoreAttempt(Request $request)
+    {
+        $u = $request->user();
+        if ($u->staff_id) {
+            return response()->json(['message' => 'access_denied'], 403);
+        }
+
+        $data = $request->validate([
+            'stage' => ['required', 'string', 'max:64'],
+            'source' => ['nullable', 'string', 'max:64'],
+            'product_id' => ['nullable', 'string', 'max:128'],
+            'transaction_id' => ['nullable', 'string', 'max:255'],
+            'details' => ['nullable', 'array'],
+        ]);
+
+        $org = $u->organization_id ? User::query()->findOrFail($u->organization_id) : $u;
+
+        Log::info('app_store_restore_attempt', [
+            'user_id' => $u->id,
+            'org_id' => $org->id,
+            'stage' => (string) $data['stage'],
+            'source' => (string) ($data['source'] ?? 'unknown'),
+            'product_id' => (string) ($data['product_id'] ?? ''),
+            'transaction_id' => (string) ($data['transaction_id'] ?? ''),
+            'details' => $data['details'] ?? [],
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
 }

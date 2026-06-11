@@ -41,6 +41,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/auth/register', [RegisterController::class, 'store']);
         Route::post('/billing/google/verify', [BillingController::class, 'verifyGooglePlay']);
         Route::post('/billing/apple/verify', [BillingController::class, 'verifyAppleAppStore']);
+        Route::post('/billing/apple/restore-attempt', [BillingController::class, 'logAppleRestoreAttempt']);
         Route::post('/billing/google/sync', [BillingController::class, 'syncGooglePlay']);
 
         Route::get('/clients', [ClientController::class, 'index']);
