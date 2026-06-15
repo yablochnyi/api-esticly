@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Admin\DsarExportController;
 use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\PublicLaunchWaitlistController;
+use App\Http\Controllers\PublicMarketingEventController;
 use App\Http\Controllers\PublicReviewController;
 use App\Http\Controllers\PublicShortLinkController;
 use App\Support\PublicLocale;
@@ -120,12 +121,21 @@ $renderLegalPage = function (string $page, string $locale) use ($siteLocales, $s
 };
 
 Route::get('/', function (\Illuminate\Http\Request $request) use ($resolvePublicLocale) {
-    return redirect()->route('marketing.localized', ['locale' => $resolvePublicLocale($request)], 301);
+    $url = route('marketing.localized', ['locale' => $resolvePublicLocale($request)]);
+    if ($request->getQueryString()) {
+        $url .= '?' . $request->getQueryString();
+    }
+
+    return redirect()->to($url, 301);
 })->name('marketing.root');
 
 Route::post('/waitlist', [PublicLaunchWaitlistController::class, 'store'])
     ->middleware('throttle:waitlist-subscribe')
     ->name('marketing.waitlist');
+
+Route::post('/marketing-track', [PublicMarketingEventController::class, 'store'])
+    ->middleware('throttle:120,1')
+    ->name('marketing.track');
 
 Route::get('/sitemap.xml', function () use ($siteLocaleCodes, $siteLocales, $siteXDefaultLocale) {
     $pageRoutes = [

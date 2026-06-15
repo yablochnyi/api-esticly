@@ -44,10 +44,10 @@
         <div class="hero__bottom-container">
             <p class="hero__bottom-text">{{ __('landing.hero.bottom') }}</p>
             <div class="hero__apps">
-                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}" data-marketing-store-click="app_store">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="App Store" class="hero__app-badge">
                 </a>
-                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}" data-marketing-store-click="google_play">
                     <img src="{{ asset('assets/public/playstore.svg') }}" alt="Google Play" class="hero__app-badge">
                 </a>
             </div>
@@ -196,10 +196,10 @@
         <div class="hero-cta__bottom">
             <p class="hero-cta__bottom-text">{{ __('landing.usp.text_2') }}</p>
             <div class="hero-cta__buttons">
-                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}" data-marketing-store-click="app_store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta__btn-img">
                 </a>
-                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}" data-marketing-store-click="google_play">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta__btn-img">
                 </a>
             </div>
@@ -345,10 +345,10 @@
         <div class="hero-cta-download__bottom-container">
             <p class="hero-cta-download__bottom-text change_to_black">{{ __('landing.app.bottom') }}</p>
             <div class="hero-cta-download__apps">
-                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
+                <a href="{{ $appStoreUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}" data-marketing-store-click="app_store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store" class="hero-cta-download__app-badge">
                 </a>
-                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
+                <a href="{{ $googlePlayUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}" data-marketing-store-click="google_play">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play" class="hero-cta-download__app-badge">
                 </a>
             </div>
@@ -446,10 +446,10 @@
             <h2 class="final-cta__title">{{ __('landing.final_cta.title') }}</h2>
             <p class="final-cta__text">{{ __('landing.final_cta.text') }}</p>
             <div class="final-cta__buttons">
-                <a href="{{ $appStoreUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
+                <a href="{{ $appStoreUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}" data-marketing-store-click="app_store">
                     <img src="{{ asset('assets/public/appstore.svg') }}" alt="">
                 </a>
-                <a href="{{ $googlePlayUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
+                <a href="{{ $googlePlayUrl }}" class="final-cta__btn" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}" data-marketing-store-click="google_play">
                     <img src="{{ asset('assets/public/playstore.svg') }}" alt="">
                 </a>
             </div>
@@ -468,10 +468,10 @@
         <div class="footer-cta__content">
             <p class="footer-cta__text">{{ __('landing.hero.bottom') }}</p>
             <div class="footer-cta__buttons">
-                <a href="{{ $appStoreUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}">
+                <a href="{{ $appStoreUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.app_store') }}" data-marketing-store-click="app_store">
                     <img src="{{ asset('assets/public/appstore.png') }}" alt="App Store">
                 </a>
-                <a href="{{ $googlePlayUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}">
+                <a href="{{ $googlePlayUrl }}" class="footer-cta__app-link" target="_blank" rel="noopener noreferrer" aria-label="{{ __('landing.accessibility.google_play') }}" data-marketing-store-click="google_play">
                     <img src="{{ asset('assets/public/playstore.png') }}" alt="Google Play">
                 </a>
             </div>
@@ -479,3 +479,73 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+    const endpoint = @json(route('marketing.track'));
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const visitorKey = 'esticly_marketing_visitor_id';
+    let visitorId = window.localStorage.getItem(visitorKey);
+    if (!visitorId) {
+        visitorId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        window.localStorage.setItem(visitorKey, visitorId);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const basePayload = () => ({
+        locale: document.documentElement.lang || null,
+        path: window.location.pathname,
+        page_url: window.location.href,
+        referrer: document.referrer || null,
+        utm_source: params.get('utm_source'),
+        utm_medium: params.get('utm_medium'),
+        utm_campaign: params.get('utm_campaign'),
+        utm_content: params.get('utm_content'),
+        utm_term: params.get('utm_term'),
+        fbclid: params.get('fbclid'),
+        gclid: params.get('gclid'),
+        visitor_id: visitorId,
+        metadata: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        },
+    });
+
+    const send = (event) => {
+        const payload = {event, ...basePayload()};
+        const form = new FormData();
+        form.append('_token', csrf);
+        Object.entries(payload).forEach(([key, value]) => {
+            if (value === null || value === undefined) return;
+            if (typeof value === 'object') {
+                Object.entries(value).forEach(([metaKey, metaValue]) => form.append(`metadata[${metaKey}]`, metaValue));
+                return;
+            }
+            form.append(key, value);
+        });
+
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(endpoint, form);
+            return;
+        }
+
+        fetch(endpoint, {
+            method: 'POST',
+            body: form,
+            credentials: 'same-origin',
+            keepalive: true,
+        }).catch(() => {});
+    };
+
+    send('landing_view');
+
+    document.querySelectorAll('[data-marketing-store-click]').forEach((link) => {
+        link.addEventListener('click', () => {
+            const store = link.getAttribute('data-marketing-store-click');
+            send(store === 'google_play' ? 'google_play_click' : 'app_store_click');
+        });
+    });
+})();
+</script>
+@endpush
