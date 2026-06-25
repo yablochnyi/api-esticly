@@ -41,8 +41,27 @@ class ProfileController extends Controller
             'logo_url' => MediaUrl::publicFile($org->logo_path),
             'is_staff' => (bool)$u->staff_id,
             'staff_id' => $u->staff_id,
+            'product_onboarding_completed' => (bool)($u->staff_id || $org->product_onboarding_completed_at),
             'subscription_provider' => $org->subscription_provider,
             ...$subscription,
+        ]);
+    }
+
+    public function completeProductOnboarding(Request $request)
+    {
+        $this->forbidStaffUser($request);
+
+        $u = $request->user();
+        $org = $u->organization_id ? User::findOrFail($u->organization_id) : $u;
+
+        if (!$org->product_onboarding_completed_at) {
+            $org->product_onboarding_completed_at = now();
+            $org->save();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'product_onboarding_completed' => true,
         ]);
     }
 

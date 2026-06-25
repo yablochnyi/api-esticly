@@ -44,7 +44,7 @@ class RegisterController extends Controller
         $isFirstRegistration = empty($user->registered_at);
         $promoCode = $this->normalizePromoCode($data['promo_code'] ?? null);
 
-        DB::transaction(function () use ($request, $user, $data, $promoCode) {
+        DB::transaction(function () use ($request, $user, $data, $promoCode, $isFirstRegistration) {
             $user->company_name = $data['company_name'];
             $user->address = $data['address'] ?? null;
             $user->description = $data['description'] ?? null;
@@ -58,6 +58,9 @@ class RegisterController extends Controller
             $user->schedule = $data['schedule'];
             if (empty($user->registered_at)) {
                 $user->registered_at = Carbon::now();
+            }
+            if ($isFirstRegistration) {
+                $user->product_onboarding_completed_at = null;
             }
 
             if ($promoCode !== null) {

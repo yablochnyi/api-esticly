@@ -63,6 +63,7 @@ class User extends Authenticatable implements FilamentUser
             'online_booking_period_days' => 'integer',
             'language_code' => 'string',
             'registered_at' => 'datetime',
+            'product_onboarding_completed_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
             'subscription_provider' => 'string',
         ];

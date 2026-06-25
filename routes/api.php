@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Mobile\AnalyticsController;
 use App\Http\Controllers\Api\Mobile\AppNotificationController;
+use App\Http\Controllers\Api\Mobile\AppVersionController;
 use App\Http\Controllers\Api\Mobile\AppleAppStoreNotificationsController;
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\BillingController;
@@ -32,6 +33,7 @@ Route::prefix('mobile')->group(function () {
     Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:otp-send');
     Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
     Route::get('/currencies', [CurrencyController::class, 'index']);
+    Route::get('/app-version', [AppVersionController::class, 'show'])->middleware('throttle:60,1');
     Route::post('/billing/google/rtdn', GooglePlayRtdnController::class);
     Route::post('/billing/apple/notifications', AppleAppStoreNotificationsController::class);
 
@@ -70,6 +72,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/me/staff', [ProfileController::class, 'staffMe']);
         Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
         Route::post('/profile', [ProfileController::class, 'update']);
+        Route::post('/profile/product-onboarding/complete', [ProfileController::class, 'completeProductOnboarding']);
         Route::delete('/profile/account', [ProfileController::class, 'deleteAccount']);
         Route::post('/devices', [DeviceController::class, 'store']);
 
