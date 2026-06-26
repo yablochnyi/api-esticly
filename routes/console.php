@@ -10,6 +10,7 @@ use App\Support\VisitReminders;
 use App\Support\Audit;
 use App\Support\Dsar;
 use App\Support\PersonalNoteReminders;
+use App\Support\SmartPushNotifications;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -22,6 +23,10 @@ Artisan::command('reminders:send', function () {
 Artisan::command('notes:send-reminders', function () {
     PersonalNoteReminders::run();
 })->purpose('Send personal note reminders via push');
+
+Artisan::command('smart-push:send', function () {
+    SmartPushNotifications::run();
+})->purpose('Send smart daily plan and summary push notifications');
 
 Artisan::command('audit:prune {--days=}', function () {
     $daysOpt = $this->option('days');
@@ -178,6 +183,11 @@ Schedule::command('reminders:send')
     ->runInBackground();
 
 Schedule::command('notes:send-reminders')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+Schedule::command('smart-push:send')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
