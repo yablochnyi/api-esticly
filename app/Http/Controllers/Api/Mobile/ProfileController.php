@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\MediaUrl;
 use App\Support\OrgSubscription;
 use App\Support\StaffGuard;
+use App\Support\TimezoneAliases;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -105,6 +106,10 @@ class ProfileController extends Controller
 
         // "logo" is an uploaded file field, not a DB column.
         unset($data['logo']);
+
+        if (array_key_exists('timezone', $data)) {
+            $data['timezone'] = TimezoneAliases::normalize($data['timezone']);
+        }
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('logos', 'public');

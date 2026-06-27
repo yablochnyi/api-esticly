@@ -8,6 +8,7 @@ use App\Models\SubscriptionPromoCodeRedemption;
 use App\Support\MediaUrl;
 use App\Support\OrgSubscription;
 use App\Support\TelegramAdminNotifier;
+use App\Support\TimezoneAliases;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,7 +54,7 @@ class RegisterController extends Controller
                 $user->language_code = strtolower(trim($data['language_code']));
             }
             if (!empty($data['timezone'])) {
-                $user->timezone = $data['timezone'];
+                $user->timezone = TimezoneAliases::normalize($data['timezone']);
             }
             $user->schedule = $data['schedule'];
             if (empty($user->registered_at)) {
