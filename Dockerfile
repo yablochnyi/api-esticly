@@ -29,8 +29,8 @@ COPY . .
 # Ensure storage cache dirs exist for package discovery (view compiled path needs realpath).
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 
-# Install PHP deps (Filament/Horizon included). Force HTTP/1.1 for GitHub codeload stability.
-RUN COMPOSER_CURL_HTTP_VERSION=1 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+# Install PHP deps (Filament/Horizon included). Prefer git sources to avoid flaky GitHub codeload zip downloads.
+RUN composer install --no-dev --no-interaction --prefer-source --optimize-autoloader
 
 # Supervisor + entrypoint
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
