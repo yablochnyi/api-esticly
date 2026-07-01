@@ -15,9 +15,24 @@ use Twilio\Rest\Client as TwilioClient;
 
 class AuthController extends Controller
 {
-    private function reviewOtpPhone(): string
+    private function reviewOtpPhones(): array
     {
-        return trim((string) env('REVIEW_OTP_PHONE', ''));
+        $phones = [];
+
+        $legacy = trim((string) env('REVIEW_OTP_PHONE', ''));
+        if ($legacy !== '') {
+            $phones[] = $legacy;
+        }
+
+        $list = (string) env('REVIEW_OTP_PHONES', '');
+        foreach (preg_split('/[,;\s]+/', $list) ?: [] as $phone) {
+            $phone = trim((string) $phone);
+            if ($phone !== '') {
+                $phones[] = $phone;
+            }
+        }
+
+        return array_values(array_unique($phones));
     }
 
     private function reviewOtpCode(): string
@@ -27,12 +42,19 @@ class AuthController extends Controller
 
     private function isReviewOtpPhone(string $phone): bool
     {
-        $configured = $this->reviewOtpPhone();
-        if ($configured === '') {
+        $configured = $this->reviewOtpPhones();
+        if (empty($configured)) {
             return false;
         }
 
-        return $this->normalizeE164($phone) === $this->normalizeE164($configured);
+        $normalized = $this->normalizeE164($phone);
+        foreach ($configured as $reviewPhone) {
+            if ($normalized === $this->normalizeE164($reviewPhone)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function logout(Request $request)
@@ -120,6 +142,32 @@ class AuthController extends Controller
             ->where('phone_hash', $phoneHash)
             ->limit(2)
             ->count() > 1;
+    }
+
+    private function healSelfOwnedOrganizationUser(User $user): void
+    {
+        if (!$user->organization_id || (int) $user->organization_id !== (int) $user->id) {
+            return;
+        }
+
+        $staffId = $user->staff_id ? (int) $user->staff_id : null;
+
+        $user->organization_id = null;
+        $user->staff_id = null;
+        $user->save();
+
+        if ($staffId) {
+            Staff::query()
+                ->where('id', $staffId)
+                ->where('staff_user_id', $user->id)
+                ->update(['staff_user_id' => null]);
+        }
+
+        try {
+            $user->removeRole('staff');
+        } catch (Throwable) {
+            // Role may not exist in some environments.
+        }
     }
 
     private function otpCacheKey(string $phone): string
@@ -397,6 +445,9 @@ class AuthController extends Controller
                 $user->save();
             }
         }
+
+        $this->healSelfOwnedOrganizationUser($user);
+        $user->refresh();
 
         // If this is a staff account, enforce staff active + base_access.
         if ($user->staff_id) {

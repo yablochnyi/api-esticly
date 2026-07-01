@@ -112,6 +112,7 @@ class StaffController extends Controller
         }
 
         $normalizedPhone = $this->normalizePhoneNullable($data['phone'] ?? null);
+        $this->assertPhoneNotOrganizationOwnerOr422($orgId, $normalizedPhone);
         $this->assertPhoneUniqueOr422($normalizedPhone, null);
 
         $staff = Staff::query()->create([
@@ -165,6 +166,7 @@ class StaffController extends Controller
         }
 
         $normalizedPhone = $this->normalizePhoneNullable($data['phone'] ?? null);
+        $this->assertPhoneNotOrganizationOwnerOr422($orgId, $normalizedPhone);
         $this->assertPhoneUniqueOr422($normalizedPhone, (int) $staff->id);
 
         $staff->update([
@@ -405,6 +407,23 @@ class StaffController extends Controller
         }
     }
 
+    private function assertPhoneNotOrganizationOwnerOr422(int $orgId, ?string $phone): void
+    {
+        if (empty($phone)) {
+            return;
+        }
+
+        $phoneHash = PhoneIndex::hash($phone);
+        if (!$phoneHash) {
+            return;
+        }
+
+        $owner = User::query()->find($orgId, ['id', 'phone_hash']);
+        if ($owner && hash_equals((string) $owner->phone_hash, (string) $phoneHash)) {
+            abort(response()->json(['message' => 'phone_already_used'], 422));
+        }
+    }
+
     private function syncStaffUser(Request $request, Staff $staff): void
     {
         $user = $request->user();
@@ -427,6 +446,9 @@ class StaffController extends Controller
                 } else {
                     $u = User::where('phone', $staff->phone)->first();
                 }
+            }
+            if ($u && (int) $u->id === (int) $orgId) {
+                abort(response()->json(['message' => 'phone_already_used'], 422));
             }
             if (!$u) {
                 $u = User::create([
@@ -509,8 +531,8 @@ class StaffController extends Controller
         $u = User::where('staff_id', $staff->id)->first();
         if ($u) {
             $u->tokens()->delete();
-            $u->phone = null;
-            $u->phone_verified_at = null;
+            // Keep users.phone intact: the column is NOT NULL in production,
+            // and the linked staff-user may be needed to show an access-disabled state.
             $u->save();
         }
 
