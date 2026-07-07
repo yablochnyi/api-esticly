@@ -59,7 +59,15 @@ class CompanyResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereNull('staff_id')
+            ->where(function (Builder $query) {
+                $query
+                    ->whereNull('staff_id')
+                    ->orWhere(function (Builder $query) {
+                        $query
+                            ->whereNotNull('staff_id')
+                            ->whereColumn('organization_id', 'id');
+                    });
+            })
             ->where(function (Builder $query) {
                 $query
                     ->whereNotNull('company_name')
