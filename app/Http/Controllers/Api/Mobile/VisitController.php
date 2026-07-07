@@ -92,6 +92,7 @@ class VisitController extends Controller
             'staff_null' => ['nullable', 'boolean'],
             'client_id' => ['nullable', 'integer'],
             'status' => ['nullable', Rule::in(['pending', 'completed', 'cancelled'])],
+            'payment_method' => ['nullable', Rule::in(['cash', 'card'])],
         ]);
 
         $user = $request->user();
@@ -170,6 +171,9 @@ class VisitController extends Controller
 
         if (!empty($data['status'])) {
             $q->where('status', $data['status']);
+        }
+        if (!empty($data['payment_method'])) {
+            $q->where('payment_method', $data['payment_method']);
         }
 
         return $q->get();
@@ -265,6 +269,7 @@ class VisitController extends Controller
 
             'duration_min' => ['required', 'integer', 'min:0'],
             'price' => ['nullable', 'numeric', 'min:0'],
+            'payment_method' => ['nullable', Rule::in(['cash', 'card'])],
             'promo_code' => ['nullable', 'string', 'max:40'],
         ]);
 
@@ -333,6 +338,7 @@ class VisitController extends Controller
             'ends_at' => $endsUtc,
             'duration_min' => $durationMin,
             'price' => $data['price'] ?? ($service->price_fixed ?? $service->price_from ?? null),
+            'payment_method' => $data['payment_method'] ?? 'cash',
             'promo_code_id' => null,
             'promo_code' => null,
             'promo_discount' => 0,
@@ -382,6 +388,7 @@ class VisitController extends Controller
             'staff_id'        => ['nullable', 'integer'],
             'staff_null'      => ['nullable', 'boolean'],
             'price'           => ['nullable', 'numeric', 'min:0'],
+            'payment_method'  => ['nullable', Rule::in(['cash', 'card'])],
             'starts_at_local' => ['nullable', 'date_format:Y-m-d H:i'], // org-local time from Flutter
             'promo_code'      => ['nullable', 'string', 'max:40'],
         ];
@@ -389,17 +396,17 @@ class VisitController extends Controller
         $before = $request->file('photo_before');
         if (is_array($before)) {
             $rules['photo_before'] = ['nullable', 'array'];
-            $rules['photo_before.*'] = ['image', 'max:5120'];
+            $rules['photo_before.*'] = ['image', 'max:10240'];
         } else {
-            $rules['photo_before'] = ['nullable', 'image', 'max:5120'];
+            $rules['photo_before'] = ['nullable', 'image', 'max:10240'];
         }
 
         $after = $request->file('photo_after');
         if (is_array($after)) {
             $rules['photo_after'] = ['nullable', 'array'];
-            $rules['photo_after.*'] = ['image', 'max:5120'];
+            $rules['photo_after.*'] = ['image', 'max:10240'];
         } else {
-            $rules['photo_after'] = ['nullable', 'image', 'max:5120'];
+            $rules['photo_after'] = ['nullable', 'image', 'max:10240'];
         }
 
         $data = $request->validate($rules);
@@ -454,6 +461,11 @@ class VisitController extends Controller
         if (array_key_exists('price', $data)) {
             if ($staff) StaffGuard::requirePermission($staff, 'edit_request');
             $visit->price = $data['price'];
+        }
+
+        if (array_key_exists('payment_method', $data)) {
+            if ($staff) StaffGuard::requirePermission($staff, 'edit_request');
+            $visit->payment_method = $data['payment_method'] ?? 'cash';
         }
 
         // Promo code apply/clear (owner or staff with edit_request if they can change price/comment; keep simple).

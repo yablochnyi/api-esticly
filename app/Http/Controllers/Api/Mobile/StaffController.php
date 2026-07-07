@@ -450,6 +450,9 @@ class StaffController extends Controller
             if ($u && (int) $u->id === (int) $orgId) {
                 abort(response()->json(['message' => 'phone_already_used'], 422));
             }
+            if ($u && (int) ($staff->staff_user_id ?? 0) !== (int) $u->id && (int) ($u->staff_id ?? 0) !== (int) $staff->id) {
+                abort(response()->json(['message' => 'phone_already_used'], 422));
+            }
             if (!$u) {
                 $u = User::create([
                     'phone' => $staff->phone,

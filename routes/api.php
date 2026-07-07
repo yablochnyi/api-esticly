@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Mobile\ClientNoteController;
 use App\Http\Controllers\Api\Mobile\CurrencyController;
 use App\Http\Controllers\Api\Mobile\DashboardController;
 use App\Http\Controllers\Api\Mobile\DeviceController;
+use App\Http\Controllers\Api\Mobile\ExpenseController;
 use App\Http\Controllers\Api\Mobile\MarketingAutomationController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\OnlineBookingController;
@@ -128,6 +129,10 @@ Route::prefix('mobile')->group(function () {
         Route::get('/portfolio', [PortfolioController::class, 'index']);
         Route::post('/portfolio', [PortfolioController::class, 'store']);
         Route::delete('/portfolio/{photo}', [PortfolioController::class, 'destroy']);
+
+        Route::get('/expenses', [ExpenseController::class, 'index']);
+        Route::post('/expenses', [ExpenseController::class, 'store']);
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy']);
 
         Route::get('/staff/{staff}/schedule', [StaffController::class, 'schedule']);
         Route::patch('/staff/{staff}/schedule', [StaffController::class, 'updateSchedule']);

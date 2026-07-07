@@ -24,6 +24,7 @@ class AnalyticsController extends Controller
             'to'   => ['required', 'date_format:Y-m-d'],
             // optional
             'staff_id' => ['nullable', 'integer'],
+            'payment_method' => ['nullable', \Illuminate\Validation\Rule::in(['cash', 'card'])],
         ]);
 
         $org = User::query()->findOrFail($orgId);
@@ -48,6 +49,10 @@ class AnalyticsController extends Controller
             $staffId = (int)$data['staff_id'];
             Staff::query()->where('id', $staffId)->where('user_id', $orgId)->firstOrFail();
             $q->where('staff_id', $staffId);
+        }
+
+        if (!empty($data['payment_method'])) {
+            $q->where('payment_method', $data['payment_method']);
         }
 
         // визиты за период (все статусы)

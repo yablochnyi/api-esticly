@@ -40,6 +40,7 @@ class Visit extends Model
         'ends_at',
         'duration_min',
         'price',
+        'payment_method',
         'promo_discount',
         'status',
         'comment',
@@ -54,6 +55,7 @@ class Visit extends Model
         'ends_at' => 'datetime',
         'duration_min' => 'integer',
         'price' => 'decimal:2',
+        'payment_method' => 'string',
         'promo_discount' => 'decimal:2',
     ];
 

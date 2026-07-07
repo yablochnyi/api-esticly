@@ -144,9 +144,29 @@ class AuthController extends Controller
             ->count() > 1;
     }
 
+    private function userLooksLikeOrganizationOwner(User $user): bool
+    {
+        if (!$user->staff_id) {
+            return false;
+        }
+
+        if ($user->organization_id && (int) $user->organization_id === (int) $user->id) {
+            return true;
+        }
+
+        if (!empty($user->company_name) || !empty($user->logo_path) || !empty($user->subscription_provider)) {
+            return true;
+        }
+
+        return $user->services()->exists()
+            || $user->staff()->exists()
+            || $user->clients()->exists()
+            || $user->visits()->exists();
+    }
+
     private function healSelfOwnedOrganizationUser(User $user): void
     {
-        if (!$user->organization_id || (int) $user->organization_id !== (int) $user->id) {
+        if (!$this->userLooksLikeOrganizationOwner($user)) {
             return;
         }
 
@@ -163,8 +183,16 @@ class AuthController extends Controller
                 ->update(['staff_user_id' => null]);
         }
 
+        Staff::query()
+            ->where('user_id', $user->id)
+            ->where('staff_user_id', $user->id)
+            ->update(['staff_user_id' => null]);
+
         try {
             $user->removeRole('staff');
+            if (!$user->hasRole('organization')) {
+                $user->assignRole('organization');
+            }
         } catch (Throwable) {
             // Role may not exist in some environments.
         }

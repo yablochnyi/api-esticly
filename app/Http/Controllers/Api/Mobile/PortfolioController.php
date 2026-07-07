@@ -85,10 +85,10 @@ class PortfolioController extends Controller
         ];
         if ($isArray) {
             $rules['photos'] = ['required', 'array', 'min:1', 'max:20'];
-            $rules['photos.*'] = ['required', 'image', 'max:5120'];
+            $rules['photos.*'] = ['required', 'image', 'max:10240'];
         } else {
             // allow single upload as well
-            $rules['photos'] = ['required', 'image', 'max:5120'];
+            $rules['photos'] = ['required', 'image', 'max:10240'];
         }
         $data = $request->validate($rules);
 
@@ -135,4 +135,3 @@ class PortfolioController extends Controller
         return response()->json(['ok' => true]);
     }
 }
-
