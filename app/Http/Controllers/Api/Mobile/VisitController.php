@@ -396,17 +396,17 @@ class VisitController extends Controller
         $before = $request->file('photo_before');
         if (is_array($before)) {
             $rules['photo_before'] = ['nullable', 'array'];
-            $rules['photo_before.*'] = ['image', 'max:10240'];
+            $rules['photo_before.*'] = ['image'];
         } else {
-            $rules['photo_before'] = ['nullable', 'image', 'max:10240'];
+            $rules['photo_before'] = ['nullable', 'image'];
         }
 
         $after = $request->file('photo_after');
         if (is_array($after)) {
             $rules['photo_after'] = ['nullable', 'array'];
-            $rules['photo_after.*'] = ['image', 'max:10240'];
+            $rules['photo_after.*'] = ['image'];
         } else {
-            $rules['photo_after'] = ['nullable', 'image', 'max:10240'];
+            $rules['photo_after'] = ['nullable', 'image'];
         }
 
         $data = $request->validate($rules);

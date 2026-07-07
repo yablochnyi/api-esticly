@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     intl \
     bcmath \
     pcntl \
+  && printf "upload_max_filesize=32M\npost_max_size=64M\nmemory_limit=256M\nmax_file_uploads=20\n" > /usr/local/etc/php/conf.d/uploads.ini \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
