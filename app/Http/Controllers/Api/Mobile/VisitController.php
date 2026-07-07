@@ -18,6 +18,7 @@ use App\Support\OrgSubscription;
 use App\Support\StaffGuard;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -639,6 +640,57 @@ class VisitController extends Controller
         }
 
         return $visit->fresh()->load(['service', 'photos', 'staff:id,name,deleted_at']);
+    }
+
+    public function destroy(Request $request, Visit $visit)
+    {
+        $this->authorizeVisit($request, $visit);
+
+        $user = $request->user();
+        if ($user->staff_id) {
+            $staff = StaffGuard::currentOrAbort($request);
+            StaffGuard::requirePermission($staff, 'cancel_request');
+        }
+
+        $paths = [];
+
+        DB::transaction(function () use ($visit, &$paths) {
+            $visit->loadMissing(['photos']);
+
+            if ($visit->photo_before_path) {
+                $paths[] = $visit->photo_before_path;
+            }
+            if ($visit->photo_after_path) {
+                $paths[] = $visit->photo_after_path;
+            }
+
+            foreach ($visit->photos as $photo) {
+                if ($photo->path) {
+                    $paths[] = $photo->path;
+                }
+            }
+
+            $agreement = VisitAgreement::query()
+                ->where('visit_id', $visit->id)
+                ->first(['signature_path']);
+            if ($agreement && $agreement->signature_path) {
+                $paths[] = $agreement->signature_path;
+            }
+
+            DB::table('marketing_deliveries')
+                ->where('visit_id', $visit->id)
+                ->delete();
+
+            $visit->delete();
+        });
+
+        foreach (array_unique(array_filter($paths)) as $path) {
+            Storage::disk('public')->delete($path);
+        }
+        Storage::disk('public')->deleteDirectory("visits/{$visit->id}");
+        Storage::disk('public')->deleteDirectory("visit_agreements/{$visit->id}");
+
+        return response()->json(['ok' => true]);
     }
 
     private function authorizeVisit(Request $request, Visit $visit): void

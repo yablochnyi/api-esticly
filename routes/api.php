@@ -123,6 +123,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/visits/{visit}/agreement', [VisitController::class, 'agreement']);
         Route::post('/visits/{visit}/agreement/sign', [VisitController::class, 'signAgreement']);
         Route::match(['PATCH', 'POST'], '/visits/{visit}', [VisitController::class, 'update']);
+        Route::delete('/visits/{visit}', [VisitController::class, 'destroy']);
 
         Route::get('/portfolio', [PortfolioController::class, 'index']);
         Route::post('/portfolio', [PortfolioController::class, 'store']);
