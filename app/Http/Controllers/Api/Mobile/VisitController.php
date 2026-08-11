@@ -16,6 +16,7 @@ use App\Models\VisitAgreement;
 use App\Support\PromoCodes;
 use App\Support\OrgSubscription;
 use App\Support\StaffGuard;
+use App\Support\TimezoneAliases;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,7 @@ class VisitController extends Controller
         if (!OrgSubscription::canCreateVisits($org)) {
             return response()->json(['message' => 'subscription_required'], 402);
         }
-        $tz = $org->timezone ?: 'Europe/Warsaw';
+        $tz = $this->orgTimezone($org);
 
         $fromLocal = Carbon::createFromFormat('Y-m-d', $data['from'], $tz)->startOfDay();
         $toLocal = Carbon::createFromFormat('Y-m-d', $data['to'], $tz)->endOfDay();
@@ -99,7 +100,7 @@ class VisitController extends Controller
         $orgId = $user->organization_id ?? $user->id;
 
         $org = User::query()->findOrFail($orgId);
-        $tz = $org->timezone ?: 'Europe/Warsaw';
+        $tz = $this->orgTimezone($org);
 
         $q = Visit::query()
             ->where('user_id', $orgId)
@@ -277,7 +278,7 @@ class VisitController extends Controller
         $orgId = $user->organization_id ?? $user->id;
 
         $org = User::query()->findOrFail($orgId);
-        $tz = $org->timezone ?: 'Europe/Warsaw';
+        $tz = $this->orgTimezone($org);
 
         // ownership
         $service = Service::query()
@@ -502,10 +503,10 @@ class VisitController extends Controller
 
                 $localDate = null;
                 if (!empty($data['starts_at_local'])) {
-                    $tz = $org->timezone ?: (config('app.timezone') ?: 'UTC');
+                    $tz = $this->orgTimezone($org);
                     $localDate = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $data['starts_at_local'], $tz)->toDateString();
                 } else {
-                    $tz = $org->timezone ?: (config('app.timezone') ?: 'UTC');
+                    $tz = $this->orgTimezone($org);
                     $localDate = \Carbon\Carbon::parse($visit->starts_at)->utc()->setTimezone($tz)->toDateString();
                 }
 
@@ -554,7 +555,7 @@ class VisitController extends Controller
         if (!empty($data['starts_at_local'])) {
             if ($staff) StaffGuard::requirePermission($staff, 'edit_request');
             $org = \App\Models\User::query()->findOrFail($orgId);
-            $tz = $org->timezone ?: (config('app.timezone') ?: 'UTC');
+            $tz = $this->orgTimezone($org);
 
             $this->assertStaffNotTimeOff(
                 orgId: $orgId,
@@ -575,7 +576,7 @@ class VisitController extends Controller
         // If staff assignment changed (or set) without changing time, still enforce time off.
         if ((array_key_exists('staff_id', $data) || array_key_exists('staff_null', $data)) && $visit->status !== 'cancelled') {
             $org = \App\Models\User::query()->findOrFail($orgId);
-            $tz = $org->timezone ?: (config('app.timezone') ?: 'UTC');
+            $tz = $this->orgTimezone($org);
             $local = Carbon::parse($visit->starts_at)->utc()->setTimezone($tz)->format('Y-m-d H:i');
             $this->assertStaffNotTimeOff(
                 orgId: $orgId,
@@ -721,6 +722,17 @@ class VisitController extends Controller
                 abort(404);
             }
         }
+    }
+
+    private function orgTimezone(User $org): string
+    {
+        $tz = TimezoneAliases::normalize($org->timezone) ?: 'Europe/Warsaw';
+
+        if (!in_array($tz, timezone_identifiers_list(), true)) {
+            return 'Europe/Warsaw';
+        }
+
+        return $tz;
     }
 
     private function assertNoOverlapWithBuffers(
