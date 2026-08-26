@@ -66,6 +66,7 @@ Route::prefix('mobile')->group(function () {
 
         Route::get('/notifications', [AppNotificationController::class, 'index']);
         Route::get('/notifications/unread-count', [AppNotificationController::class, 'unreadCount']);
+        Route::post('/notifications/read-all', [AppNotificationController::class, 'markAllRead']);
         Route::get('/notifications/{notification}', [AppNotificationController::class, 'show']);
         Route::post('/notifications/{notification}/read', [AppNotificationController::class, 'markRead']);
 

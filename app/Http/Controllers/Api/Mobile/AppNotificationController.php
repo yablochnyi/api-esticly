@@ -54,6 +54,22 @@ class AppNotificationController extends Controller
         ]);
     }
 
+    public function markAllRead(Request $request)
+    {
+        $now = Carbon::now('UTC');
+
+        $updated = AppNotification::query()
+            ->where('user_id', (int) $request->user()->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => $now]);
+
+        return response()->json([
+            'ok' => true,
+            'updated' => (int) $updated,
+            'unread_count' => 0,
+        ]);
+    }
+
     public function unreadCount(Request $request)
     {
         $count = AppNotification::query()
