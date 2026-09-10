@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\User;
+use App\Services\OtpSendGuard;
 use App\Support\PhoneIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
+use Twilio\Exceptions\RestException;
 use Twilio\Rest\Client as TwilioClient;
 
 class AuthController extends Controller
@@ -212,7 +214,7 @@ class AuthController extends Controller
         return trim($phone);
     }
 
-    private function twilioClient(): ?TwilioClient
+    protected function twilioClient(): ?TwilioClient
     {
         $sid = (string)config('services.twilio.sid'); // AC...
         if (trim($sid) === '') return null;
@@ -299,18 +301,29 @@ class AuthController extends Controller
         return ($check->status ?? null) === 'approved';
     }
 
-    public function sendOtp(Request $request)
+    public function sendOtp(Request $request, OtpSendGuard $guard)
     {
         $data = $request->validate([
-            'phone' => ['required', 'string'],
-            'country' => ['nullable', 'string'],
-            'language' => ['nullable', 'string'],
+            'phone' => ['required', 'string', 'max:32', 'regex:/^\+?[0-9\s().-]+$/'],
+            'country' => ['nullable', 'string', 'max:8'],
+            'language' => ['nullable', 'string', 'max:16'],
         ]);
 
         $to = $this->normalizeE164($data['phone']);
+        if (!preg_match('/^\+[1-9][0-9]{7,14}$/', $to)) {
+            return response()->json(['ok' => false, 'message' => 'Invalid phone number'], 422);
+        }
+
+        $context = [
+            'request_id' => (string) Str::uuid(),
+            'ip' => $request->ip(),
+            'phone_fingerprint' => $guard->phoneFingerprint($to),
+            'phone_masked' => substr($to, 0, 4).'***'.substr($to, -3),
+        ];
 
         if ($this->isReviewOtpPhone($data['phone'])) {
             Cache::put($this->otpCacheKey($data['phone']), $this->reviewOtpCode(), now()->addMinutes(10));
+            logger()->info('otp_send_result', $context + ['result' => 'review']);
 
             return response()->json([
                 'ok' => true,
@@ -319,44 +332,64 @@ class AuthController extends Controller
             ]);
         }
 
-        // Prefer Twilio Verify if configured: no FROM needed, Twilio manages OTP.
-        $sentViaTwilio = false;
+        if ($denied = $guard->reserve((string) $request->ip())) {
+            logger()->notice('otp_send_result', $context + ['result' => $denied['code']]);
+
+            return response()->json([
+                'ok' => false,
+                'code' => $denied['code'],
+                'message' => 'SMS verification is temporarily unavailable. Please try again later.',
+                'retry_after' => $denied['retry_after'],
+            ], $denied['status'])->header('Retry-After', (string) $denied['retry_after']);
+        }
+
+        $cachedOtpKey = null;
         try {
-            $sentViaTwilio = $this->sendOtpViaTwilioVerify($to, $data['language'] ?? null);
-        } catch (Throwable $e) {
-            report($e);
-            $sentViaTwilio = false;
-        }
-
-        // Fallback: our own OTP + Twilio Messages (requires FROM or Messaging Service SID).
-        if (!$sentViaTwilio) {
-            $otp = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $key = $this->otpCacheKey($data['phone']);
-            Cache::put($key, $otp, now()->addMinutes(10));
-
-            $lang = strtolower((string)($data['language'] ?? ''));
-            $body = match (true) {
-                str_starts_with($lang, 'uk') => "Ваш код підтвердження: {$otp}",
-                str_starts_with($lang, 'pl') => "Twój kod weryfikacyjny: {$otp}",
-                default => "Your verification code: {$otp}",
-            };
-
-            try {
+            // Select one channel only. Never bypass Verify rejection or retry an uncertain send.
+            if (trim((string) config('services.twilio.verify_service_sid')) !== '') {
+                $sentViaTwilio = $this->sendOtpViaTwilioVerify($to, $data['language'] ?? null);
+            } else {
+                $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $cachedOtpKey = $this->otpCacheKey($to);
+                Cache::put($cachedOtpKey, $otp, now()->addMinutes(10));
+                $lang = strtolower((string) ($data['language'] ?? ''));
+                $body = match (true) {
+                    str_starts_with($lang, 'uk') => "Ваш код підтвердження: {$otp}",
+                    str_starts_with($lang, 'pl') => "Twój kod weryfikacyjny: {$otp}",
+                    default => "Your verification code: {$otp}",
+                };
                 $sentViaTwilio = $this->sendOtpViaTwilio($to, $body);
-            } catch (Throwable $e) {
-                report($e);
-                $sentViaTwilio = false;
             }
-
             if (!$sentViaTwilio) {
-                logger()->warning('OTP not sent via Twilio (check env)', ['to' => $to]);
+                throw new \RuntimeException('OTP provider is not configured');
             }
+        } catch (Throwable $e) {
+            $status = $e instanceof RestException ? $e->getStatusCode() : null;
+            if ($cachedOtpKey !== null) {
+                Cache::forget($cachedOtpKey);
+            }
+            // Provider exception messages may include the full phone or credentials.
+            logger()->warning('otp_send_result', $context + [
+                'result' => 'provider_failed',
+                'provider_status' => $status,
+                'provider_code' => $e instanceof RestException ? $e->getCode() : null,
+                'exception_type' => $e::class,
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'code' => 'otp_unavailable',
+                'message' => 'SMS verification is temporarily unavailable. Please try again later.',
+                'retry_after' => 60,
+            ], 503)->header('Retry-After', '60');
         }
+
+        logger()->info('otp_send_result', $context + ['result' => 'provider_accepted']);
 
         return response()->json([
             'ok' => true,
             'expires_in' => 600,
-            'channel' => $sentViaTwilio ? 'twilio' : 'log',
+            'channel' => 'twilio',
         ]);
     }
 
