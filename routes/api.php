@@ -1,37 +1,39 @@
 <?php
 
 use App\Http\Controllers\Api\Mobile\AnalyticsController;
+use App\Http\Controllers\Api\Mobile\AppleAppStoreNotificationsController;
 use App\Http\Controllers\Api\Mobile\AppNotificationController;
 use App\Http\Controllers\Api\Mobile\AppVersionController;
-use App\Http\Controllers\Api\Mobile\AppleAppStoreNotificationsController;
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\BillingController;
 use App\Http\Controllers\Api\Mobile\ClientController;
-use App\Http\Controllers\Api\Mobile\GooglePlayRtdnController;
 use App\Http\Controllers\Api\Mobile\ClientDsarController;
 use App\Http\Controllers\Api\Mobile\ClientNoteController;
 use App\Http\Controllers\Api\Mobile\CurrencyController;
 use App\Http\Controllers\Api\Mobile\DashboardController;
 use App\Http\Controllers\Api\Mobile\DeviceController;
 use App\Http\Controllers\Api\Mobile\ExpenseController;
+use App\Http\Controllers\Api\Mobile\GooglePlayRtdnController;
 use App\Http\Controllers\Api\Mobile\MarketingAutomationController;
-use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\OnlineBookingController;
 use App\Http\Controllers\Api\Mobile\PersonalNoteController;
 use App\Http\Controllers\Api\Mobile\PortfolioController;
+use App\Http\Controllers\Api\Mobile\ProfileController;
+use App\Http\Controllers\Api\Mobile\PromoCodeController;
 use App\Http\Controllers\Api\Mobile\RegisterController;
 use App\Http\Controllers\Api\Mobile\ReviewController;
-use App\Http\Controllers\Api\Mobile\PromoCodeController;
 use App\Http\Controllers\Api\Mobile\ServiceController;
 use App\Http\Controllers\Api\Mobile\StaffController;
 use App\Http\Controllers\Api\Mobile\SupportController;
 use App\Http\Controllers\Api\Mobile\VisitController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('mobile')->group(function () {
     // public
-    Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:otp-send');
+    Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->middleware([
+        'throttle:otp-send',
+        \App\Http\Middleware\RequireOtpAppCheck::class,
+    ]);
     Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
     Route::get('/currencies', [CurrencyController::class, 'index']);
     Route::get('/app-version', [AppVersionController::class, 'show'])->middleware('throttle:60,1');

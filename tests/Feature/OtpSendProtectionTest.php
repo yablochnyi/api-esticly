@@ -24,6 +24,7 @@ class OtpSendProtectionTest extends TestCase
         parent::setUp();
         config([
             'app.url' => 'http://localhost',
+            'app_check.enforce' => false,
             'otp.cache_store' => 'array',
             'otp.ip_hourly_limit' => 5,
             'services.twilio.verify_service_sid' => 'VA_test',
@@ -102,7 +103,7 @@ class OtpSendProtectionTest extends TestCase
         Log::shouldHaveReceived('warning')->withArgs(function ($event, $context) {
             return $event === 'otp_send_result' && $context['provider_code'] === 60410
                 && $context['ip'] === '192.0.2.1' && isset($context['phone_fingerprint'], $context['request_id'])
-                && !str_contains(json_encode($context), '+12025550101');
+                && ! str_contains(json_encode($context), '+12025550101');
         })->once();
     }
 
@@ -197,7 +198,7 @@ class OtpSendProtectionTest extends TestCase
 
     public function test_concurrent_workers_cannot_reserve_more_than_five_sends(): void
     {
-        if (!function_exists('pcntl_fork')) {
+        if (! function_exists('pcntl_fork')) {
             $this->markTestSkipped('pcntl is required for the multiprocess cache-lock test');
         }
         $path = sys_get_temp_dir().'/otp-guard-test-'.bin2hex(random_bytes(8));

@@ -32,7 +32,7 @@ if [ ! -f ".env" ]; then
 fi
 
 php artisan config:clear || true
-php artisan cache:clear || true
+# Keep OTP limits and consumed App Check tokens across deployments.
 php artisan view:clear || true
 
 if [ -z "${APP_KEY:-}" ]; then
