@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\GoogleCalendarConnection;
+use App\Models\Staff;
+use App\Models\User;
+use App\Models\Visit;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class GoogleCalendarSync
+{
+    public function __construct(private GoogleCalendarClient $google) {}
+
+    public static function lock(int $id)
+    {
+        return Cache::store(config('google_calendar.cache_store'))->lock('google-calendar:'.$id, 90);
+    }
+
+    public static function allowed(User $user): bool
+    {
+        if (! $user->staff_id) {
+            return ! $user->organization_id || (int) $user->organization_id === (int) $user->id;
+        }
+        $staff = Staff::find($user->staff_id);
+
+        return $staff && $staff->is_active
+            && (int) $staff->user_id === (int) $user->organization_id
+            && (bool) ($staff->permissions['base_access'] ?? false);
+    }
+
+    public static function visits(User $user): Builder
+    {
+        return Visit::query()->where('user_id', $user->organization_id ?: $user->id)
+            ->when($user->staff_id, fn (Builder $query) => $query->where('staff_id', $user->staff_id))
+            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '!=', 'cancelled'));
+    }
+
+    public static function payload(Visit $visit): array
+    {
+        $parts = array_filter([$visit->service?->name, $visit->client_name], fn ($value) => filled($value));
+        $title = trim(preg_replace('/[\r\n]+/u', ' ', implode(' - ', $parts))) ?: 'Esticly';
+
+        return [
+            'summary' => mb_substr($title, 0, 500),
+            'start' => ['dateTime' => $visit->starts_at->copy()->utc()->toRfc3339String()],
+            'end' => ['dateTime' => $visit->ends_at->copy()->utc()->toRfc3339String()],
+            'visibility' => 'private',
+            'transparency' => 'opaque',
+            'reminders' => ['useDefault' => false],
+            'extendedProperties' => ['private' => ['esticlyVisitId' => (string) $visit->id]],
+        ];
+    }
+
+    public function run(int $id): void
+    {
+        if (! $this->google->configured()) {
+            return;
+        }
+        $lock = self::lock($id);
+        if (! $lock->get()) {
+            return;
+        }
+        try {
+            $connection = GoogleCalendarConnection::find($id);
+            if (! $connection || $connection->status !== 'connected') {
+                return;
+            }
+            if (! $connection->user || ! self::allowed($connection->user)) {
+                $connection->update(['status' => 'access_revoked', 'last_error' => 'access_revoked',
+                    'access_token' => null, 'refresh_token' => null]);
+
+                return;
+            }
+            try {
+                $this->syncPage($connection);
+            } catch (\Throwable $e) {
+                // Provider exceptions can contain access tokens and client data. Never log them.
+                $reason = $e instanceof GoogleCalendarFailure ? $e->reason : 'provider_unavailable';
+                $connection->update([
+                    'last_error' => $reason,
+                    'status' => in_array($reason, ['reconnect_required', 'calendar_missing'], true)
+                        ? 'needs_reconnect' : 'connected',
+                ]);
+                Log::warning('google_calendar_sync_failed', ['connection_id' => $id, 'reason' => $reason]);
+            }
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function syncPage(GoogleCalendarConnection $connection): void
+    {
+        $deadline = microtime(true) + 20;
+        $calendarPath = 'calendars/'.rawurlencode($connection->calendar_id);
+        $check = $this->google->request($connection, 'GET', $calendarPath);
+        if (in_array($check->status(), [404, 410], true)) {
+            throw new GoogleCalendarFailure('calendar_missing');
+        }
+        if (! $check->successful()) {
+            throw new GoogleCalendarFailure('provider_unavailable');
+        }
+        $eventPath = $calendarPath.'/events';
+        $visible = self::visits($connection->user);
+        $stale = DB::table('google_calendar_events')->where('connection_id', $connection->id)
+            ->whereNotIn('visit_id', (clone $visible)->select('id'));
+        foreach ((clone $stale)->orderBy('id')->limit(25)->get() as $mapping) {
+            if (microtime(true) >= $deadline) {
+                return;
+            }
+            $response = $this->google->request($connection, 'DELETE', $eventPath.'/'.$mapping->event_id.'?sendUpdates=none');
+            if (! $response->successful() && ! in_array($response->status(), [404, 410], true)) {
+                throw new GoogleCalendarFailure('provider_unavailable');
+            }
+            DB::table('google_calendar_events')->where('id', $mapping->id)->delete();
+        }
+        if ($stale->exists()) {
+            return;
+        }
+        $visits = (clone $visible)->with('service')->where('id', '>', $connection->sync_cursor)->orderBy('id')->limit(100)->get();
+        foreach ($visits as $visit) {
+            if (microtime(true) >= $deadline) {
+                return;
+            }
+            // Persist the chosen Google ID before I/O: retrying an ambiguous insert cannot duplicate a visit.
+            DB::table('google_calendar_events')->insertOrIgnore([
+                'connection_id' => $connection->id, 'visit_id' => $visit->id,
+                'event_id' => bin2hex(random_bytes(16)), 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $mapping = DB::table('google_calendar_events')->where('connection_id', $connection->id)->where('visit_id', $visit->id)->first();
+            $payload = self::payload($visit);
+            $hash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
+            if ($mapping->payload_hash !== $hash) {
+                $response = $this->google->request($connection, 'PUT', $eventPath.'/'.$mapping->event_id.'?sendUpdates=none', $payload);
+                if ($response->status() === 410) {
+                    // Google retains deleted event IDs. A restored visit needs a new, durable ID.
+                    $mapping->event_id = bin2hex(random_bytes(16));
+                    DB::table('google_calendar_events')->where('id', $mapping->id)->update(['event_id' => $mapping->event_id, 'payload_hash' => null]);
+                }
+                if (in_array($response->status(), [404, 410], true)) {
+                    $response = $this->google->request($connection, 'POST', $eventPath.'?sendUpdates=none', ['id' => $mapping->event_id, ...$payload]);
+                    if ($response->status() === 409) {
+                        $response = $this->google->request($connection, 'PUT', $eventPath.'/'.$mapping->event_id.'?sendUpdates=none', $payload);
+                    }
+                }
+                if (! $response->successful()) {
+                    throw new GoogleCalendarFailure('provider_unavailable');
+                }
+                DB::table('google_calendar_events')->where('id', $mapping->id)->update(['payload_hash' => $hash, 'updated_at' => now()]);
+            }
+            $connection->update(['sync_cursor' => $visit->id]);
+        }
+        if ($visits->count() < 100) {
+            $connection->update(['sync_cursor' => 0, 'last_synced_at' => now(), 'last_error' => null]);
+        }
+    }
+}

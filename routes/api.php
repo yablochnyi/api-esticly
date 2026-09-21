@@ -42,6 +42,14 @@ Route::prefix('mobile')->group(function () {
 
     // protected
     Route::middleware('auth:sanctum')->group(function () {
+        Route::prefix('integrations/google-calendar')->middleware('throttle:20,1')->group(function () {
+            $controller = \App\Http\Controllers\Api\Mobile\GoogleCalendarController::class;
+            Route::get('/', [$controller, 'show']);
+            Route::post('/connect', [$controller, 'connect']);
+            Route::post('/confirm', [$controller, 'confirm']);
+            Route::post('/sync', [$controller, 'sync']);
+            Route::delete('/', [$controller, 'disconnect']);
+        });
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/register', [RegisterController::class, 'store']);
         Route::post('/billing/google/verify', [BillingController::class, 'verifyGooglePlay']);

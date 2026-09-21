@@ -16,6 +16,20 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Artisan::command('calendar:sync', function () {
+    if (! app(\App\Services\GoogleCalendarClient::class)->configured()) {
+        return 0;
+    }
+    \App\Models\GoogleCalendarConnection::where('status', 'connected')->select('id')->chunkById(100, function ($connections) {
+        foreach ($connections as $connection) {
+            \App\Jobs\SyncGoogleCalendar::dispatch($connection->id);
+        }
+    });
+    return 0;
+})->purpose('Queue Google Calendar reconciliation');
+
+Schedule::command('calendar:sync')->everyMinute()->withoutOverlapping();
+
 Artisan::command('reminders:send', function () {
     VisitReminders::run();
 })->purpose('Send upcoming visit reminders via push');

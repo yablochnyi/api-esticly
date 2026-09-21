@@ -11,6 +11,10 @@ use App\Http\Controllers\PublicShortLinkController;
 use App\Support\PublicLocale;
 use App\Support\PublicPageViewData;
 
+Route::get('/integrations/google-calendar/callback', [
+    \App\Http\Controllers\Api\Mobile\GoogleCalendarController::class, 'callback',
+])->middleware('throttle:30,1');
+
 $siteLocales = config('site_locales.supported', []);
 $siteLocaleCodes = array_keys($siteLocales);
 $siteLocalePattern = implode('|', array_map('preg_quote', $siteLocaleCodes));
