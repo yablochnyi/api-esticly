@@ -30,6 +30,8 @@ Artisan::command('calendar:sync', function () {
 
 Schedule::command('calendar:sync')->everyMinute()->withoutOverlapping();
 
+Schedule::command('billing:refresh-analytics')->hourly()->withoutOverlapping()->runInBackground();
+
 Artisan::command('reminders:send', function () {
     VisitReminders::run();
 })->purpose('Send upcoming visit reminders via push');
