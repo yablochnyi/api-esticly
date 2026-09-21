@@ -80,7 +80,7 @@ class Dashboard extends \Filament\Pages\Dashboard
         $options = ['12months' => 'Последние 12 месяцев', 'all' => 'За всё время'];
         $start = now(BillingDashboardReport::TIMEZONE)->startOfMonth();
         $first = SubscriptionPayment::min('paid_at');
-        $last = $first ? \Carbon\Carbon::parse($first)->startOfMonth() : $start->copy()->subMonths(11);
+        $last = $first ? \Carbon\Carbon::parse($first, 'UTC')->setTimezone(BillingDashboardReport::TIMEZONE)->startOfMonth() : $start->copy()->subMonths(11);
         for ($month = $start; $month->gte($last); $month->subMonth()) {
             $options[$month->format('Y-m')] = $month->format('m.Y');
         }

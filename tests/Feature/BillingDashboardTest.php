@@ -207,6 +207,15 @@ class BillingDashboardTest extends TestCase
             ->set('filters.search', 'no-match')->assertSee('Подписчики не найдены');
     }
 
+    public function test_period_picker_includes_the_earliest_month_in_warsaw(): void
+    {
+        $s = $this->subscription();
+        $this->payment($s, ['paid_at' => '2026-05-12T12:00:00Z']);
+        Livewire::actingAs(User::find(2))->test(Dashboard::class)->assertSee('05.2026');
+        SubscriptionPayment::query()->update(['paid_at' => '2026-08-31 22:30:00']);
+        Livewire::actingAs(User::find(2))->test(Dashboard::class)->assertSee('09.2026')->assertDontSee('08.2026');
+    }
+
     private function subscription(array $attributes = []): Subscription
     {
         return Subscription::create(array_merge([
