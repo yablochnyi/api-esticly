@@ -35,21 +35,32 @@ class GoogleCalendarSync
     public static function visits(User $user): Builder
     {
         return Visit::query()->where('user_id', $user->organization_id ?: $user->id)
-            ->when($user->staff_id, fn (Builder $query) => $query->where('staff_id', $user->staff_id))
-            ->where(fn (Builder $query) => $query->whereNull('status')->orWhere('status', '!=', 'cancelled'));
+            ->when($user->staff_id, fn (Builder $query) => $query->where('staff_id', $user->staff_id));
     }
 
-    public static function payload(Visit $visit): array
+    public static function payload(Visit $visit, string $locale = 'en'): array
     {
+        $status = in_array($visit->status, ['completed', 'cancelled'], true) ? $visit->status : 'pending';
+        $locale = in_array($locale, ['en', 'uk', 'pl', 'cs', 'de', 'fr', 'it', 'es', 'pt'], true) ? $locale : 'en';
+        $label = trans('calendar.statuses.'.$status, [], $locale);
         $parts = array_filter([$visit->service?->name, $visit->client_name], fn ($value) => filled($value));
         $title = trim(preg_replace('/[\r\n]+/u', ' ', implode(' - ', $parts))) ?: 'Esticly';
 
         return [
-            'summary' => mb_substr($title, 0, 500),
+            'summary' => mb_substr('['.$label.'] '.$title, 0, 500),
+            'description' => trans('calendar.status_label', [], $locale).': '.$label,
+            'colorId' => match ($status) {
+                'completed' => '10', // Google event palette: basil.
+                'cancelled' => '11', // Tomato.
+                default => '3', // Grape.
+            },
+            // Google's "cancelled" status hides/deletes the event. Keep the
+            // visible copy confirmed and express the visit status in its text.
+            'status' => 'confirmed',
             'start' => ['dateTime' => $visit->starts_at->copy()->utc()->toRfc3339String()],
             'end' => ['dateTime' => $visit->ends_at->copy()->utc()->toRfc3339String()],
             'visibility' => 'private',
-            'transparency' => 'opaque',
+            'transparency' => $status === 'cancelled' ? 'transparent' : 'opaque',
             'reminders' => ['useDefault' => false],
             'extendedProperties' => ['private' => ['esticlyVisitId' => (string) $visit->id]],
         ];
@@ -131,7 +142,7 @@ class GoogleCalendarSync
                 'event_id' => bin2hex(random_bytes(16)), 'created_at' => now(), 'updated_at' => now(),
             ]);
             $mapping = DB::table('google_calendar_events')->where('connection_id', $connection->id)->where('visit_id', $visit->id)->first();
-            $payload = self::payload($visit);
+            $payload = self::payload($visit, $connection->locale ?? 'en');
             $hash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
             if ($mapping->payload_hash !== $hash) {
                 $response = $this->google->request($connection, 'PUT', $eventPath.'/'.$mapping->event_id.'?sendUpdates=none', $payload);

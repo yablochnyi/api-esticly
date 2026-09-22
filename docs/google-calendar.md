@@ -10,8 +10,18 @@ Owners export their organisation's visits. Staff export only their assigned
 visits while base access remains enabled. The payload contains the client name,
 service and start/end instants, not phones, notes, payments or photographs.
 Events are private, have no attendees, and do not send invitations/reminders.
-Pending and completed visits (including history) are copied. Cancelled, deleted
-or reassigned-out-of-scope visits are removed from this connection's calendar.
+Pending, completed and cancelled visits (including history) are copied. Status
+labels appear in titles and descriptions using the language saved when Google
+was connected. Google event colors are grape (3), basil (10) and tomato (11).
+Cancelled visits remain visible but do not block time. Their Google event status
+stays `confirmed`: Google's `cancelled` means a deleted/hidden event, not a
+visible business status. Only deleted or reassigned-out-of-scope visits are
+removed from this connection's calendar.
+
+Existing mapped events receive the new text/colors on the next reconciliation
+pass without changing IDs. Cancelled visits removed by the previous implementation
+are exported again. No migration, new OAuth scope or reconnection is needed.
+Deploy the updated API and restart queue workers before testing status colors.
 
 The scheduler queues a reconciliation every minute. Each worker processes a
 bounded page, saving progress and event IDs before network calls. Large calendars
@@ -94,6 +104,11 @@ Settings -> Calendar sync -> Connect Google Calendar. Sign in in the system
 browser, return to Esticly, verify the displayed email, accept the sharing
 checkbox and enable sync. The browser does not install tokens on the phone.
 No device-calendar permission is requested and no direct iCloud API is used.
+Both iOS and Android offer device sync and Google sync independently. Using both
+may show duplicate appointments; consent in either flow warns about this.
+The Google Calendar app on either platform can display the exported events when
+signed into the same Google account; adding an iPhone system account is only
+needed when viewing the Google copy in Apple's Calendar app.
 
 On Android, add the same Google account in system accounts, enable Calendar sync
 and select the Esticly calendar in Google Calendar or Samsung Calendar.
@@ -110,6 +125,10 @@ or force Apple/Samsung to refresh automatically.
 - Confirm consent is required after OAuth and no export happens before it.
 - Close Esticly; create/change/cancel a visit through another authorised session.
   Verify the Google copy and native Android/iOS display after scheduler refresh.
+- Check pending -> completed -> cancelled -> pending keeps one Google event,
+  changes its localized title and color, and leaves cancelled visits visible.
+  Actual deletion must still remove the exported event. Select only one export
+  source while checking colors so a second local copy cannot obscure the result.
 - Test organisation timezone versus device timezone and an appointment spanning
   a DST transition. API event timestamps use explicit UTC offsets.
 - Repeat sync and simulate an interrupted response; verify no duplicate events.

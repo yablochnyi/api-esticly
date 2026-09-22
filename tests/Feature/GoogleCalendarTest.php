@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\SyncGoogleCalendar;
 use App\Models\GoogleCalendarConnection;
 use App\Models\User;
+use App\Models\Visit;
 use App\Services\GoogleCalendarClient;
 use App\Services\GoogleCalendarSync;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,6 +21,8 @@ class GoogleCalendarTest extends TestCase
     private array $events = [];
 
     private array $writes = [];
+
+    private array $deletedEventIds = [];
 
     private bool $fail = false;
 
@@ -94,9 +97,12 @@ class GoogleCalendarTest extends TestCase
             $id = basename(parse_url($request->url(), PHP_URL_PATH));
             if ($request->method() === 'POST') {
                 $id = $request['id'];
-                if (isset($this->events[$id])) {
+                if (isset($this->events[$id]) || isset($this->deletedEventIds[$id])) {
                     return Http::response([], 409);
                 }
+            }
+            if ($request->method() === 'PUT' && isset($this->deletedEventIds[$id])) {
+                return Http::response([], 410);
             }
             if ($request->method() === 'PUT' && ! isset($this->events[$id])) {
                 return Http::response([], 404);
@@ -104,6 +110,7 @@ class GoogleCalendarTest extends TestCase
             $this->writes[] = [$request->method(), $id, $request->data()];
             if ($request->method() === 'DELETE') {
                 unset($this->events[$id]);
+                $this->deletedEventIds[$id] = true;
 
                 return Http::response('', 204);
             }
@@ -181,7 +188,7 @@ class GoogleCalendarTest extends TestCase
         Queue::assertNothingPushed();
     }
 
-    public function test_sync_is_idempotent_private_and_updates_time_then_removes_cancelled_visit(): void
+    public function test_sync_is_idempotent_private_and_keeps_all_statuses_on_the_same_event(): void
     {
         $user = $this->user();
         $connection = $this->connection($user);
@@ -192,7 +199,9 @@ class GoogleCalendarTest extends TestCase
         $this->assertCount(1, $this->events);
         $eventId = array_key_first($this->events);
         $event = $this->events[$eventId];
-        $this->assertSame('Manicure - Client', $event['summary']);
+        $this->assertSame('[Pending] Manicure - Client', $event['summary']);
+        $this->assertSame('Status: Pending', $event['description']);
+        $this->assertSame('3', $event['colorId']);
         $this->assertSame('2026-10-25T00:30:00+00:00', $event['start']['dateTime']);
         $this->assertSame('2026-10-25T01:30:00+00:00', $event['end']['dateTime']);
         $this->assertStringNotContainsString('private-', json_encode($event));
@@ -203,11 +212,94 @@ class GoogleCalendarTest extends TestCase
         $sync->run($connection->id);
         $this->assertCount(1, $this->events);
         $this->assertSame('2026-10-26T09:00:00+00:00', $this->events[$eventId]['start']['dateTime']);
+        foreach (['completed' => '10', 'cancelled' => '11', 'pending' => '3'] as $status => $color) {
+            DB::table('visits')->where('id', $id)->update(['status' => $status]);
+            $sync->run($connection->id);
+            $this->assertCount(1, $this->events);
+            $this->assertSame($eventId, array_key_first($this->events));
+            $event = $this->events[$eventId];
+            $this->assertSame('['.ucfirst($status).'] Manicure - Client', $event['summary']);
+            $this->assertSame($color, $event['colorId']);
+            $this->assertSame('confirmed', $event['status']);
+            $this->assertSame($status === 'cancelled' ? 'transparent' : 'opaque', $event['transparency']);
+            $writes = count($this->writes);
+            $sync->run($connection->id);
+            $this->assertCount($writes, $this->writes);
+        }
+        $this->assertSame(1, DB::table('google_calendar_events')->count());
+        $this->assertNotNull($connection->fresh()->last_synced_at);
+    }
+
+    public function test_statuses_are_localized_for_each_connections_locale(): void
+    {
+        $user = $this->user();
+        $connection = $this->connection($user);
+        $id = $this->visit($user);
+        $labels = [
+            'en' => ['Pending', 'Completed', 'Cancelled'],
+            'uk' => ['В очікуванні', 'Виконано', 'Скасовано'],
+            'pl' => ['Oczekują', 'Zakończone', 'Odwołane'],
+            'cs' => ['Čeká', 'Dokončeno', 'Zrušeno'],
+            'de' => ['Ausstehend', 'Abgeschlossen', 'Storniert'],
+            'fr' => ['En attente', 'Terminé', 'Annulé'],
+            'it' => ['In attesa', 'Completato', 'Annullato'],
+            'es' => ['Pendiente', 'Completado', 'Cancelado'],
+            'pt' => ['Pendente', 'Concluído', 'Cancelado'],
+        ];
+        foreach ($labels as $locale => $statuses) {
+            $connection->update(['locale' => $locale]);
+            foreach (array_combine(['pending', 'completed', 'cancelled'], $statuses) as $status => $label) {
+                DB::table('visits')->where('id', $id)->update(['status' => $status]);
+                app(GoogleCalendarSync::class)->run($connection->id);
+                $this->assertCount(1, $this->events);
+                $event = reset($this->events);
+                $this->assertSame('['.$label.'] Manicure - Client', $event['summary']);
+                $this->assertSame(trans('calendar.status_label', [], $locale).': '.$label, $event['description']);
+            }
+        }
+        $visit = Visit::findOrFail($id);
+        $visit->status = null;
+        $this->assertSame('[Pending] Manicure - Client', GoogleCalendarSync::payload($visit, 'unsupported')['summary']);
+    }
+
+    public function test_legacy_events_update_in_place_and_previously_removed_cancellations_return(): void
+    {
+        $user = $this->user();
+        $connection = $this->connection($user, ['locale' => 'uk']);
+        $id = $this->visit($user, ['status' => 'completed']);
+        $legacy = ['summary' => 'Manicure - Client'];
+        $this->events['legacy-event'] = $legacy;
+        DB::table('google_calendar_events')->insert([
+            'connection_id' => $connection->id, 'visit_id' => $id, 'event_id' => 'legacy-event',
+            'payload_hash' => hash('sha256', json_encode($legacy)),
+        ]);
+        $cancelled = $this->visit($user, ['status' => 'cancelled']);
+        app(GoogleCalendarSync::class)->run($connection->id);
+        $this->assertCount(2, $this->events);
+        $this->assertSame('[Виконано] Manicure - Client', $this->events['legacy-event']['summary']);
+        $mapping = DB::table('google_calendar_events')->where('visit_id', $cancelled)->first();
+        $this->assertSame('[Скасовано] Manicure - Client', $this->events[$mapping->event_id]['summary']);
+        app(GoogleCalendarSync::class)->run($connection->id);
+        $this->assertCount(2, $this->writes);
+    }
+
+    public function test_cancelled_copy_is_recreated_when_google_retains_a_deleted_event_id(): void
+    {
+        $user = $this->user();
+        $connection = $this->connection($user);
+        $id = $this->visit($user);
+        $sync = app(GoogleCalendarSync::class);
+        $sync->run($connection->id);
+        $oldEventId = array_key_first($this->events);
+        unset($this->events[$oldEventId]);
+        $this->deletedEventIds[$oldEventId] = true;
         DB::table('visits')->where('id', $id)->update(['status' => 'cancelled']);
         $sync->run($connection->id);
-        $this->assertCount(0, $this->events);
-        $this->assertSame(0, DB::table('google_calendar_events')->count());
-        $this->assertNotNull($connection->fresh()->last_synced_at);
+        $this->assertCount(1, $this->events);
+        $this->assertNotSame($oldEventId, array_key_first($this->events));
+        $this->assertSame('11', reset($this->events)['colorId']);
+        $sync->run($connection->id);
+        $this->assertCount(1, $this->events);
     }
 
     public function test_staff_only_syncs_assigned_visits_and_stops_when_access_is_revoked(): void
@@ -335,7 +427,9 @@ class GoogleCalendarTest extends TestCase
         $this->assertSame(0, $connection->fresh()->sync_cursor);
         DB::table('visits')->where('id', 1)->update(['status' => 'cancelled']);
         $sync->run($connection->id);
-        $this->assertCount(100, $this->events);
+        $this->assertCount(101, $this->events);
+        $mapping = DB::table('google_calendar_events')->where('visit_id', 1)->first();
+        $this->assertSame('11', $this->events[$mapping->event_id]['colorId']);
         DB::table('visits')->where('id', 1)->update(['status' => 'pending']);
         $sync->run($connection->id);
         $sync->run($connection->id);
