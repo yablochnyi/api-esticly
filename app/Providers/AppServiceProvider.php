@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\DsarOperation;
 use App\Models\SupportThread;
+use App\Models\Visit;
+use App\Observers\VisitCalendarObserver;
 use App\Policies\DsarOperationPolicy;
 use App\Policies\SupportThreadPolicy;
 use App\Support\AdminAccess;
@@ -31,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Visit::observe(VisitCalendarObserver::class);
+
         if (str_starts_with((string) config('app.url', ''), 'https://')) {
             URL::forceScheme('https');
         }

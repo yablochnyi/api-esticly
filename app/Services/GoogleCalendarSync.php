@@ -66,28 +66,28 @@ class GoogleCalendarSync
         ];
     }
 
-    public function run(int $id): void
+    public function run(int $id, ?int $visitId = null): bool
     {
         if (! $this->google->configured()) {
-            return;
+            return true;
         }
         $lock = self::lock($id);
         if (! $lock->get()) {
-            return;
+            return false;
         }
         try {
             $connection = GoogleCalendarConnection::find($id);
             if (! $connection || $connection->status !== 'connected') {
-                return;
+                return true;
             }
             if (! $connection->user || ! self::allowed($connection->user)) {
                 $connection->update(['status' => 'access_revoked', 'last_error' => 'access_revoked',
                     'access_token' => null, 'refresh_token' => null]);
 
-                return;
+                return true;
             }
             try {
-                $this->syncPage($connection);
+                $this->syncPage($connection, $visitId);
             } catch (\Throwable $e) {
                 // Provider exceptions can contain access tokens and client data. Never log them.
                 $reason = $e instanceof GoogleCalendarFailure ? $e->reason : 'provider_unavailable';
@@ -97,13 +97,17 @@ class GoogleCalendarSync
                         ? 'needs_reconnect' : 'connected',
                 ]);
                 Log::warning('google_calendar_sync_failed', ['connection_id' => $id, 'reason' => $reason]);
+
+                return $connection->status !== 'connected';
             }
+
+            return true;
         } finally {
             $lock->release();
         }
     }
 
-    private function syncPage(GoogleCalendarConnection $connection): void
+    private function syncPage(GoogleCalendarConnection $connection, ?int $visitId = null): void
     {
         $deadline = microtime(true) + 20;
         $calendarPath = 'calendars/'.rawurlencode($connection->calendar_id);
@@ -117,9 +121,10 @@ class GoogleCalendarSync
         $eventPath = $calendarPath.'/events';
         $visible = self::visits($connection->user);
         $stale = DB::table('google_calendar_events')->where('connection_id', $connection->id)
+            ->when($visitId !== null, fn ($query) => $query->where('visit_id', $visitId))
             ->whereNotIn('visit_id', (clone $visible)->select('id'));
         foreach ((clone $stale)->orderBy('id')->limit(25)->get() as $mapping) {
-            if (microtime(true) >= $deadline) {
+            if ($visitId === null && microtime(true) >= $deadline) {
                 return;
             }
             $response = $this->google->request($connection, 'DELETE', $eventPath.'/'.$mapping->event_id.'?sendUpdates=none');
@@ -131,9 +136,12 @@ class GoogleCalendarSync
         if ($stale->exists()) {
             return;
         }
-        $visits = (clone $visible)->with('service')->where('id', '>', $connection->sync_cursor)->orderBy('id')->limit(100)->get();
+        $visits = (clone $visible)->with('service')
+            ->when($visitId !== null, fn ($query) => $query->whereKey($visitId),
+                fn ($query) => $query->where('id', '>', $connection->sync_cursor))
+            ->orderBy('id')->limit(100)->get();
         foreach ($visits as $visit) {
-            if (microtime(true) >= $deadline) {
+            if ($visitId === null && microtime(true) >= $deadline) {
                 return;
             }
             // Persist the chosen Google ID before I/O: retrying an ambiguous insert cannot duplicate a visit.
@@ -162,9 +170,11 @@ class GoogleCalendarSync
                 }
                 DB::table('google_calendar_events')->where('id', $mapping->id)->update(['payload_hash' => $hash, 'updated_at' => now()]);
             }
-            $connection->update(['sync_cursor' => $visit->id]);
+            if ($visitId === null) {
+                $connection->update(['sync_cursor' => $visit->id]);
+            }
         }
-        if ($visits->count() < 100) {
+        if ($visitId === null && $visits->count() < 100) {
             $connection->update(['sync_cursor' => 0, 'last_synced_at' => now(), 'last_error' => null]);
         }
     }

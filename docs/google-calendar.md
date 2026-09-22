@@ -23,7 +23,16 @@ pass without changing IDs. Cancelled visits removed by the previous implementati
 are exported again. No migration, new OAuth scope or reconnection is needed.
 Deploy the updated API and restart queue workers before testing status colors.
 
-The scheduler queues a reconciliation every minute. Each worker processes a
+Visit creation, calendar-visible edits and deletion queue a targeted sync as soon
+as the database transaction commits, including public bookings and staff changes.
+The job reads the latest visit, bypasses the full-sync cursor and checks the same
+owner/staff permissions. Lock contention and temporary provider failures retry
+after five seconds; edits during an in-flight job are not dropped. No Google HTTP
+request runs in the visit-save request. Native Google clients can still take time
+to refresh after the server has updated an event.
+
+The scheduler queues a reconciliation every minute as a recovery mechanism (also
+covering bulk SQL changes that do not emit model events). Each worker processes a
 bounded page, saving progress and event IDs before network calls. Large calendars
 may take several cycles. Outages/rate limits retain pending work; reconnection is
 required when permission is revoked. There is no instant/real-time guarantee.
@@ -124,7 +133,8 @@ or force Apple/Samsung to refresh automatically.
 - Use an isolated test Esticly organisation and Google account, not customer data.
 - Confirm consent is required after OAuth and no export happens before it.
 - Close Esticly; create/change/cancel a visit through another authorised session.
-  Verify the Google copy and native Android/iOS display after scheduler refresh.
+  Verify the Google copy without waiting for the minute scheduler, then check
+  native Android/iOS display after its own refresh.
 - Check pending -> completed -> cancelled -> pending keeps one Google event,
   changes its localized title and color, and leaves cancelled visits visible.
   Actual deletion must still remove the exported event. Select only one export

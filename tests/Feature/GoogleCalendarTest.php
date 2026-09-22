@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\SyncGoogleCalendar;
+use App\Jobs\SyncGoogleCalendarVisit;
 use App\Models\GoogleCalendarConnection;
 use App\Models\User;
 use App\Models\Visit;
@@ -12,6 +13,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -70,6 +72,7 @@ class GoogleCalendarTest extends TestCase
             $t->timestamp('starts_at');
             $t->timestamp('ends_at');
             $t->string('status')->nullable();
+            $t->timestamps();
         });
         (require database_path('migrations/2026_09_21_000001_create_google_calendar_connections.php'))->up();
         DB::table('services')->insert(['id' => 1, 'name' => 'Manicure']);
@@ -444,5 +447,179 @@ class GoogleCalendarTest extends TestCase
         $this->artisan('calendar:sync')->assertSuccessful();
         Queue::assertPushed(SyncGoogleCalendar::class, 1);
         Queue::assertPushed(SyncGoogleCalendar::class, fn ($job) => $job->connectionId === $active->id);
+    }
+
+    public function test_visit_edits_queue_only_after_commit_and_rollback_does_not_export(): void
+    {
+        $owner = $this->user();
+        $connection = $this->connection($owner);
+        $this->connection($this->user());
+        $this->connection($this->user(['organization_id' => $owner->id]), ['status' => 'disconnected']);
+        $id = $this->visit($owner);
+        DB::beginTransaction();
+        Visit::findOrFail($id)->update(['status' => 'completed']);
+        Queue::assertNothingPushed();
+        DB::rollBack();
+        Queue::assertNothingPushed();
+        $this->assertSame('pending', Visit::findOrFail($id)->status);
+
+        DB::beginTransaction();
+        Visit::findOrFail($id)->update(['status' => 'cancelled']);
+        Queue::assertNothingPushed();
+        DB::commit();
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, 1);
+        Queue::assertPushed(SyncGoogleCalendarVisit::class,
+            fn ($job) => $job->connectionId === $connection->id && $job->visitId === $id);
+        Http::assertNothingSent();
+    }
+
+    public function test_create_delete_and_repeated_edits_queue_but_private_fields_do_not(): void
+    {
+        $owner = $this->user();
+        $this->connection($owner);
+        $visit = Visit::create([
+            'user_id' => $owner->id, 'service_id' => 1, 'client_name' => 'Client',
+            'status' => 'pending', 'starts_at' => '2026-10-25 09:00:00', 'ends_at' => '2026-10-25 10:00:00',
+        ]);
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, 1);
+        $visit->update(['comment' => 'Private note']);
+        $visit->save();
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, 1);
+        $visit->update(['status' => 'completed']);
+        $visit->update(['status' => 'cancelled']);
+        $visit->update(['starts_at' => '2026-10-25 11:00:00', 'ends_at' => '2026-10-25 12:00:00']);
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, 4);
+        $visit->delete();
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, 5);
+        Http::assertNothingSent();
+    }
+
+    public function test_targeted_sync_ignores_full_sync_cursor_and_reads_latest_state(): void
+    {
+        $owner = $this->user();
+        $connection = $this->connection($owner, ['sync_cursor' => 10000]);
+        $id = $this->visit($owner);
+        $this->visit($owner);
+        $job = new SyncGoogleCalendarVisit($connection->id, $id);
+        $visit = Visit::findOrFail($id);
+        $visit->update(['status' => 'completed']);
+        $visit->update(['status' => 'cancelled']);
+        $job->handle(app(GoogleCalendarSync::class));
+        $this->assertCount(1, $this->events);
+        $this->assertSame('11', reset($this->events)['colorId']);
+        $this->assertSame(10000, $connection->fresh()->sync_cursor);
+        $this->assertNull($connection->fresh()->last_synced_at);
+        $job->handle(app(GoogleCalendarSync::class));
+        $this->assertCount(1, $this->writes);
+    }
+
+    public function test_targeted_job_retries_lock_contention_and_provider_failure(): void
+    {
+        $owner = $this->user();
+        $connection = $this->connection($owner);
+        $id = $this->visit($owner);
+        $job = (new SyncGoogleCalendarVisit($connection->id, $id))->withFakeQueueInteractions();
+        $sync = app(GoogleCalendarSync::class);
+        $lock = GoogleCalendarSync::lock($connection->id);
+        $this->assertTrue($lock->get());
+        try {
+            $job->handle($sync);
+            $job->assertReleased(5);
+            Http::assertNothingSent();
+        } finally {
+            $lock->release();
+        }
+        $this->fail = true;
+        $job = (new SyncGoogleCalendarVisit($connection->id, $id))->withFakeQueueInteractions();
+        $job->handle($sync);
+        $job->assertReleased(5);
+        $this->fail = false;
+        $job = (new SyncGoogleCalendarVisit($connection->id, $id))->withFakeQueueInteractions();
+        $job->handle($sync);
+        $job->assertNotReleased();
+        $this->assertCount(1, $this->events);
+    }
+
+    public function test_reassignment_queues_both_owners_and_removes_only_out_of_scope_copy(): void
+    {
+        $old = $this->user();
+        $new = $this->user();
+        $oldConnection = $this->connection($old);
+        $newConnection = $this->connection($new);
+        $unrelated = $this->connection($this->user());
+        $id = $this->visit($old);
+        $other = $this->visit($old);
+        $sync = app(GoogleCalendarSync::class);
+        $sync->run($oldConnection->id);
+        Visit::findOrFail($id)->update(['user_id' => $new->id]);
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, 2);
+        foreach ([$oldConnection, $newConnection] as $connection) {
+            Queue::assertPushed(SyncGoogleCalendarVisit::class, fn ($job) => $job->connectionId === $connection->id);
+            $this->assertTrue($sync->run($connection->id, $id));
+        }
+        $this->assertTrue($sync->run($unrelated->id, $id));
+        $this->assertCount(2, $this->events);
+        $this->assertSame(0, DB::table('google_calendar_events')->where('connection_id', $oldConnection->id)->where('visit_id', $id)->count());
+        $this->assertSame(1, DB::table('google_calendar_events')->where('connection_id', $oldConnection->id)->where('visit_id', $other)->count());
+        Visit::findOrFail($id)->delete();
+        $this->assertTrue($sync->run($newConnection->id, $id));
+        $this->assertCount(1, $this->events);
+    }
+
+    public function test_targeted_staff_sync_rechecks_assignment_and_access(): void
+    {
+        $owner = $this->user();
+        DB::table('staff')->insert(['id' => 1, 'user_id' => $owner->id, 'is_active' => true, 'permissions' => '{"base_access":true}']);
+        $staff = $this->user(['organization_id' => $owner->id, 'staff_id' => 1]);
+        $connection = $this->connection($staff);
+        $id = $this->visit($owner, ['staff_id' => 1]);
+        $sync = app(GoogleCalendarSync::class);
+        $sync->run($connection->id, $id);
+        $this->assertCount(1, $this->events);
+        Visit::findOrFail($id)->update(['staff_id' => 2]);
+        Queue::assertPushed(SyncGoogleCalendarVisit::class, fn ($job) => $job->connectionId === $connection->id);
+        $sync->run($connection->id, $id);
+        $this->assertCount(0, $this->events);
+        Visit::findOrFail($id)->update(['staff_id' => 1]);
+        DB::table('staff')->where('id', 1)->update(['is_active' => false]);
+        $this->assertTrue($sync->run($connection->id, $id));
+        $this->assertCount(0, $this->events);
+        $this->assertSame('access_revoked', $connection->fresh()->status);
+    }
+
+    public function test_targeted_job_stops_after_disconnect(): void
+    {
+        $owner = $this->user();
+        $connection = $this->connection($owner);
+        $id = $this->visit($owner);
+        $job = (new SyncGoogleCalendarVisit($connection->id, $id))->withFakeQueueInteractions();
+        $connection->update(['status' => 'disconnected']);
+        $job->handle(app(GoogleCalendarSync::class));
+        $job->assertNotReleased();
+        Http::assertNothingSent();
+    }
+
+    public function test_queue_outage_does_not_fail_a_committed_visit_change(): void
+    {
+        $owner = $this->user();
+        $this->connection($owner);
+        $id = $this->visit($owner);
+        Queue::shouldReceive('connection')->once()->andReturnSelf();
+        Queue::shouldReceive('push')->once()->andThrow(new \RuntimeException('queue unavailable'));
+        Log::shouldReceive('warning')->once()->with('google_calendar_dispatch_failed', ['visit_id' => $id]);
+        DB::transaction(fn () => Visit::findOrFail($id)->update(['status' => 'completed']));
+        $this->assertSame('completed', Visit::findOrFail($id)->status);
+        Http::assertNothingSent();
+    }
+
+    public function test_disabled_integration_does_not_queue_visit_changes(): void
+    {
+        $owner = $this->user();
+        $this->connection($owner);
+        $id = $this->visit($owner);
+        config(['google_calendar.client_secret' => null]);
+        Visit::findOrFail($id)->update(['status' => 'completed']);
+        Queue::assertNothingPushed();
+        Http::assertNothingSent();
     }
 }
