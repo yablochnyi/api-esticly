@@ -18,8 +18,17 @@ class MobileAppVersionResource extends Resource
     protected static ?string $model = MobileAppVersion::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-circle';
-    protected static ?string $navigationLabel = 'App versions';
+
+    protected static ?string $navigationLabel = 'Версии приложения';
+
+    protected static ?string $modelLabel = 'версию приложения';
+
+    protected static ?string $pluralModelLabel = 'Версии приложения';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Система';
+
     protected static ?int $navigationSort = 11;
+
     protected static bool $shouldRegisterNavigation = false;
 
     public static function canAccess(): bool
@@ -52,19 +61,19 @@ class MobileAppVersionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('platform')
-                    ->label('Platform')
+                    ->label('Платформа')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => strtoupper($state)),
                 Tables\Columns\TextColumn::make('latest_version')
-                    ->label('Latest version'),
+                    ->label('Последняя версия'),
                 Tables\Columns\TextColumn::make('minimum_version')
-                    ->label('Minimum version'),
+                    ->label('Минимальная версия'),
                 Tables\Columns\IconColumn::make('enabled')
-                    ->label('Enabled')
+                    ->label('Включено')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
-                    ->dateTime()
+                    ->label('Обновлено')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->actions([
@@ -77,22 +86,22 @@ class MobileAppVersionResource extends Resource
     {
         return $schema->components([
             TextInput::make('platform')
-                ->label('Platform')
+                ->label('Платформа')
                 ->disabled()
                 ->dehydrated(),
             TextInput::make('minimum_version')
-                ->label('Minimum version')
-                ->helperText('Versions below this value must update before continuing.')
+                ->label('Минимальная версия')
+                ->helperText('Для более ранних версий обновление будет обязательным.')
                 ->required()
                 ->regex('/^\d+(\.\d+){1,3}$/')
                 ->maxLength(32),
             TextInput::make('store_url')
-                ->label('Store URL')
+                ->label('Ссылка на магазин')
                 ->url()
                 ->required()
                 ->maxLength(500),
             Toggle::make('enabled')
-                ->label('Enable version checks')
+                ->label('Проверять версию приложения')
                 ->default(true),
         ]);
     }

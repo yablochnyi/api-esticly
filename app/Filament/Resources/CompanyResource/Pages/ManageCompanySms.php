@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Gate;
 class ManageCompanySms extends ManageRelatedRecords
 {
     protected static string $resource = CompanyResource::class;
+
     protected static string $relationship = 'marketingDeliveries';
+
     protected static ?string $navigationLabel = 'SMS';
-    protected static ?string $title = 'Company SMS';
+
+    protected static ?string $title = 'SMS салона';
 
     public static function canAccess(array $parameters = []): bool
     {
@@ -26,12 +29,12 @@ class ManageCompanySms extends ManageRelatedRecords
             ->defaultSort('sent_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
-                Tables\Columns\TextColumn::make('automation_key')->label('Automation')->badge()->sortable(),
-                Tables\Columns\TextColumn::make('to_phone')->label('Phone')->copyable()->placeholder('—'),
-                Tables\Columns\TextColumn::make('status')->label('Status')->badge()->sortable(),
-                Tables\Columns\TextColumn::make('sent_at')->label('Sent at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('automation_key')->label('Автоматизация')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))->label('Автоматизация')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('to_phone')->label('Телефон')->copyable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('status')->label('Статус')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))->label('Статус')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('sent_at')->label('Дата отправки')->dateTime('d.m.Y H:i')->sortable(),
                 Tables\Columns\TextColumn::make('error')
-                    ->label('Error')
+                    ->label('Ошибка')
                     ->limit(80)
                     ->tooltip(fn ($record): ?string => $record->error ?: null)
                     ->placeholder('—')
@@ -39,18 +42,18 @@ class ManageCompanySms extends ManageRelatedRecords
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
+                    ->label('Статус')
                     ->options([
-                        'pending' => 'Pending',
-                        'sent' => 'Sent',
-                        'failed' => 'Failed',
-                        'skipped' => 'Skipped',
+                        'pending' => 'Ожидает',
+                        'sent' => 'Отправлено',
+                        'failed' => 'Ошибка',
+                        'skipped' => 'Пропущено',
                     ]),
                 Tables\Filters\SelectFilter::make('automation_key')
-                    ->label('Automation')
+                    ->label('Автоматизация')
                     ->options([
-                        'visit_reminder_sms' => 'Visit reminder',
-                        'thanks_after_visit' => 'Thanks after visit',
+                        'visit_reminder_sms' => 'Напоминание о визите',
+                        'thanks_after_visit' => 'Благодарность после визита',
                     ]),
             ])
             ->headerActions([])

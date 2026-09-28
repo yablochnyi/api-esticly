@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\CompanyResource\RelationManagers;
 
-use App\Models\Staff;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -11,6 +10,8 @@ use Illuminate\Support\Facades\Gate;
 class StaffRelationManager extends RelationManager
 {
     protected static string $relationship = 'staff';
+
+    protected static ?string $title = 'Команда';
 
     public static function canViewForRecord($ownerRecord, string $pageClass): bool
     {
@@ -26,28 +27,28 @@ class StaffRelationManager extends RelationManager
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name')
+                    ->label('Имя')
                     ->searchable()
                     ->wrap(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Phone')
+                    ->label('Телефон')
                     ->searchable()
                     ->copyable(),
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label('Активен')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Deleted')
-                    ->dateTime()
+                    ->label('Удалено')
+                    ->dateTime('d.m.Y H:i')
                     ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label('Активен'),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->headerActions([])

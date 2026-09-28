@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Gate;
 class ManageCompanyPortfolio extends ManageRelatedRecords
 {
     protected static string $resource = CompanyResource::class;
+
     protected static string $relationship = 'portfolioPhotos';
-    protected static ?string $navigationLabel = 'Portfolio';
-    protected static ?string $title = 'Company portfolio';
+
+    protected static ?string $navigationLabel = 'Портфолио';
+
+    protected static ?string $title = 'Портфолио салона';
 
     public static function canAccess(array $parameters = []): bool
     {
@@ -26,12 +29,12 @@ class ManageCompanyPortfolio extends ManageRelatedRecords
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\ImageColumn::make('url')
-                    ->label('Photo')
+                    ->label('Фото')
                     ->square()
                     ->defaultImageUrl(asset('icon.png')),
-                Tables\Columns\TextColumn::make('caption')->label('Caption')->searchable()->placeholder('—')->wrap(),
-                Tables\Columns\TextColumn::make('staff.name')->label('Staff')->placeholder('Salon')->wrap(),
-                Tables\Columns\TextColumn::make('created_at')->label('Created')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('caption')->label('Подпись')->searchable()->placeholder('—')->wrap(),
+                Tables\Columns\TextColumn::make('staff.name')->label('Команда')->placeholder('Салон')->wrap(),
+                Tables\Columns\TextColumn::make('created_at')->label('Создано')->dateTime('d.m.Y H:i')->sortable(),
             ])
             ->headerActions([])
             ->actions([])

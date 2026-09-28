@@ -18,7 +18,10 @@ use Illuminate\Support\Str;
 
 class MessagesRelationManager extends RelationManager
 {
+    protected static ?string $title = 'Сообщения';
+
     private const MAX_MESSAGE_LENGTH = 50000;
+
     private const MAX_PREVIEW_LENGTH = 255;
 
     protected static string $relationship = 'messages';
@@ -40,25 +43,27 @@ class MessagesRelationManager extends RelationManager
         return $table
             ->defaultSort('id', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('sender_type')->label('From')->badge(),
-                Tables\Columns\TextColumn::make('body')->label('Message')->wrap(),
-                Tables\Columns\TextColumn::make('created_at')->label('At')->dateTime(),
+                Tables\Columns\TextColumn::make('sender_type')->label('Отправитель')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))->label('Отправитель')->badge(),
+                Tables\Columns\TextColumn::make('body')->label('Сообщение')->wrap(),
+                Tables\Columns\TextColumn::make('created_at')->label('Дата')->dateTime('d.m.Y H:i'),
             ])
             ->headerActions([
                 Action::make('reply')
-                    ->label('Reply')
+                    ->label('Ответить')
                     ->icon('heroicon-o-paper-airplane')
                     ->form([
                         Textarea::make('body')
-                            ->label('Message')
+                            ->label('Сообщение')
                             ->required()
                             ->minLength(1)
                             ->maxLength(self::MAX_MESSAGE_LENGTH),
                     ])
                     ->action(function (array $data) {
                         $thread = $this->getOwnerRecord();
-                        $body = trim((string)($data['body'] ?? ''));
-                        if ($body === '') return;
+                        $body = trim((string) ($data['body'] ?? ''));
+                        if ($body === '') {
+                            return;
+                        }
 
                         $preview = $this->messagePreview($body);
 
@@ -75,23 +80,23 @@ class MessagesRelationManager extends RelationManager
 
                             $thread->last_message_at = now();
                             $thread->last_message_preview = $preview;
-                            $thread->unread_for_user = (int)$thread->unread_for_user + 1;
+                            $thread->unread_for_user = (int) $thread->unread_for_user + 1;
                             $thread->save();
                         });
 
                         try {
                             // Keep the queued push payload small; the full reply is stored in support_messages.
-                            SendSupportReplyPush::dispatch((int)$thread->org_id, (int)$thread->id, $preview);
+                            SendSupportReplyPush::dispatch((int) $thread->org_id, (int) $thread->id, $preview);
                         } catch (\Throwable $e) {
                             Log::error('support_push_queue_failed', [
-                                'org_id' => (int)$thread->org_id,
-                                'thread_id' => (int)$thread->id,
+                                'org_id' => (int) $thread->org_id,
+                                'thread_id' => (int) $thread->id,
                                 'error' => $e->getMessage(),
                             ]);
 
                             Notification::make()
-                                ->title('Support reply saved')
-                                ->body('Push notification was not queued. Please check the logs.')
+                                ->title('Ответ сохранён')
+                                ->body('Не удалось поставить уведомление в очередь. Проверьте журнал событий.')
                                 ->warning()
                                 ->send();
                         }

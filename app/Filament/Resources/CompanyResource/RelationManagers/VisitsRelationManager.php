@@ -11,6 +11,8 @@ class VisitsRelationManager extends RelationManager
 {
     protected static string $relationship = 'visits';
 
+    protected static ?string $title = 'Записи';
+
     public static function canViewForRecord($ownerRecord, string $pageClass): bool
     {
         return Gate::allows('access-filament-admin');
@@ -25,21 +27,21 @@ class VisitsRelationManager extends RelationManager
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('service.name')
-                    ->label('Service')
+                    ->label('Услуга')
                     ->searchable()
                     ->placeholder('—')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('client_name')
-                    ->label('Client')
+                    ->label('Клиент')
                     ->searchable()
                     ->placeholder('—')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('staff.name')
-                    ->label('Staff')
-                    ->placeholder('Salon')
+                    ->label('Команда')
+                    ->placeholder('Салон')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('price')
-                    ->label('Price')
+                    ->label('Цена')
                     ->formatStateUsing(function ($state): string {
                         $value = $state !== null ? rtrim(rtrim((string) $state, '0'), '.') : '0';
                         $currency = strtoupper((string) ($this->getOwnerRecord()->currency_code ?: ''));
@@ -47,24 +49,24 @@ class VisitsRelationManager extends RelationManager
                         return trim("{$value} {$currency}");
                     })
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                Tables\Columns\TextColumn::make('status')->label('Статус')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))
+                    ->label('Статус')
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('starts_at')
-                    ->label('Starts at')
-                    ->dateTime()
+                    ->label('Начало')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
+                    ->label('Статус')
                     ->options([
-                        'pending' => 'Pending',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
-                        'confirmed' => 'Confirmed',
-                        'no_show' => 'No show',
+                        'pending' => 'Ожидает',
+                        'completed' => 'Завершена',
+                        'cancelled' => 'Отменена',
+                        'confirmed' => 'Подтверждена',
+                        'no_show' => 'Неявка',
                     ]),
             ])
             ->headerActions([])

@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Gate;
 class ManageCompanySettings extends ViewRecord
 {
     protected static string $resource = CompanyResource::class;
-    protected static ?string $navigationLabel = 'Settings';
-    protected static ?string $title = 'Company settings';
+
+    protected static ?string $navigationLabel = 'Настройки';
+
+    protected static ?string $title = 'Настройки салона';
 
     public static function canAccess(array $parameters = []): bool
     {
@@ -30,8 +32,8 @@ class ManageCompanySettings extends ViewRecord
         return $schema
             ->columns(12)
             ->components([
-                Section::make('Settings')
-                    ->description('Read-only overview of reminders, online booking, and marketing setup.')
+                Section::make('Настройки')
+                    ->description('Напоминания, онлайн-запись и рассылки салона.')
                     ->columnSpanFull()
                     ->schema([
                         ViewEntry::make('company_settings')
@@ -52,7 +54,7 @@ class ManageCompanySettings extends ViewRecord
         $offsets = $this->normalizeOffsets($record->reminder_offsets_min);
 
         return [
-            'configured' => !empty($offsets),
+            'configured' => ! empty($offsets),
             'offsets' => array_map(fn (int $minutes): string => $this->formatMinutes($minutes), $offsets),
         ];
     }
@@ -98,8 +100,8 @@ class ManageCompanySettings extends ViewRecord
     private function marketingData(User $record): array
     {
         $labels = [
-            'visit_reminder_sms' => 'Visit reminder SMS',
-            'thanks_after_visit' => 'Thanks after visit',
+            'visit_reminder_sms' => 'SMS-напоминание о визите',
+            'thanks_after_visit' => 'Благодарность после визита',
         ];
 
         $rows = MarketingAutomation::query()
@@ -122,7 +124,7 @@ class ManageCompanySettings extends ViewRecord
             ->all();
 
         return [
-            'configured' => !empty($rows),
+            'configured' => ! empty($rows),
             'enabled_count' => collect($rows)->where('enabled', true)->count(),
             'items' => $rows,
         ];
@@ -134,13 +136,13 @@ class ManageCompanySettings extends ViewRecord
             $raw = json_decode($raw, true);
         }
 
-        if (!is_array($raw)) {
+        if (! is_array($raw)) {
             return [];
         }
 
         $out = [];
         foreach ($raw as $item) {
-            if (!is_numeric($item)) {
+            if (! is_numeric($item)) {
                 continue;
             }
 
@@ -204,7 +206,7 @@ class ManageCompanySettings extends ViewRecord
         if ($baseDomain !== '') {
             $scheme = env('BOOKING_SCHEME', 'https');
 
-            return rtrim($scheme, ':/') . '://' . $slug . '.' . ltrim($baseDomain, '.');
+            return rtrim($scheme, ':/').'://'.$slug.'.'.ltrim($baseDomain, '.');
         }
 
         $base = rtrim((string) config('app.url', ''), '/');
@@ -212,13 +214,13 @@ class ManageCompanySettings extends ViewRecord
             $base = 'http://127.0.0.1:8000';
         }
 
-        return $base . '/@' . $slug;
+        return $base.'/@'.$slug;
     }
 
     private function formatMinutes(int $minutes): string
     {
         if ($minutes <= 0) {
-            return 'Immediately';
+            return 'Сразу';
         }
 
         $days = intdiv($minutes, 1440);
@@ -227,13 +229,13 @@ class ManageCompanySettings extends ViewRecord
 
         $parts = [];
         if ($days > 0) {
-            $parts[] = $days . ' d';
+            $parts[] = $days.' дн.';
         }
         if ($hours > 0) {
-            $parts[] = $hours . ' h';
+            $parts[] = $hours.' ч.';
         }
         if ($mins > 0) {
-            $parts[] = $mins . ' min';
+            $parts[] = $mins.' мин.';
         }
 
         return implode(' ', $parts);

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Gate;
 
 class ViewCompany extends ViewRecord
 {
+    protected static ?string $title = 'Салон';
     protected static string $resource = CompanyResource::class;
 
     public static function canAccess(array $parameters = []): bool
@@ -33,18 +34,18 @@ class ViewCompany extends ViewRecord
     {
         return [
             Action::make('sendPush')
-                ->label('Send push')
+                ->label('Отправить уведомление')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('warning')
-                ->modalHeading('Send push to this company')
-                ->modalDescription('This notification will be queued and sent only to the selected company: owner account and its staff accounts.')
+                ->modalHeading('Уведомление для салона')
+                ->modalDescription('Уведомление получат только владелец выбранного салона и его сотрудники.')
                 ->form([
                     TextInput::make('title')
-                        ->label('Title')
+                        ->label('Заголовок')
                         ->required()
                         ->maxLength(120),
                     Textarea::make('body')
-                        ->label('Message')
+                        ->label('Сообщение')
                         ->required()
                         ->rows(5)
                         ->maxLength(240),
@@ -61,8 +62,8 @@ class ViewCompany extends ViewRecord
                     );
 
                     Notification::make()
-                        ->title('Push queued')
-                        ->body('The notification was queued for this company.')
+                        ->title('Уведомление в очереди')
+                        ->body('Уведомление поставлено в очередь для этого салона.')
                         ->success()
                         ->send();
                 }),
@@ -77,12 +78,12 @@ class ViewCompany extends ViewRecord
         return $schema
             ->columns(12)
             ->components([
-                Section::make('Company overview')
+                Section::make('Информация о салоне')
                     ->columns(12)
                     ->columnSpanFull()
                     ->schema([
                         ImageEntry::make('logo_url')
-                            ->label('Avatar')
+                            ->label('Логотип')
                             ->state(fn (User $record): ?string => MediaUrl::publicFile($record->logo_path))
                             ->defaultImageUrl(asset('icon.png'))
                             ->circular()
@@ -90,75 +91,75 @@ class ViewCompany extends ViewRecord
                             ->columnSpan(2),
 
                         TextEntry::make('company_name')
-                            ->label('Company')
+                            ->label('Салон')
                             ->state(fn (User $record): string => (string) ($record->company_name ?: '—'))
                             ->size('lg')
                             ->weight('bold')
                             ->columnSpan(4),
 
                         TextEntry::make('phone')
-                            ->label('Phone')
+                            ->label('Телефон')
                             ->state(fn (User $record): string => (string) ($record->phone ?: '—'))
                             ->columnSpan(3),
 
                         TextEntry::make('email')
-                            ->label('Email')
+                            ->label('Эл. почта')
                             ->state(fn (User $record): string => (string) ($record->email ?: '—'))
                             ->columnSpan(3),
 
                         TextEntry::make('language_code')
-                            ->label('Language')
+                            ->label('Язык')
                             ->badge()
                             ->state(fn (User $record): string => strtoupper((string) ($record->language_code ?: '—')))
                             ->columnSpan(2),
 
                         TextEntry::make('currency_code')
-                            ->label('Currency')
+                            ->label('Валюта')
                             ->badge()
                             ->state(fn (User $record): string => strtoupper((string) ($record->currency_code ?: '—')))
                             ->columnSpan(2),
 
                         TextEntry::make('timezone')
-                            ->label('Timezone')
+                            ->label('Часовой пояс')
                             ->state(fn (User $record): string => (string) ($record->timezone ?: '—'))
                             ->columnSpan(4),
 
                         TextEntry::make('registered_at')
-                            ->label('Registered')
+                            ->label('Регистрация')
                             ->state(fn (User $record): string => $record->registered_at?->format('Y-m-d H:i') ?: '—')
                             ->columnSpan(2),
 
                         TextEntry::make('address')
-                            ->label('Address')
+                            ->label('Адрес')
                             ->state(fn (User $record): string => (string) ($record->address ?: '—'))
                             ->columnSpan(8),
                     ]),
 
-                Section::make('Business stats')
-                    ->description('Current totals for this company.')
+                Section::make('Показатели салона')
+                    ->description('Текущие показатели салона.')
                     ->columns(4)
                     ->columnSpanFull()
                     ->schema([
                         TextEntry::make('services_total')
-                            ->label('Services')
+                            ->label('Услуги')
                             ->state(fn (User $record): string => (string) $record->services()->count())
                             ->badge(),
                         TextEntry::make('visits_total')
-                            ->label('Visits')
+                            ->label('Записи')
                             ->state(fn (User $record): string => (string) $record->visits()->count())
                             ->badge(),
                         TextEntry::make('clients_total')
-                            ->label('Clients')
+                            ->label('Клиенты')
                             ->state(fn (User $record): string => (string) $record->clients()->count())
                             ->badge(),
                         TextEntry::make('portfolio_total')
-                            ->label('Portfolio')
+                            ->label('Портфолио')
                             ->state(fn (User $record): string => (string) $record->portfolioPhotos()->count())
                             ->badge(),
                     ]),
 
-                Section::make('SMS stats')
-                    ->description('Client SMS sent from this company. Filter by month.')
+                Section::make('Статистика SMS')
+                    ->description('SMS клиентам салона за выбранный месяц.')
                     ->columnSpanFull()
                     ->schema([
                         ViewEntry::make('sms_stats')

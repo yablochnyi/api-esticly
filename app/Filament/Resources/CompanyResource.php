@@ -5,12 +5,12 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CompanyResource\Pages;
 use App\Models\User;
 use App\Support\OrgSubscription;
-use Filament\Resources\Pages\Page;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -23,8 +23,16 @@ class CompanyResource extends Resource
     protected static ?string $model = User::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
-    protected static ?string $navigationLabel = 'Companies';
-    protected static ?int $navigationSort = 9;
+
+    protected static ?string $navigationLabel = 'Салоны';
+
+    protected static ?string $modelLabel = 'салон';
+
+    protected static ?string $pluralModelLabel = 'Салоны';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Клиенты и коммуникации';
+
+    protected static ?int $navigationSort = 1;
 
     public static function canAccess(): bool
     {
@@ -85,33 +93,33 @@ class CompanyResource extends Resource
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('company_name')
-                    ->label('Company')
+                    ->label('Салон')
                     ->searchable()
                     ->sortable()
                     ->wrap(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Phone')
+                    ->label('Телефон')
                     ->searchable()
                     ->copyable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
+                    ->label('Эл. почта')
                     ->searchable()
                     ->copyable()
                     ->wrap(),
                 Tables\Columns\TextColumn::make('language_code')
-                    ->label('Lang')
+                    ->label('Язык')
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('currency_code')
-                    ->label('Currency')
+                    ->label('Валюта')
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('subscription_plan')
-                    ->label('Plan')
+                    ->label('Тариф')
                     ->formatStateUsing(fn ($state, User $record) => match (OrgSubscription::normalizePlan($state)) {
                         OrgSubscription::PLAN_PRO => 'PRO',
                         OrgSubscription::PLAN_BASIC => 'BASIC',
-                        default => 'NONE',
+                        default => 'Нет тарифа',
                     })
                     ->badge()
                     ->color(fn ($state) => match (OrgSubscription::normalizePlan($state)) {
@@ -120,32 +128,32 @@ class CompanyResource extends Resource
                         default => 'gray',
                     }),
                 Tables\Columns\IconColumn::make('subscription_active')
-                    ->label('Active')
+                    ->label('Активен')
                     ->state(fn (User $record) => OrgSubscription::hasActivePaidPlan($record))
                     ->boolean(),
                 Tables\Columns\TextColumn::make('subscription_ends_at')
-                    ->label('Paid until')
-                    ->dateTime()
+                    ->label('Оплачено до')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('registered_at')
-                    ->label('Registered')
-                    ->dateTime()
+                    ->label('Регистрация')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('timezone')
-                    ->label('Timezone')
+                    ->label('Часовой пояс')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('staff_count')
-                    ->label('Staff')
+                    ->label('Команда')
                     ->counts('staff')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('language_code')
-                    ->label('Language')
+                    ->label('Язык')
                     ->options([
                         'pl' => 'PL',
                         'uk' => 'UK',
@@ -168,22 +176,22 @@ class CompanyResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('company_name')->label('Company')->disabled(),
-            TextInput::make('phone')->label('Phone')->disabled(),
-            TextInput::make('email')->label('Email')->disabled(),
-            TextInput::make('language_code')->label('Language')->disabled(),
-            TextInput::make('currency_code')->label('Currency')->disabled(),
-            TextInput::make('timezone')->label('Timezone')->disabled(),
-            TextInput::make('address')->label('Address')->disabled(),
-            DateTimePicker::make('registered_at')->label('Registered at'),
+            TextInput::make('company_name')->label('Салон')->disabled(),
+            TextInput::make('phone')->label('Телефон')->disabled(),
+            TextInput::make('email')->label('Эл. почта')->disabled(),
+            TextInput::make('language_code')->label('Язык')->disabled(),
+            TextInput::make('currency_code')->label('Валюта')->disabled(),
+            TextInput::make('timezone')->label('Часовой пояс')->disabled(),
+            TextInput::make('address')->label('Адрес')->disabled(),
+            DateTimePicker::make('registered_at')->label('Дата регистрации'),
             Select::make('subscription_plan')
-                ->label('Subscription plan')
+                ->label('Тариф подписки')
                 ->options([
                     OrgSubscription::PLAN_BASIC => 'Basic',
                     OrgSubscription::PLAN_PRO => 'Pro',
                 ])
                 ->native(false),
-            DateTimePicker::make('subscription_ends_at')->label('Subscription ends at'),
+            DateTimePicker::make('subscription_ends_at')->label('Подписка действует до'),
         ]);
     }
 

@@ -18,8 +18,16 @@ class SupportThreadResource extends Resource
     protected static ?string $model = SupportThread::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
-    protected static ?string $navigationLabel = 'Support';
-    protected static ?int $navigationSort = 10;
+
+    protected static ?string $navigationLabel = 'Поддержка';
+
+    protected static ?string $modelLabel = 'обращение';
+
+    protected static ?string $pluralModelLabel = 'Поддержка';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Клиенты и коммуникации';
+
+    protected static ?int $navigationSort = 2;
 
     public static function canAccess(): bool
     {
@@ -57,32 +65,32 @@ class SupportThreadResource extends Resource
             ->defaultSort('last_message_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('org_id')
-                    ->label('Org ID')
+                    ->label('ID салона')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('subject')
-                    ->label('Subject')
+                    ->label('Тема')
                     ->wrap(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                Tables\Columns\TextColumn::make('status')->label('Статус')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))
+                    ->label('Статус')
                     ->badge()
                     ->color(fn (SupportThread $record) => ($record->status ?? 'open') === 'closed' ? 'gray' : 'success')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('unread_for_support')
-                    ->label('Unread')
+                    ->label('Непрочитано')
                     ->badge()
                     ->color(fn (SupportThread $record) => $record->unread_for_support > 0 ? 'danger' : 'gray')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('last_message_preview')
-                    ->label('Last message')
+                    ->label('Последнее сообщение')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('last_message_at')
-                    ->label('Last at')
-                    ->dateTime()
+                    ->label('Последнее обращение')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->actions([
                 Action::make('open')
-                    ->label('Open')
+                    ->label('Открыть')
                     ->icon('heroicon-o-eye')
                     ->url(fn (SupportThread $record) => static::getUrl('view', ['record' => $record])),
             ]);
@@ -91,11 +99,11 @@ class SupportThreadResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('org_id')->disabled(),
-            TextInput::make('subject')->disabled(),
-            TextInput::make('status')->disabled(),
-            TextInput::make('unread_for_support')->disabled(),
-            TextInput::make('unread_for_user')->disabled(),
+            TextInput::make('org_id')->label('ID салона')->disabled(),
+            TextInput::make('subject')->label('Тема')->disabled(),
+            TextInput::make('status')->label('Статус')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))->disabled(),
+            TextInput::make('unread_for_support')->label('Не прочитано поддержкой')->disabled(),
+            TextInput::make('unread_for_user')->label('Не прочитано пользователем')->disabled(),
         ]);
     }
 

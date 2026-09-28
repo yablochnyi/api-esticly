@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Gate;
 class ManageCompanyStaff extends ManageRelatedRecords
 {
     protected static string $resource = CompanyResource::class;
+
     protected static string $relationship = 'staff';
-    protected static ?string $navigationLabel = 'Staff';
-    protected static ?string $title = 'Company staff';
+
+    protected static ?string $navigationLabel = 'Команда';
+
+    protected static ?string $title = 'Команда салона';
 
     public static function canAccess(array $parameters = []): bool
     {
@@ -26,14 +29,14 @@ class ManageCompanyStaff extends ManageRelatedRecords
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
-                Tables\Columns\TextColumn::make('name')->label('Name')->searchable()->wrap(),
-                Tables\Columns\TextColumn::make('phone')->label('Phone')->searchable()->copyable(),
-                Tables\Columns\IconColumn::make('is_active')->label('Active')->boolean(),
-                Tables\Columns\TextColumn::make('created_at')->label('Created')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')->label('Deleted')->dateTime()->toggleable(),
+                Tables\Columns\TextColumn::make('name')->label('Имя')->searchable()->wrap(),
+                Tables\Columns\TextColumn::make('phone')->label('Телефон')->searchable()->copyable(),
+                Tables\Columns\IconColumn::make('is_active')->label('Активен')->boolean(),
+                Tables\Columns\TextColumn::make('created_at')->label('Создано')->dateTime('d.m.Y H:i')->sortable(),
+                Tables\Columns\TextColumn::make('deleted_at')->label('Удалено')->dateTime('d.m.Y H:i')->toggleable(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')->label('Active'),
+                Tables\Filters\TernaryFilter::make('is_active')->label('Активен'),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->headerActions([])

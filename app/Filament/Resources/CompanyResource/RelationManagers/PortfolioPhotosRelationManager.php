@@ -11,6 +11,8 @@ class PortfolioPhotosRelationManager extends RelationManager
 {
     protected static string $relationship = 'portfolioPhotos';
 
+    protected static ?string $title = 'Портфолио';
+
     public static function canViewForRecord($ownerRecord, string $pageClass): bool
     {
         return Gate::allows('access-filament-admin');
@@ -22,21 +24,21 @@ class PortfolioPhotosRelationManager extends RelationManager
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\ImageColumn::make('url')
-                    ->label('Photo')
+                    ->label('Фото')
                     ->square()
                     ->defaultImageUrl(asset('icon.png')),
                 Tables\Columns\TextColumn::make('caption')
-                    ->label('Caption')
+                    ->label('Подпись')
                     ->searchable()
                     ->placeholder('—')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('staff.name')
-                    ->label('Staff')
-                    ->placeholder('Salon')
+                    ->label('Команда')
+                    ->placeholder('Салон')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->headerActions([])

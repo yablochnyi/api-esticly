@@ -6,8 +6,8 @@ use App\Filament\Resources\SubscriptionPromoCodeResource\Pages;
 use App\Models\SubscriptionPromoCode;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -20,7 +20,15 @@ class SubscriptionPromoCodeResource extends Resource
     protected static ?string $model = SubscriptionPromoCode::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
-    protected static ?string $navigationLabel = 'Subscription promo codes';
+
+    protected static ?string $navigationLabel = 'Промокоды';
+
+    protected static ?string $modelLabel = 'промокод';
+
+    protected static ?string $pluralModelLabel = 'Промокоды';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Клиенты и коммуникации';
+
     protected static ?int $navigationSort = 10;
 
     public static function canAccess(): bool
@@ -54,37 +62,37 @@ class SubscriptionPromoCodeResource extends Resource
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('code')
-                    ->label('Code')
+                    ->label('Код')
                     ->searchable()
                     ->copyable()
                     ->sortable()
                     ->badge(),
                 Tables\Columns\TextColumn::make('duration_months')
-                    ->label('Months')
+                    ->label('Месяцев')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('used_count')
-                    ->label('Used')
+                    ->label('Активаций')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('max_uses')
-                    ->label('Max uses')
+                    ->label('Лимит активаций')
                     ->placeholder('∞')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('active')
-                    ->label('Active')
+                    ->label('Активен')
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('blogger_name')
-                    ->label('Blogger')
+                    ->label('Партнёр')
                     ->searchable()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('expires_at')
-                    ->label('Code valid until')
-                    ->dateTime()
+                    ->label('Действует до')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->actions([
@@ -97,29 +105,29 @@ class SubscriptionPromoCodeResource extends Resource
     {
         return $schema->components([
             TextInput::make('code')
-                ->label('Code')
+                ->label('Код')
                 ->required()
                 ->maxLength(40),
             TextInput::make('duration_months')
-                ->label('Access duration, months')
+                ->label('Срок доступа, месяцев')
                 ->required()
                 ->numeric()
                 ->minValue(1)
                 ->maxValue(36),
             TextInput::make('max_uses')
-                ->label('Max uses')
+                ->label('Лимит активаций')
                 ->numeric()
                 ->minValue(1),
             Toggle::make('active')
-                ->label('Active')
+                ->label('Активен')
                 ->default(true),
             TextInput::make('blogger_name')
-                ->label('Blogger')
+                ->label('Партнёр')
                 ->maxLength(120),
             DateTimePicker::make('expires_at')
-                ->label('Code valid until'),
+                ->label('Действует до'),
             Textarea::make('note')
-                ->label('Note')
+                ->label('Примечание')
                 ->rows(3),
         ]);
     }

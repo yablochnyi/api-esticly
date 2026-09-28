@@ -8,8 +8,13 @@ use Illuminate\Support\Facades\Gate;
 class HorizonPage extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-queue-list';
-    protected static ?string $navigationLabel = 'Queues';
-    protected static ?string $title = 'Queues';
+
+    protected static ?string $navigationLabel = 'Очереди задач';
+
+    protected static ?string $title = 'Очереди задач';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Система';
+
     protected static ?int $navigationSort = 91;
 
     protected string $view = 'filament.pages.horizon';

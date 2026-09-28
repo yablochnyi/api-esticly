@@ -18,7 +18,15 @@ class BroadcastPostResource extends Resource
     protected static ?string $model = BroadcastPost::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
-    protected static ?string $navigationLabel = 'Broadcasts';
+
+    protected static ?string $navigationLabel = 'Рассылки';
+
+    protected static ?string $modelLabel = 'рассылку';
+
+    protected static ?string $pluralModelLabel = 'Рассылки';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Клиенты и коммуникации';
+
     protected static ?int $navigationSort = 8;
 
     public static function canAccess(): bool
@@ -62,9 +70,9 @@ class BroadcastPostResource extends Resource
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make("title_translations.$defaultLocale")
-                    ->label('Title')
+                    ->label('Заголовок')
                     ->wrap(),
-                Tables\Columns\TextColumn::make('status')
+                Tables\Columns\TextColumn::make('status')->label('Статус')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))
                     ->badge()
                     ->color(fn (string $state) => match ($state) {
                         'sent' => 'success',
@@ -75,24 +83,24 @@ class BroadcastPostResource extends Resource
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('recipients_total')
-                    ->label('Recipients')
+                    ->label('Получателей')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('recipients_sent')
-                    ->label('Sent')
+                    ->label('Отправлено')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('recipients_failed')
-                    ->label('Failed')
+                    ->label('Ошибка')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_by_user_id')
-                    ->label('Created by')
+                    ->label('Автор')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('sent_at')
-                    ->label('Sent at')
-                    ->dateTime()
+                    ->label('Дата отправки')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->actions([
@@ -107,11 +115,11 @@ class BroadcastPostResource extends Resource
         foreach ((array) config('site_locales.supported', []) as $code => $meta) {
             $name = (string) ($meta['native'] ?? strtoupper((string) $code));
             $components[] = TextInput::make("title_translations.$code")
-                ->label("Title ($name)")
+                ->label("Заголовок ($name)")
                 ->required()
                 ->maxLength(120);
             $components[] = Textarea::make("body_translations.$code")
-                ->label("Message ($name)")
+                ->label("Сообщение ($name)")
                 ->required()
                 ->rows(4)
                 ->maxLength(500);

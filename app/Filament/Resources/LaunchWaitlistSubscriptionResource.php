@@ -15,7 +15,15 @@ class LaunchWaitlistSubscriptionResource extends Resource
     protected static ?string $model = LaunchWaitlistSubscription::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
-    protected static ?string $navigationLabel = 'Waitlist';
+
+    protected static ?string $navigationLabel = 'Лист ожидания';
+
+    protected static ?string $modelLabel = 'заявку';
+
+    protected static ?string $pluralModelLabel = 'Лист ожидания';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Клиенты и коммуникации';
+
     protected static ?int $navigationSort = 12;
 
     public static function canAccess(): bool
@@ -57,28 +65,28 @@ class LaunchWaitlistSubscriptionResource extends Resource
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
+                    ->label('Эл. почта')
                     ->searchable()
                     ->copyable()
                     ->wrap(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Phone')
+                    ->label('Телефон')
                     ->searchable()
                     ->copyable(),
                 Tables\Columns\TextColumn::make('locale')
-                    ->label('Locale')
+                    ->label('Язык')
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ip')
                     ->label('IP')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('subscribed_at')
-                    ->label('Subscribed')
-                    ->dateTime()
+                    ->label('В подписке')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
             ])

@@ -18,7 +18,15 @@ class DsarOperationResource extends Resource
     protected static ?string $model = DsarOperation::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?string $navigationLabel = 'DSAR';
+
+    protected static ?string $navigationLabel = 'Персональные данные';
+
+    protected static ?string $modelLabel = 'запрос данных';
+
+    protected static ?string $pluralModelLabel = 'Персональные данные';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Система';
+
     protected static ?int $navigationSort = 11;
 
     public static function canAccess(): bool
@@ -57,18 +65,18 @@ class DsarOperationResource extends Resource
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
-                Tables\Columns\TextColumn::make('org_id')->label('Org ID')->sortable(),
+                Tables\Columns\TextColumn::make('org_id')->label('ID салона')->sortable(),
                 Tables\Columns\TextColumn::make('org.company_name')
-                    ->label('Salon')
+                    ->label('Салон')
                     ->searchable()
                     ->wrap(),
-                Tables\Columns\TextColumn::make('client_id')->label('Client ID')->toggleable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->label('Type')
+                Tables\Columns\TextColumn::make('client_id')->label('ID клиента')->toggleable(),
+                Tables\Columns\TextColumn::make('type')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))
+                    ->label('Тип')
                     ->badge()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                Tables\Columns\TextColumn::make('status')->formatStateUsing(fn ($state) => \App\Support\AdminLabels::state($state))
+                    ->label('Статус')
                     ->badge()
                     ->color(fn (DsarOperation $record) => match ($record->status) {
                         'done' => 'success',
@@ -77,43 +85,46 @@ class DsarOperationResource extends Resource
                         default => 'gray',
                     })
                     ->sortable(),
-                Tables\Columns\TextColumn::make('target_email')->label('Target email')->wrap(),
-                Tables\Columns\TextColumn::make('actor_user_id')->label('Actor user')->toggleable(),
-                Tables\Columns\TextColumn::make('actor_staff_id')->label('Actor staff')->toggleable(),
-                Tables\Columns\TextColumn::make('language_code')->label('Lang')->toggleable(),
-                Tables\Columns\TextColumn::make('created_at')->label('Created')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('finished_at')->label('Finished')->dateTime()->toggleable(),
+                Tables\Columns\TextColumn::make('target_email')->label('Почта получателя')->wrap(),
+                Tables\Columns\TextColumn::make('actor_user_id')->label('Пользователь')->toggleable(),
+                Tables\Columns\TextColumn::make('actor_staff_id')->label('Сотрудник')->toggleable(),
+                Tables\Columns\TextColumn::make('language_code')->label('Язык')->toggleable(),
+                Tables\Columns\TextColumn::make('created_at')->label('Создано')->dateTime('d.m.Y H:i')->sortable(),
+                Tables\Columns\TextColumn::make('finished_at')->label('Завершено')->dateTime('d.m.Y H:i')->toggleable(),
             ])
             ->filters([
                 Tables\Filters\Filter::make('org_id')
-                    ->label('Org')
+                    ->label('Салон')
                     ->form([
-                        TextInput::make('org_id')->label('Org ID')->numeric(),
+                        TextInput::make('org_id')->label('ID салона')->numeric(),
                     ])
                     ->query(function ($query, array $data) {
                         $orgId = isset($data['org_id']) ? (int) $data['org_id'] : 0;
+
                         return $orgId > 0 ? $query->where('org_id', $orgId) : $query;
                     }),
                 Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус')
                     ->options([
-                        'pending' => 'pending',
-                        'running' => 'running',
-                        'done' => 'done',
-                        'failed' => 'failed',
+                        'pending' => 'Ожидает',
+                        'running' => 'Выполняется',
+                        'done' => 'Готово',
+                        'failed' => 'Ошибка',
                     ]),
                 Tables\Filters\SelectFilter::make('type')
+                    ->label('Тип запроса')
                     ->options([
-                        'export_client' => 'export_client',
-                        'anonymize_client' => 'anonymize_client',
-                        'export_all_clients' => 'export_all_clients',
-                        'export_org' => 'export_org',
+                        'export_client' => 'Экспорт клиента',
+                        'anonymize_client' => 'Обезличивание клиента',
+                        'export_all_clients' => 'Экспорт всех клиентов',
+                        'export_org' => 'Экспорт салона',
                     ]),
             ])
             ->actions([
                 Action::make('downloadClientJson')
-                    ->label('Client JSON')
+                    ->label('Клиент: JSON')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->visible(fn (DsarOperation $record) => !empty($record->client_id))
+                    ->visible(fn (DsarOperation $record) => ! empty($record->client_id))
                     ->url(fn (DsarOperation $record) => route('admin.dsar.export.client', [
                         'org_id' => $record->org_id,
                         'client_id' => $record->client_id,
@@ -121,7 +132,7 @@ class DsarOperationResource extends Resource
                     ]))
                     ->openUrlInNewTab(),
                 Action::make('downloadOrgJson')
-                    ->label('Salon JSON')
+                    ->label('Салон: JSON')
                     ->icon('heroicon-o-building-office-2')
                     ->url(fn (DsarOperation $record) => route('admin.dsar.export.org', [
                         'org_id' => $record->org_id,
@@ -129,7 +140,7 @@ class DsarOperationResource extends Resource
                     ]))
                     ->openUrlInNewTab(),
                 Action::make('downloadAllClientsJson')
-                    ->label('All Clients JSON')
+                    ->label('Все клиенты: JSON')
                     ->icon('heroicon-o-document-arrow-down')
                     ->url(fn (DsarOperation $record) => route('admin.dsar.export.clients', [
                         'org_id' => $record->org_id,
@@ -139,12 +150,12 @@ class DsarOperationResource extends Resource
             ])
             ->headerActions([
                 Action::make('exportAllClients')
-                    ->label('Export Clients JSON')
+                    ->label('Экспорт всех клиентов: JSON')
                     ->icon('heroicon-o-document-arrow-down')
                     ->form([
-                        TextInput::make('org_id')->label('Org ID')->numeric()->required(),
+                        TextInput::make('org_id')->label('ID салона')->numeric()->required(),
                         Select::make('lang')
-                            ->label('Language')
+                            ->label('Язык')
                             ->options(['pl' => 'PL', 'uk' => 'UK', 'en' => 'EN'])
                             ->default('pl')
                             ->required(),
@@ -156,12 +167,12 @@ class DsarOperationResource extends Resource
                         ]));
                     }),
                 Action::make('exportOrg')
-                    ->label('Export Salon JSON')
+                    ->label('Экспорт салона: JSON')
                     ->icon('heroicon-o-building-office-2')
                     ->form([
-                        TextInput::make('org_id')->label('Org ID')->numeric()->required(),
+                        TextInput::make('org_id')->label('ID салона')->numeric()->required(),
                         Select::make('lang')
-                            ->label('Language')
+                            ->label('Язык')
                             ->options(['pl' => 'PL', 'uk' => 'UK', 'en' => 'EN'])
                             ->default('pl')
                             ->required(),
@@ -173,13 +184,13 @@ class DsarOperationResource extends Resource
                         ]));
                     }),
                 Action::make('exportClient')
-                    ->label('Export Single Client JSON')
+                    ->label('Экспорт клиента: JSON')
                     ->icon('heroicon-o-user')
                     ->form([
-                        TextInput::make('org_id')->label('Org ID')->numeric()->required(),
-                        TextInput::make('client_id')->label('Client ID')->numeric()->required(),
+                        TextInput::make('org_id')->label('ID салона')->numeric()->required(),
+                        TextInput::make('client_id')->label('ID клиента')->numeric()->required(),
                         Select::make('lang')
-                            ->label('Language')
+                            ->label('Язык')
                             ->options(['pl' => 'PL', 'uk' => 'UK', 'en' => 'EN'])
                             ->default('pl')
                             ->required(),

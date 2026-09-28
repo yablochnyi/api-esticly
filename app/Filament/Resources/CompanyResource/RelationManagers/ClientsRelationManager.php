@@ -13,6 +13,8 @@ class ClientsRelationManager extends RelationManager
 {
     protected static string $relationship = 'clients';
 
+    protected static ?string $title = 'Клиенты';
+
     public static function canViewForRecord($ownerRecord, string $pageClass): bool
     {
         return Gate::allows('access-filament-admin');
@@ -29,20 +31,20 @@ class ClientsRelationManager extends RelationManager
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Client')
+                    ->label('Клиент')
                     ->searchable()
                     ->wrap(),
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Phone')
+                    ->label('Телефон')
                     ->searchable()
                     ->copyable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Deleted')
-                    ->dateTime()
+                    ->label('Удалено')
+                    ->dateTime('d.m.Y H:i')
                     ->toggleable(),
             ])
             ->filters([

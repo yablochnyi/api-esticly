@@ -12,6 +12,8 @@ class ServicesRelationManager extends RelationManager
 {
     protected static string $relationship = 'services';
 
+    protected static ?string $title = 'Услуги';
+
     public static function canViewForRecord($ownerRecord, string $pageClass): bool
     {
         return Gate::allows('access-filament-admin');
@@ -27,22 +29,22 @@ class ServicesRelationManager extends RelationManager
                     ->label('#')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Service')
+                    ->label('Услуга')
                     ->searchable()
                     ->wrap(),
                 Tables\Columns\TextColumn::make('price_summary')
-                    ->label('Price')
+                    ->label('Цена')
                     ->state(fn (Service $record): string => $this->formatServicePrice($record)),
                 Tables\Columns\TextColumn::make('duration_summary')
-                    ->label('Duration')
+                    ->label('Длительность')
                     ->state(fn (Service $record): string => $this->formatServiceDuration($record)),
                 Tables\Columns\TextColumn::make('staff_count')
-                    ->label('Staff')
+                    ->label('Команда')
                     ->counts('staff')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
+                    ->label('Создано')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->headerActions([])

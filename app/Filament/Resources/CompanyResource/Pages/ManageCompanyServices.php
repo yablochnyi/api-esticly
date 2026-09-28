@@ -12,9 +12,12 @@ use Illuminate\Support\Facades\Gate;
 class ManageCompanyServices extends ManageRelatedRecords
 {
     protected static string $resource = CompanyResource::class;
+
     protected static string $relationship = 'services';
-    protected static ?string $navigationLabel = 'Services';
-    protected static ?string $title = 'Company services';
+
+    protected static ?string $navigationLabel = 'Услуги';
+
+    protected static ?string $title = 'Услуги салона';
 
     public static function canAccess(array $parameters = []): bool
     {
@@ -27,15 +30,15 @@ class ManageCompanyServices extends ManageRelatedRecords
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
-                Tables\Columns\TextColumn::make('name')->label('Service')->searchable()->wrap(),
+                Tables\Columns\TextColumn::make('name')->label('Услуга')->searchable()->wrap(),
                 Tables\Columns\TextColumn::make('price_summary')
-                    ->label('Price')
+                    ->label('Цена')
                     ->state(fn (Service $record): string => $this->formatServicePrice($record)),
                 Tables\Columns\TextColumn::make('duration_summary')
-                    ->label('Duration')
+                    ->label('Длительность')
                     ->state(fn (Service $record): string => $this->formatServiceDuration($record)),
-                Tables\Columns\TextColumn::make('staff_count')->label('Staff')->counts('staff')->sortable(),
-                Tables\Columns\TextColumn::make('created_at')->label('Created')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('staff_count')->label('Команда')->counts('staff')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->label('Создано')->dateTime('d.m.Y H:i')->sortable(),
             ])
             ->headerActions([])
             ->actions([])
@@ -64,11 +67,11 @@ class ManageCompanyServices extends ManageRelatedRecords
         $to = (int) ($service->duration_to_min ?? 0);
 
         if ($from > 0 && $to > 0 && $from !== $to) {
-            return "{$from}-{$to} min";
+            return "{$from}-{$to} мин.";
         }
 
         $value = max($from, $to);
 
-        return $value > 0 ? "{$value} min" : '—';
+        return $value > 0 ? "{$value} мин." : '—';
     }
 }
