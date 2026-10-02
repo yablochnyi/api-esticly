@@ -32,6 +32,8 @@ class GoogleCalendarTest extends TestCase
 
     private bool $loseInsertReply = false;
 
+    private ?\Closure $httpOverride = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -78,6 +80,9 @@ class GoogleCalendarTest extends TestCase
         DB::table('services')->insert(['id' => 1, 'name' => 'Manicure']);
         Http::preventStrayRequests();
         Http::fake(function ($request) {
+            if ($this->httpOverride && ($response = ($this->httpOverride)($request)) !== null) {
+                return $response;
+            }
             if ($request->url() === 'https://oauth2.googleapis.com/token') {
                 if ($this->invalidGrant) {
                     return Http::response(['error' => 'invalid_grant'], 400);
@@ -152,6 +157,102 @@ class GoogleCalendarTest extends TestCase
             'client_phone' => 'private-phone', 'comment' => 'private-note', 'status' => 'pending',
             'starts_at' => '2026-10-25 00:30:00', 'ends_at' => '2026-10-25 01:30:00', ...$attributes,
         ]);
+    }
+
+    public static function diagnosticResponses(): array
+    {
+        return [
+            'rate limit' => [429, 'rateLimitExceeded', 'provider_unavailable', 'connected'],
+            'quota 403' => [403, 'userRateLimitExceeded', 'provider_unavailable', 'connected'],
+            'provider 503' => [503, 'backendError', 'provider_unavailable', 'connected'],
+            'permission 403' => [403, 'forbidden', 'reconnect_required', 'needs_reconnect'],
+            'missing calendar' => [404, 'notFound', 'calendar_missing', 'needs_reconnect'],
+            'unexpected response' => [400, 'private-secret@example.test', 'provider_unavailable', 'connected'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('diagnosticResponses')]
+    public function test_sync_logs_safe_http_diagnostics(int $status, string $code, string $reason, string $state): void
+    {
+        Log::spy();
+        $connection = $this->connection($this->user());
+        $this->httpOverride = fn () => Http::response([
+            'error' => ['message' => 'secret-access secret-refresh private-phone calendar@test',
+                'errors' => [['reason' => $code]]],
+        ], $status, ['Retry-After' => '120', 'X-Private' => 'secret-access']);
+        app(GoogleCalendarSync::class)->run($connection->id);
+        Log::shouldHaveReceived('warning')->once()->with('google_calendar_sync_failed', \Mockery::on(function ($context) use ($connection, $status, $code, $reason) {
+            $this->assertSame($connection->id, $context['connection_id']);
+            $this->assertSame($connection->user_id, $context['user_id']);
+            $this->assertSame('calendar.read', $context['operation']);
+            $this->assertSame($status, $context['http_status']);
+            $this->assertSame($reason, $context['reason']);
+            $this->assertSame(str_contains($code, '@') ? 'unrecognized' : $code, $context['provider_code']);
+            $this->assertSame(120, $context['retry_after_seconds']);
+            foreach (['secret-access', 'secret-refresh', 'private-phone', 'calendar@test', 'private-secret'] as $secret) {
+                $this->assertStringNotContainsString($secret, json_encode($context));
+            }
+            return true;
+        }));
+        $this->assertSame($state, $connection->fresh()->status);
+    }
+
+    public function test_refresh_failure_logs_token_stage_and_sanitizes_headers(): void
+    {
+        Log::spy();
+        $connection = $this->connection($this->user(), ['token_expires_at' => now()->subMinute()]);
+        $this->httpOverride = fn () => Http::response(['error' => 'invalid_grant', 'error_description' => 'secret-refresh'], 400, ['Retry-After' => 'secret-refresh']);
+        app(GoogleCalendarSync::class)->run($connection->id);
+        Log::shouldHaveReceived('warning')->once()->with('google_calendar_sync_failed', \Mockery::on(function ($context) {
+            $this->assertSame('token.refresh', $context['operation']);
+            $this->assertSame(400, $context['http_status']);
+            $this->assertSame('invalid_grant', $context['provider_code']);
+            $this->assertNull($context['retry_after_seconds']);
+            $this->assertStringNotContainsString('secret-refresh', json_encode($context));
+            return true;
+        }));
+        $this->assertSame('needs_reconnect', $connection->fresh()->status);
+    }
+
+    public function test_transport_failure_logs_exception_class_without_message(): void
+    {
+        Log::spy();
+        $connection = $this->connection($this->user());
+        $this->httpOverride = function () {
+            $cause = new \GuzzleHttp\Exception\ConnectException('secret-access',
+                new \GuzzleHttp\Psr7\Request('GET', 'https://private-calendar.test'), null,
+                ['errno' => 28, 'url' => 'https://private-calendar.test']);
+            throw new \Illuminate\Http\Client\ConnectionException('secret-access https://private-calendar.test', 0, $cause);
+        };
+        $this->assertFalse(app(GoogleCalendarSync::class)->run($connection->id));
+        Log::shouldHaveReceived('warning')->once()->with('google_calendar_sync_failed', \Mockery::on(function ($context) {
+            $this->assertSame('calendar.read', $context['operation']);
+            $this->assertSame(\Illuminate\Http\Client\ConnectionException::class, $context['exception_type']);
+            $this->assertSame(28, $context['curl_errno']);
+            $this->assertArrayNotHasKey('http_status', $context);
+            $this->assertStringNotContainsString('secret-access', json_encode($context));
+            $this->assertStringNotContainsString('private-calendar', json_encode($context));
+            return true;
+        }));
+    }
+
+    public function test_failed_event_creation_keeps_http_status_and_operation(): void
+    {
+        Log::spy();
+        $user = $this->user();
+        $connection = $this->connection($user);
+        $id = $this->visit($user);
+        $this->httpOverride = fn ($request) => $request->method() === 'POST' && str_contains($request->url(), '/events')
+            ? Http::response(['error' => ['errors' => [['reason' => 'invalid']], 'message' => 'private-phone']], 400) : null;
+        $this->assertFalse(app(GoogleCalendarSync::class)->run($connection->id, $id));
+        Log::shouldHaveReceived('warning')->once()->with('google_calendar_sync_failed', \Mockery::on(function ($context) use ($id) {
+            $this->assertSame('event.create', $context['operation']);
+            $this->assertSame(400, $context['http_status']);
+            $this->assertSame($id, $context['visit_id']);
+            $this->assertStringNotContainsString('private-phone', json_encode($context));
+            return true;
+        }));
+        $this->assertNull($connection->fresh()->last_synced_at);
     }
 
     public function test_oauth_is_bound_to_user_single_use_and_requires_in_app_confirmation(): void

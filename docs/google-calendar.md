@@ -158,6 +158,23 @@ Run master-app/test/google_calendar_test.dart with Flutter for consent, status,
 localisation and layout checks. All automated Google calls are mocked; they do
 not prove that the real OAuth client/audience/scopes are correctly configured.
 
+## Safe sync diagnostics
+
+`google_calendar_sync_failed` records the connection/user IDs, an optional targeted
+visit ID, the existing public reason, `operation`, and `exception_type`. Operations
+distinguish token refresh, calendar reads, event creation/update/deletion, and local
+payload/persistence/checkpoint work. HTTP failures include `http_status`, an
+allowlisted `provider_code` (unknown values become `unrecognized`), and a numeric
+`retry_after_seconds` when available. Network failures include `curl_errno` when
+Guzzle supplies it; no HTTP status is invented when no response arrived.
+
+No exception messages, traces, request URLs, tokens, response bodies, calendar IDs,
+event titles, or client details are logged. A `provider_unavailable` reason alone
+does not prove Google was down: inspect the operation, exception class and status.
+Retry behavior and client-facing errors are unchanged. Older log entries cannot
+be retroactively enriched. Deploy all three GoogleCalendar service files together
+and restart queue workers so long-lived jobs use the new diagnostics.
+
 References:
 - https://developers.google.com/workspace/calendar/api/auth
 - https://developers.google.com/identity/protocols/oauth2/web-server
