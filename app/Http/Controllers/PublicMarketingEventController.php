@@ -13,6 +13,11 @@ class PublicMarketingEventController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        // Older pages must not continue collecting analytics without an explicit choice.
+        if ($request->input('analytics_consent') !== 'v1') {
+            return response()->json(['ok' => false], 403);
+        }
+
         $validated = $request->validate([
             'event' => ['required', 'string', Rule::in(['landing_view', 'app_store_click', 'google_play_click'])],
             'locale' => ['nullable', 'string', 'max:10'],

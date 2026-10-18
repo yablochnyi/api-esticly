@@ -486,11 +486,8 @@
     const endpoint = @json(route('marketing.track'));
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const visitorKey = 'esticly_marketing_visitor_id';
-    let visitorId = window.localStorage.getItem(visitorKey);
-    if (!visitorId) {
-        visitorId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        window.localStorage.setItem(visitorKey, visitorId);
-    }
+    let visitorId;
+    let viewSent = false;
 
     const params = new URLSearchParams(window.location.search);
     const basePayload = () => ({
@@ -513,7 +510,17 @@
     });
 
     const send = (event) => {
-        const payload = {event, ...basePayload()};
+        if (!window.EsticlyConsent?.allowsAnalytics()) return;
+        if (!visitorId) {
+            try {
+                visitorId = window.localStorage.getItem(visitorKey);
+            } catch (_) {}
+            visitorId ||= window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            try {
+                window.localStorage.setItem(visitorKey, visitorId);
+            } catch (_) {}
+        }
+        const payload = {event, analytics_consent: 'v1', ...basePayload()};
         const form = new FormData();
         form.append('_token', csrf);
         Object.entries(payload).forEach(([key, value]) => {
@@ -538,7 +545,18 @@
         }).catch(() => {});
     };
 
-    send('landing_view');
+    const trackView = () => {
+        if (!window.EsticlyConsent?.allowsAnalytics()) {
+            visitorId = undefined;
+            return;
+        }
+        if (!viewSent) {
+            viewSent = true;
+            send('landing_view');
+        }
+    };
+    window.addEventListener('esticly:consent', trackView);
+    trackView();
 
     document.querySelectorAll('[data-marketing-store-click]').forEach((link) => {
         link.addEventListener('click', () => {

@@ -66,6 +66,15 @@
 
           <h2>{{ $copy['h6'] }}</h2>
           <p>{!! str_replace(':email', '<a href="mailto:'.$email.'">'.$email.'</a>', e($copy['p6'])) !!}</p>
+
+          <section id="cookies">
+            <h2>{{ __('cookies.policy_title') }}</h2>
+            <p>{{ __('cookies.necessary_description') }}</p>
+            <p>{{ __('cookies.analytics_description') }}</p>
+            <p>{{ __('cookies.retention') }}</p>
+            <p><a href="https://policies.google.com/privacy" rel="noopener" target="_blank">{{ __('cookies.google_privacy') }}</a></p>
+            <button type="button" class="cookie-settings-link" data-cookie-settings hidden>{{ __('cookies.settings') }}</button>
+          </section>
         </div>
       </div>
     </div>

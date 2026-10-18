@@ -33,13 +33,8 @@
     @endif
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/src/style.css') }}">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N67PPKX0S8"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-N67PPKX0S8');
-    </script>
+    <link rel="stylesheet" href="{{ asset('assets/src/cookie-consent.css') }}?v=1">
+    <script defer src="{{ asset('assets/src/cookie-consent.js') }}?v=1"></script>
     @stack('head')
 </head>
 <body>
@@ -117,9 +112,12 @@
         <div class="footer-links">
             <a href="{{ route('legal.privacy.localized', ['locale' => $currentLocale]) }}">{{ __('landing.footer.privacy') }}</a>
             <a href="{{ route('legal.terms.localized', ['locale' => $currentLocale]) }}">{{ __('landing.footer.terms') }}</a>
+            <button type="button" class="cookie-settings-link" data-cookie-settings hidden>{{ __('cookies.settings') }}</button>
         </div>
     </div>
 </footer>
+
+@include('partials.cookie-consent')
 
 <div id="app"></div>
 <script type="module" src="{{ asset('assets/src/main.js') }}"></script>
