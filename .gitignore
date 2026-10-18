@@ -21,6 +21,9 @@
 /storage/pail
 /vendor
 firebase-service-account.json
+google-play-service-account.json
+apple_subscription_key.p8
+/backups/
 Homestead.json
 Homestead.yaml
 Thumbs.db

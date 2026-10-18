@@ -43,9 +43,29 @@ class OtpAppCheckTest extends TestCase
         ]]];
     }
 
+    protected function tearDown(): void
+    {
+        \Illuminate\Support\Facades\Schema::dropIfExists('staff');
+        \Illuminate\Support\Facades\Schema::dropIfExists('users');
+        parent::tearDown();
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Schema::create('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+            $table->id();
+            $table->string('phone');
+            $table->string('phone_hash')->nullable();
+        });
+        \Illuminate\Support\Facades\Schema::create('staff', function (\Illuminate\Database\Schema\Blueprint $table) {
+            $table->id();
+            $table->string('phone');
+            $table->string('phone_hash')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->json('permissions')->nullable();
+            $table->softDeletes();
+        });
         config([
             'app_check.enforce' => true,
             'app_check.project_number' => '725624745298',
@@ -113,8 +133,8 @@ class OtpAppCheckTest extends TestCase
 
     public function test_both_registered_apps_are_accepted_with_fresh_tokens(): void
     {
-        foreach (config('app_check.app_ids') as $appId) {
-            $this->send($this->token(['sub' => $appId]))->assertOk();
+        foreach (config('app_check.app_ids') as $index => $appId) {
+            $this->send($this->token(['sub' => $appId]), '192.0.2.1', '+1202555010'.$index)->assertOk();
         }
         $this->assertSame(2, $this->sends);
         Http::assertSentCount(1);
@@ -223,6 +243,16 @@ class OtpAppCheckTest extends TestCase
         config(['app_check.enforce' => false]);
         $this->send(null)->assertForbidden();
         $this->assertSame(0, $this->sends);
+    }
+
+    public function test_local_backend_can_explicitly_disable_attestation(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        config(['app_check.enforce' => false]);
+        $this->postJson('/api/mobile/auth/send-otp', [])->assertUnprocessable()
+            ->assertJsonValidationErrors('phone');
+        $this->assertSame(0, $this->sends);
+        Http::assertNothingSent();
     }
 
     public function test_otp_verification_is_not_intercepted_by_app_check(): void

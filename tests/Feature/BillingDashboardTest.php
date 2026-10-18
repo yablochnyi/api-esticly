@@ -98,6 +98,26 @@ class BillingDashboardTest extends TestCase
         $importer->importGoogleOrder($payment, ['orderId' => 'wrong']);
     }
 
+    public function test_apple_long_period_payments_are_imported_with_their_full_amount(): void
+    {
+        $subscription = $this->subscription();
+        $importer = new BillingPaymentImporter;
+        foreach (['basic', 'pro'] as $plan) {
+            foreach (['6months', 'yearly'] as $period) {
+                $transaction = array_replace($this->appleTransaction(), [
+                    'transactionId' => $plan.'-'.$period,
+                    'productId' => 'esticly_'.$plan.'_'.$period,
+                    'price' => $period === '6months' ? 295000 : 590000,
+                ]);
+                $importer->importAppleSnapshot($subscription, ['latest_transaction' => $transaction]);
+                $payment = SubscriptionPayment::where('external_id', $transaction['transactionId'])->firstOrFail();
+                $this->assertSame($plan, $payment->plan_code);
+                $this->assertSame($transaction['price'] * 1000, $payment->amount_micros);
+            }
+        }
+        $this->assertSame(4, SubscriptionPayment::count());
+    }
+
     public function test_current_payers_require_valid_dates_production_and_positive_confirmed_payment(): void
     {
         $active = $this->subscription();

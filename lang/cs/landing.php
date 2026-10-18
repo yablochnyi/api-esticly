@@ -129,6 +129,7 @@ return [
         'app_screenshot' => 'Obrazovka aplikace Esticly',
     ],
     'footer' => [
+        'developed_by' => 'Vytvořeno společností',
         'description' => 'Vyzkoušejte moderní CRM pro beauty salony a nezávislé profesionály, které automatizuje rezervace, zlepšuje servis a zvyšuje příjmy.',
         'menu_title' => 'Navigace',
         'contacts_title' => 'Kontakt',

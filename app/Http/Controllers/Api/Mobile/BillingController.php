@@ -71,6 +71,7 @@ class BillingController extends Controller
 
         return response()->json([
             'ok' => true,
+            'google_purchase_requires_existing' => GooglePlaySubscriptions::requiresExistingPurchase($org),
             'subscription' => $subscription ? [
                 'id' => $subscription->id,
                 'provider' => $subscription->provider,

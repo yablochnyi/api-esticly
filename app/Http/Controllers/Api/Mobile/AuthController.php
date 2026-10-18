@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Staff;
 use App\Models\User;
 use App\Services\OtpSendGuard;
+use App\Services\OtpCaptcha;
 use App\Support\PhoneIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -307,6 +308,8 @@ class AuthController extends Controller
             'phone' => ['required', 'string', 'max:32', 'regex:/^\+?[0-9\s().-]+$/'],
             'country' => ['nullable', 'string', 'max:8'],
             'language' => ['nullable', 'string', 'max:16'],
+            'captcha_id' => ['nullable', 'string', 'size:64', 'regex:/^[a-f0-9]+$/D'],
+            'captcha_token' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $to = $this->normalizeE164($data['phone']);
@@ -332,7 +335,29 @@ class AuthController extends Controller
             ]);
         }
 
-        if ($denied = $guard->reserve((string) $request->ip())) {
+        $registered = $this->findUserByPhone($to) !== null;
+        if (! $registered) {
+            $staff = $this->findStaffByPhone($to);
+            $registered = $staff && $staff->is_active && ! $staff->deleted_at
+                && (bool) ($staff->permissions['base_access'] ?? false);
+        }
+        if (config('otp.captcha.enabled')) {
+            if (! $registered) {
+                $captcha = app(OtpCaptcha::class)->check($to, (string) $request->ip(), $data['captcha_id'] ?? null, $data['captcha_token'] ?? null);
+                if ($captcha !== null) {
+                    logger()->notice('otp_send_result', $context + ['result' => $captcha['code']]);
+
+                    return response()->json([
+                        'ok' => false,
+                        'code' => $captcha['code'],
+                        'message' => 'Security verification required. Please use the latest app version and try again.',
+                    ] + (isset($captcha['captcha']) ? ['captcha' => $captcha['captcha']] : []), $captcha['status'])
+                        ->header('Cache-Control', 'no-store');
+                }
+            }
+        }
+
+        if ($denied = $guard->reserve((string) $request->ip(), $to, $registered)) {
             logger()->notice('otp_send_result', $context + ['result' => $denied['code']]);
 
             return response()->json([

@@ -2424,3 +2424,6 @@ body {
     font-size: 20px;
   }
 }
+
+/* Shared web-project attribution. */
+.footer-bottom{flex-wrap:wrap;gap:16px}.vendra-credit{font-family:Inter,sans-serif;font-size:13px;line-height:1.6;color:#454056}.vendra-credit a{color:inherit;text-decoration:underline;text-underline-offset:3px}.vendra-credit a:focus-visible{outline:2px solid currentColor;outline-offset:4px}

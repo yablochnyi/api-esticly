@@ -32,8 +32,8 @@ class AppStoreSubscriptions
     public static function planCodeForProductId(string $productId): ?string
     {
         return match (trim($productId)) {
-            'esticly_basic_monthly' => OrgSubscription::PLAN_BASIC,
-            'esticly_pro_monthly' => OrgSubscription::PLAN_PRO,
+            'esticly_basic_monthly', 'esticly_basic_6months', 'esticly_basic_yearly' => OrgSubscription::PLAN_BASIC,
+            'esticly_pro_monthly', 'esticly_pro_6months', 'esticly_pro_yearly' => OrgSubscription::PLAN_PRO,
             default => null,
         };
     }
@@ -70,14 +70,9 @@ class AppStoreSubscriptions
             throw new \RuntimeException('app_store_invalid_history');
         }
 
-        $match = null;
-        foreach ($payloads as $payload) {
-            if ((string) ($payload['productId'] ?? '') === $productId) {
-                $match = $payload;
-                break;
-            }
-        }
-        $match ??= $payloads[0];
+        $match = self::currentTransactionFromHistory($payloads, $transactionId);
+        $productId = (string) $match['productId'];
+        $planCode = self::planCodeForProductId($productId);
 
         $bundleId = (string) ($match['bundleId'] ?? '');
         if ($bundleId !== '' && $bundleId !== self::bundleId()) {
@@ -142,6 +137,32 @@ class AppStoreSubscriptions
     public static function decodeNotification(string $signedPayload): ?array
     {
         return self::decodeSignedPayload($signedPayload);
+    }
+
+    public static function currentTransactionFromHistory(array $payloads, string $transactionId): array
+    {
+        $chain = null;
+        foreach ($payloads as $payload) {
+            if (is_array($payload) && ((string) ($payload['transactionId'] ?? '') === $transactionId
+                || (string) ($payload['originalTransactionId'] ?? '') === $transactionId)) {
+                $chain = $payload['originalTransactionId'] ?? null;
+                break;
+            }
+        }
+        if (!$chain) {
+            throw new \RuntimeException('app_store_transaction_not_in_history');
+        }
+        // A restore may report an old monthly product after a period change.
+        $known = array_filter($payloads, fn ($p) => is_array($p)
+            && ($p['originalTransactionId'] ?? null) === $chain
+            && self::planCodeForProductId((string) ($p['productId'] ?? '')) !== null
+            && ($p['isUpgraded'] ?? false) !== true);
+        usort($known, fn ($a, $b) => ($b['purchaseDate'] ?? 0) <=> ($a['purchaseDate'] ?? 0));
+        if ($known === []) {
+            throw new \RuntimeException('app_store_unknown_product_history');
+        }
+
+        return $known[0];
     }
 
     public static function orgIdForAppAccountToken(string $appAccountToken): ?int

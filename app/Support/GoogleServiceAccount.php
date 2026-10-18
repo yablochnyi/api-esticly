@@ -85,7 +85,7 @@ class GoogleServiceAccount
 
         $jwt = $signingInput.'.'.self::base64UrlEncode($signature);
 
-        $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
+        $response = Http::asForm()->connectTimeout(5)->timeout(20)->post('https://oauth2.googleapis.com/token', [
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion' => $jwt,
         ]);

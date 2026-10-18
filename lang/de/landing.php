@@ -129,6 +129,7 @@ return [
         'app_screenshot' => 'Bildschirm der Esticly-App',
     ],
     'footer' => [
+        'developed_by' => 'Entwickelt von',
         'description' => 'Probiere ein modernes CRM für Beauty-Salons und selbstständige Beauty-Profis, das Buchungen automatisiert, Service verbessert und Umsätze steigert.',
         'menu_title' => 'Navigation',
         'contacts_title' => 'Kontakt',
