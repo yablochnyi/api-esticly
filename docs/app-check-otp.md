@@ -93,7 +93,29 @@ Audit events: `otp_app_check_verified`, `otp_app_check_rejected`,
 8. Resume actual production OTP ONLY after explicit owner approval and successful
    testing/release coordination. Do not temporarily remove the App Check guard.
 
-For local simulator work only: use a separate Firebase test project, register its
+## Local API development without attestation
+
+For a simulator connected ONLY to the developer's local API, set
+`APP_ENV=local` and `APP_CHECK_ENFORCE=false` in the local untracked `.env`.
+Start the Flutter DEBUG build with both:
+
+```text
+--dart-define=API_BASE_URL=http://127.0.0.1:8000/api/mobile
+--dart-define=LOCAL_OTP_WITHOUT_APP_CHECK=true
+```
+
+The VS Code launch configuration `Esticly: local API (iOS simulator)` sets these
+flags. A full stop/start is required when changing defines. Android emulator
+uses `10.0.2.2` instead of `127.0.0.1`.
+The client skips attestation only with explicit opt-in, a debug build and an
+exact loopback/emulator host. Redirects stay disabled. Release/profile and remote
+API calls still require tokens. The backend independently rejects disabling
+App Check outside local/testing. This does not bypass OTP code verification or
+grant access to a production account: the local API uses its own database.
+Use the existing locally configured review number/code for development without
+SMS charges. Never put this configuration in the production environment.
+
+For simulator testing WITH attestation: use a separate Firebase test project, register its
 debug token there, set `--dart-define=APP_CHECK_DEBUG=true` in a debug build and
 point the app/backend at that test environment. Never register debug tokens in
 the production Firebase project or share them in logs/chat. Release/profile builds

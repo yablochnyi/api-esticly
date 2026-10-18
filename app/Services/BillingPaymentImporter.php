@@ -12,6 +12,16 @@ use Illuminate\Support\Facades\Http;
 /** Read-only store lookups; this projection never changes subscription entitlements. */
 class BillingPaymentImporter
 {
+    public function refreshGoogleSubscription(Subscription $subscription): void
+    {
+        $this->discoverGoogleOrder($subscription, $subscription->meta ?? []);
+        foreach (SubscriptionPayment::where('subscription_id', $subscription->id)
+            ->where('provider', 'google_play')->where(fn ($q) => $q->whereNull('checked_at')
+            ->orWhereNotNull('lookup_error')->orWhereIn('state', ['unknown', 'pending', 'pending_refund']))->get() as $payment) {
+            $this->importGoogleOrder($payment, $this->fetchGoogleOrder($payment->external_id));
+        }
+    }
+
     public function refresh(bool $force = false): array
     {
         $errors = 0;
@@ -93,11 +103,7 @@ class BillingPaymentImporter
                 continue;
             }
             $product = (string) ($transaction['productId'] ?? '');
-            $plan = match ($product) {
-                'esticly_basic_monthly' => 'basic',
-                'esticly_pro_monthly' => 'pro',
-                default => null,
-            };
+            $plan = \App\Support\AppStoreSubscriptions::planCodeForProductId($product);
             if ($plan === null) {
                 continue;
             }
