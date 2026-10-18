@@ -324,6 +324,7 @@
     </div>
 
     <div class="footer-bottom">
+        @include('partials.vendra-credit')
         <span class="footer-copyright">2026 Esticly</span>
         <div class="footer-links">
             <a href="{{ route('legal.privacy.localized', ['locale' => $currentLocale]) }}">{{ __('landing.footer.privacy') }}</a>

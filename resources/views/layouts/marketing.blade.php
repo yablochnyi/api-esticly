@@ -112,6 +112,7 @@
     @endif
 
     <div class="footer-bottom" @if(!$showFooterTop) style="border-top:0;padding-top:0;" @endif>
+        @include('partials.vendra-credit')
         <span class="footer-copyright">{{ __('landing.footer.copyright') }}</span>
         <div class="footer-links">
             <a href="{{ route('legal.privacy.localized', ['locale' => $currentLocale]) }}">{{ __('landing.footer.privacy') }}</a>

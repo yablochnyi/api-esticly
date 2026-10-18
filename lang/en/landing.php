@@ -203,6 +203,7 @@ return [
         'app_screenshot' => 'Esticly app screen',
     ],
     'footer' => [
+        'developed_by' => 'Developed by',
         'description' => 'Try a modern CRM for beauty salons and independent professionals that helps automate bookings, improve service quality, and increase revenue.',
         'menu_title' => 'Navigation',
         'contacts_title' => 'Contacts',

@@ -203,6 +203,7 @@ return [
         'app_screenshot' => 'Ekran aplikacji Esticly',
     ],
     'footer' => [
+        'developed_by' => 'Projekt i realizacja',
         'description' => 'Wypróbuj nowoczesny CRM dla salonów beauty i indywidualnych specjalistów, który pomaga automatyzować zapisy, poprawiać obsługę i zwiększać przychody.',
         'menu_title' => 'Nawigacja',
         'contacts_title' => 'Kontakt',

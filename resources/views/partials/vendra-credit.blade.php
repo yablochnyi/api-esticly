@@ -1,0 +1,1 @@
+<span class="vendra-credit">{{ __('landing.footer.developed_by') }} <a href="https://getvendra.app/{{ in_array($currentLocale, ['uk', 'en', 'pl', 'de', 'fr', 'es', 'it', 'pt'], true) ? $currentLocale : 'en' }}?utm_source=esticly&amp;utm_medium=referral&amp;utm_campaign=project_credit" target="_blank" rel="noopener">Vendra ↗</a></span>
