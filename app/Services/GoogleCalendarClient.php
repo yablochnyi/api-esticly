@@ -72,17 +72,21 @@ class GoogleCalendarClient
     private function refresh(GoogleCalendarConnection $connection): void
     {
         if (! $connection->refresh_token) {
-            throw new GoogleCalendarFailure('reconnect_required');
+            throw new GoogleCalendarFailure('reconnect_required', ['operation' => 'token.refresh', 'provider_code' => 'missing_refresh_token']);
         }
-        $response = $this->tokenRequest([
-            'grant_type' => 'refresh_token',
-            'refresh_token' => $connection->refresh_token,
-        ]);
+        try {
+            $response = $this->tokenRequest([
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $connection->refresh_token,
+            ]);
+        } catch (\Throwable $e) {
+            throw GoogleCalendarFailure::fromException('token.refresh', $e);
+        }
         if ($response->json('error') === 'invalid_grant') {
-            throw new GoogleCalendarFailure('reconnect_required');
+            throw GoogleCalendarFailure::fromResponse('reconnect_required', 'token.refresh', $response);
         }
         if (! $response->successful() || ! $response->json('access_token')) {
-            throw new GoogleCalendarFailure('provider_unavailable');
+            throw GoogleCalendarFailure::fromResponse('provider_unavailable', 'token.refresh', $response);
         }
         $connection->update([
             'access_token' => $response->json('access_token'),
@@ -92,21 +96,32 @@ class GoogleCalendarClient
 
     public function request(GoogleCalendarConnection $connection, string $method, string $path, ?array $data = null): Response
     {
+        $operation = match (strtoupper($method)) {
+            'GET' => 'calendar.read',
+            'PUT' => 'event.update',
+            'DELETE' => 'event.delete',
+            'POST' => $path === 'calendars' ? 'calendar.create' : 'event.create',
+            default => 'calendar.request',
+        };
         if (! $connection->token_expires_at || $connection->token_expires_at->lte(now()->addMinute())) {
             $this->refresh($connection);
         }
         for ($attempt = 0; $attempt < 2; $attempt++) {
-            $response = Http::withToken($connection->access_token)->acceptJson()->connectTimeout(5)->timeout(10)
-                ->send($method, 'https://www.googleapis.com/calendar/v3/'.$path,
-                    $data === null ? [] : ['json' => $data]);
+            try {
+                $response = Http::withToken($connection->access_token)->acceptJson()->connectTimeout(5)->timeout(10)
+                    ->send($method, 'https://www.googleapis.com/calendar/v3/'.$path,
+                        $data === null ? [] : ['json' => $data]);
+            } catch (\Throwable $e) {
+                throw GoogleCalendarFailure::fromException($operation, $e);
+            }
             if ($response->status() !== 401) {
                 if ($response->status() === 429 || $response->serverError()) {
-                    throw new GoogleCalendarFailure('provider_unavailable');
+                    throw GoogleCalendarFailure::fromResponse('provider_unavailable', $operation, $response);
                 }
                 if ($response->status() === 403) {
                     $reason = $response->json('error.errors.0.reason');
-                    throw new GoogleCalendarFailure(in_array($reason, ['rateLimitExceeded', 'userRateLimitExceeded'], true)
-                        ? 'provider_unavailable' : 'reconnect_required');
+                    throw GoogleCalendarFailure::fromResponse(in_array($reason, ['rateLimitExceeded', 'userRateLimitExceeded'], true)
+                        ? 'provider_unavailable' : 'reconnect_required', $operation, $response);
                 }
 
                 return $response;
@@ -115,6 +130,6 @@ class GoogleCalendarClient
                 $this->refresh($connection);
             }
         }
-        throw new GoogleCalendarFailure('reconnect_required');
+        throw GoogleCalendarFailure::fromResponse('reconnect_required', $operation, $response);
     }
 }

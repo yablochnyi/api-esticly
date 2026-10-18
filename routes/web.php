@@ -11,6 +11,9 @@ use App\Http\Controllers\PublicShortLinkController;
 use App\Support\PublicLocale;
 use App\Support\PublicPageViewData;
 
+Route::get('/auth/otp-challenge/{challenge}', \App\Http\Controllers\OtpCaptchaController::class)
+    ->where('challenge', '[a-f0-9]{64}')->middleware('throttle:30,1');
+
 Route::get('/integrations/google-calendar/callback', [
     \App\Http\Controllers\Api\Mobile\GoogleCalendarController::class, 'callback',
 ])->middleware('throttle:30,1');

@@ -31,6 +31,7 @@ Artisan::command('calendar:sync', function () {
 Schedule::command('calendar:sync')->everyMinute()->withoutOverlapping();
 
 Schedule::command('billing:refresh-analytics')->hourly()->withoutOverlapping()->runInBackground();
+Schedule::command('billing:sync-google')->everyFifteenMinutes()->withoutOverlapping()->runInBackground();
 
 Artisan::command('reminders:send', function () {
     VisitReminders::run();

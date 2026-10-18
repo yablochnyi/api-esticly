@@ -8,7 +8,9 @@ use Carbon\CarbonImmutable;
 class OrgSubscription
 {
     public const TRIAL_DAYS = 7;
+
     public const PLAN_BASIC = 'basic';
+
     public const PLAN_PRO = 'pro';
 
     public static function registrationAt(User $org): ?CarbonImmutable
@@ -34,6 +36,12 @@ class OrgSubscription
 
     public static function hasActivePaidPlan(User $org): bool
     {
+        if ($org->subscription_provider === GooglePlaySubscriptions::PROVIDER) {
+            // Evaluate all known purchases at request time, including after Pro expires.
+            $effective = GooglePlaySubscriptions::effectiveForOrg($org);
+            $org->subscription_plan = $effective?->plan_code;
+            $org->subscription_ends_at = $effective?->ends_at;
+        }
         $plan = self::normalizePlan($org->subscription_plan);
         if ($plan === null || empty($org->subscription_ends_at)) {
             return false;
@@ -71,15 +79,26 @@ class OrgSubscription
     public static function status(User $org): array
     {
         $trialEndsAt = self::trialEndsAt($org);
+        $paidActive = self::hasActivePaidPlan($org);
         $subscriptionEndsAt = $org->subscription_ends_at ? CarbonImmutable::parse($org->subscription_ends_at) : null;
         $normalizedPlan = self::normalizePlan($org->subscription_plan);
-        $paidActive = self::hasActivePaidPlan($org);
         $trialActive = self::isTrialActive($org);
+        $currentSubscription = null;
+        if ($paidActive && $org->subscription_provider === GooglePlaySubscriptions::PROVIDER) {
+            $currentSubscription = GooglePlaySubscriptions::effectiveForOrg($org);
+        } elseif ($paidActive && $org->subscription_provider === AppStoreSubscriptions::PROVIDER) {
+            $currentSubscription = \App\Models\Subscription::where('user_id', $org->id)
+                ->where('provider', AppStoreSubscriptions::PROVIDER)
+                ->where('plan_code', $normalizedPlan)
+                ->whereIn('status', ['active', 'grace_period', 'cancelled'])
+                ->where('ends_at', '>', now())->orderByDesc('ends_at')->first();
+        }
 
         return [
             'registered_at' => self::registrationAt($org)?->toIso8601String(),
             'trial_ends_at' => $trialEndsAt?->toIso8601String(),
             'subscription_plan' => $normalizedPlan,
+            'subscription_product_id' => $currentSubscription?->product_id,
             'subscription_ends_at' => $subscriptionEndsAt?->toIso8601String(),
             'subscription_active' => $paidActive,
             'is_trial_active' => $trialActive,
